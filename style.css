@@ -1,0 +1,899 @@
+body {
+  background-color:#000000;
+  background-image:url(back.jpg);
+  background-repeat:no-repeat;
+  background-position:center 85px;
+  background-attachment:fixed;
+  font-family:Arial;
+  color:#993366;
+  font-size:13px;
+  text-align:center;
+  margin:0px; padding:0px;
+  min-width:1000px;
+  min-height:750px;
+}
+.body_gbook {
+  background-image:url();
+  min-width:0px;
+  min-height:0px;
+}
+.body_backend {
+  background-image:url();
+}
+
+b { font-size:13px; color:#FFFFFF; font-weight:bold; } /* default bold */
+i { font-size:13px; color:#993366; font-style:italic; } /* default italic */
+a:link { font-size:13px; color:#993366; text-decoration:none; }
+a:visited { font-size:13px; color:#993366; text-decoration:none; }
+a:active { font-size:13px; color:#993366; text-decoration:none; }
+div#blogbox a:link { font-size:11px; color:#993366; text-decoration:none; }
+div#blogbox a:visited { font-size:11px; color:#993366; text-decoration:none; }
+div#blogbox a:active { font-size:11px; color:#993366; text-decoration:none; }
+div#blogcomment a:link { font-size:11px; color:#662244; text-decoration:none; }
+div#blogcomment a:visited { font-size:11px; color:#662244; text-decoration:none; }
+div#blogcomment a:active { font-size:11px; color:#662244; text-decoration:none; }
+div#suggestion a:link { font-size:13px; color:#000000; text-decoration:none; }
+div#suggestion a:visited { font-size:13px; color:#000000; text-decoration:none; }
+div#suggestion a:active { font-size:13px; color:#000000; text-decoration:none; }
+footer a:link { font-size:11px; color:#331122; text-decoration:none; }
+footer a:visited { font-size:11px; color:#331122; text-decoration:none; }
+footer a:active { font-size:11px; color:#331122; text-decoration:none; }
+
+span#white a:link { font-size:13px; color:#FFFFFF; text-decoration:none; }
+span#white a:visited { font-size:13px; color:#FFFFFF; text-decoration:none; }
+span#white a:active { font-size:13px; color:#FFFFFF; text-decoration:none; }
+
+span#white {
+  font-size:13px;
+  color:#FFFFFF;
+}
+
+/* Tabelle */
+table {
+  font-size:13px;
+  text-align:center;
+  margin-left:auto;
+  margin-right:auto;
+  border-width:0px;
+  border-spacing:2px; /* default */
+}
+.tb_profil {
+  background-image:url(transpar.png);
+  text-align:left;
+  margin-top:1em;
+  margin-bottom:1em;
+  max-width:800px;
+  border-spacing:10px;
+}
+.tb_gallery {
+  background-image:url(transpar.png);
+  text-align:left;
+  margin-top:1em;
+  margin-bottom:1em;
+  max-width:800px;
+  border-spacing:10px;
+}
+.gbook {
+  text-align:left;
+  width:800px;
+  border-spacing:10px;
+}
+.backend {
+  text-align:left;
+  width:800px;
+  margin-top:1em;
+  margin-bottom:1em;
+  border-spacing:5px;
+}
+
+tr { background-color:transparent; }
+.farbig { background-color:#331122; }
+td {}
+.td_fotos { vertical-align:top; }
+.td_profil { vertical-align:top; padding-right:5px; width:25%; }
+.td_backend { vertical-align:top; padding-right:5px; width:15%; }
+
+/* imgage Platz+Rahmen */
+img {}
+.kante { border:1px solid #000000; }
+.kante_platz_25 { border:1px solid #000000; margin-top:25px; margin-bottom:25px; }
+.kante_platz_unten_25 { border:1px solid #000000; margin-bottom:25px; }
+.kante_platz_oben_100 { border:1px solid #000000; margin-top:100px; }
+.kante_platz_oben_5 { border:1px solid #000000; margin-top:5px; }
+.platz_oben_50 { border:0px; margin-top:50px; }
+.kantefarbig { border:2px solid #993366; margin:10px; }
+.noborder { border:0px; }
+
+div#fotos img { max-width:99%; height:auto; }
+
+ul {}
+.ul_backend { -webkit-column-count:4; -moz-column-count:4; column-count:4; }
+
+li {}
+.li_backend { list-style:none; }
+
+input[type=text] {}
+.size_4 { width:4.1em; }	/* { width:59px; }	table backend (foto) 2./3. spalte */
+.size_5 { width:4.75em; }	/* { width:67px; }	table gbook 2. spalte */
+.size_12 { width:9.45em; }	/* { width:123px; }	table backend (foto) 2. spalte */
+.size_16 { width:12.1em; }	/* { width:155px; }	table backend (user login, password, comment) 2. spalte, (profil) 1. spalte */
+.size_20 { width:14.75em; }	/* { width:187px; }	table gbook 1. spalte, blogquery, blog comment */
+.size_32 { width:22.75em; }	/* { width:283px; }	table backend (profil) 1. spalte, (admin, blog, comment, profil) 2. spalte, (foto) 3./4. spalte */
+.size_40 { width:28.1em; }	/* { width:347px; }	table backend (foto) 3. spalte */
+.size_96 { width:65.45em; }	/* { width:795px; }	table backend (profil) 2. spalte */
+.size_128 { width:86.75em; }	/* { width:1051px; }	table backend (home) 2. spalte */
+
+textarea {}
+.cols_40_rows_8 { width:24.6em; height:11.25em; }	/* { width:299px; height:137px; }	table gbook 2. spalte */
+.cols_60_rows_6 { width:36.25em; height:8.75em; }	/* { width:439px; height:107px; }	blog comment */
+.cols_96_rows_11 { width:57.25em; height:15em; }	/* { width:691px; height:182px; }	table backend (comment) 2. spalte */
+.cols_96_rows_22 { width:57.25em; height:28.75em; }	/* { width:691px; height:347px; }	table backend (blog) 2. spalte */
+
+video {
+  width:512px;
+  height:288px;
+  margin:10px;
+}
+
+/* Mitte */
+main {
+  text-align:left;
+  margin:5px auto;
+  width:1000px;
+  height:97%;
+  display:block; /* kein default */
+}
+
+/* 4 Bereiche im Haupt-Fenster */
+
+header {
+  text-align:center;
+  width:1000px;
+  height:65px;
+  overflow:hidden;
+}
+
+nav {
+  text-align:right;
+  width:1000px;
+  height:20px;
+  overflow:hidden;
+}
+
+aside {
+  float:left;
+  width:100px;
+  overflow:hidden;
+}
+
+section {
+  float:left;
+  width:900px;
+  overflow:hidden;
+}
+
+/* 4 Bereiche im Text-Fenster */
+
+div#home {
+  font-size:11px;
+  text-align:center;
+  width:900px;
+  overflow:auto;
+}
+
+div#profil {
+  text-align:center;
+  width:900px;
+  overflow:auto;
+}
+
+div#gallery {
+  text-align:center;
+  width:900px;
+  overflow:auto;
+}
+
+div#fotos {
+  float:left;
+  text-align:center;
+  color:#331122;
+  font-size:11px;
+  width:700px;
+  height:665px;
+  overflow:auto;
+}
+
+div#fotoleiste {
+  float:left;
+  text-align:center;
+  width:200px;
+  height:625px;
+  overflow:hidden;
+}
+
+div#fotoleistescroll {
+  float:left;
+  text-align:center;
+  width:200px;
+  height:20px;
+  overflow:hidden;
+}
+
+div#blog {
+  text-align:justify;
+  width:900px;
+  overflow:auto;
+}
+
+div#blog p {
+  clear:both; /* vorher left, blogtag */
+}
+
+/******************************* blogtag start ********************************/
+
+/* blogtag */
+div#blogtag {
+  float:right;
+  margin:0px 5px 1em 5px; /* 1em für <p> zwischen blogtag und ersten blogeintrag */
+  padding:0px;
+  max-width:600px;
+  border-bottom:2px solid #993366;
+}
+
+div#blogtag:after {
+  clear:right;
+  content:"";
+}
+
+/* blogtag - rubrik liste */
+div#blogtag ul {
+  text-align:center;
+  margin:0px; padding:0px;
+}
+
+/* blogtag - tag liste */
+div#blogtag ul ul {
+  background-color:transparent; /* wird durch background-color des links oder span ueberdeckt */
+  position:absolute;
+  top:19px;
+  left:5px;
+  margin:0px; padding:0px;
+  border:2px solid #993366;
+}
+
+/* blogtag - tag liste ausgeblendet */
+div#blogtag ul ul {
+  display:none;
+}
+
+/* blogtag - tag liste eingeblendet */
+div#blogtag ul li:hover ul {
+  display:block;
+}
+
+/* blogtag - listenpunkt */
+div#blogtag li {
+  float:left;
+  list-style:none;
+  position:relative;
+  margin:0px; padding:0px;
+  min-width:100px;
+}
+
+/* blogtag - rubrik listenpunkt */
+div#blogtag ul li {
+  background-color:#000000;
+  margin:2px;
+  padding:0px;
+  border:2px solid #993366;
+  border-bottom-style:none;
+}
+
+/* blogtag - tag listenpunkt */
+div#blogtag ul ul li {
+  float:none;
+  background-color:transparent; /* wird durch background-color des links oder span ueberdeckt */
+  margin:0px; padding:0px;
+  border:0px;
+  border-bottom:2px solid #993366;
+}
+
+/* blogtag - links, span */
+div#blogtag a, div#blogtag span {
+  text-decoration:none;
+  display:block;
+  margin:0px;
+  padding:2px;
+}
+
+/* blogtag - rubrik links */
+div#blogtag a {
+  background-color:#000000;
+  color:#993366;
+}
+
+/* blogtag - tag listenpunkt links */
+div#blogtag ul ul a {
+  background-color:#000000;
+  color:#993366;
+}
+
+/* blogtag - tag listenpunkt span */
+div#blogtag ul ul span {
+  background-color:#993366;
+  color:#FFFFFF;
+}
+
+/* blogtag - rubrik links aktiviert */
+div#blogtag a#aktiviert, div#blogtag a:focus, div#blogtag a:hover {
+  background-color:#993366;
+  color:#FFFFFF;
+}
+
+/* blogtag - tag listenpunkt links aktiviert */
+div#blogtag ul ul a:focus, div#blogtag ul ul a:hover {
+  background-color:#993366;
+  color:#FFFFFF;
+}
+
+/* blogtag - mobile version, checkbox immer ausgeblendet */
+input.checkbox_hack {
+  display:none;
+}
+
+/* blogtag - mobile version, symbol bei bedarf einblenden */
+label.more {
+  background-color:#331122;
+  display:none;
+  margin:0px; padding:0px 2px;
+}
+
+/******************************** blogtag end *********************************/
+
+div#blogfoto {
+  float:left;
+}
+
+div#blogfoto div {
+  display:none;
+}
+
+div#blogfoto:hover div {
+  display:block;
+  position:fixed;
+  top:100px;
+  right:200px;
+  box-shadow:2px 2px 1024px #000000;
+  z-index:101;
+}
+
+div#blogcomment {
+  text-align:right;
+}
+
+div#blogquery {
+  position:relative;
+  text-align:right;
+  float:right; /* blogtag */
+}
+
+div#suggestion {
+  background-color:#FFFFFF;
+  color:#000000;
+  position:absolute;
+  right:70px;
+  text-align:left;
+  width:180px;
+  max-height:90px;
+  border:1px solid #000000;
+  overflow:auto;
+  z-index:100;
+}
+
+div#blogbox {
+  text-align:justify;
+  color:#331122;
+  font-size:11px;
+  margin-top:50px;
+  width:80px;
+  overflow:hidden;
+}
+
+footer {
+  clear:left;
+  color:#331122;
+  font-size:11px;
+}
+
+/* gbook */
+div#input_country { display:none; }
+/* comment */
+div#input_website { display:none; }
+
+/* m??-device-width: */
+/* viewport 320x480, 320x533, 320x568/9, 360x598, 360x640 */
+/* 480x800, 600/1/2/3x960/1/2/3 */
+
+@media only screen and (max-device-width:320px) and (orientation:portrait) {
+	body { background-image:url(); font-size:16px; min-width:0px; min-height:0px; }
+	b, i { font-size:16px; }
+	a:link, a:visited, a:active { font-size:16px; }
+	div#blogbox a:link, div#blogbox a:visited, div#blogbox a:active { font-size:13px; }
+	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:13px; }
+        div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:16px; }
+	footer a:link, footer a:visited, footer a:active { font-size:13px; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:16px; }
+	table { font-size:16px; }
+	.tb_profil { max-width:300px; }
+	.tb_gallery { max-width:300px; }
+	.gbook { width:300px; }
+	.backend { width:300px; }
+	input[type=text] {}
+	.size_40 { width:13.8em; }
+	.size_96 { width:24.2em; }
+	textarea {}
+	.cols_60_rows_6 { width:26.25em; height:8.75em; }
+	.cols_96_rows_11 { width:24.7em; height:15em; }
+	.cols_96_rows_22 { width:24.7em; height:28.75em; }
+	main, header { width:320px; }
+	header img { width:100%; height:auto; }
+	nav { width:320px; height:24px; }
+	aside { display:none; }
+	section, div#profil, div#gallery, div#blog { width:320px; }
+	video { width:288px; height:162px; }
+        div#blog select { max-width:320px; }
+        div#gallery img { width:100%; height:auto; }
+	div#home { font-size:13px; width:320px; }
+	div#fotos { font-size:13px; width:220px; min-height:90%; }
+	div#fotos img { max-width:100%; height:auto; }
+	div#fotoleiste { width:100px; height:80%; }
+	div#fotoleiste img { width:80%; height:auto; }
+	div#fotoleistescroll { width:100px; height:10%; }
+	div#blogbox, footer { font-size:13px; }
+	/******************************* blogtag start ********************************/
+	label.more { display:inline; }
+	div#blogtag { margin:2px 5px 1em 5px; max-width:160px; border:0px; }
+	div#blogtag ul { background-color:#000000; text-align:left; /*display:none;*/ list-style:none; position:absolute; margin:2px; padding:2px; border:2px solid #993366; }
+	div#blogtag ul ul { background-color:#000000; position:relative; top:0px; left:15px; border:0px; }
+	div#blogtag ul ul { display:inline; }
+	div#blogtag ul li { clear:left; margin:0px 15px 0px 0px; padding:0px; border:0px; }
+	div#blogtag ul ul li { background-color:#000000; border-bottom:0px; }
+	input.more:checked ~ ul { /*display:inline;*/ display:none; }
+	/******************************** blogtag end *********************************/
+}
+
+@media only screen and (min-device-width:321px) and (max-device-width:360px) and (orientation:portrait) {
+	body { background-image:url(); font-size:16px; min-width:0px; min-height:0px; }
+	b, i { font-size:16px; }
+	a:link, a:visited, a:active { font-size:16px; }
+	div#blogbox a:link, div#blogbox a:visited, div#blogbox a:active { font-size:13px; }
+	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:13px; }
+        div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:16px; }
+	footer a:link, footer a:visited, footer a:active { font-size:13px; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:16px; }
+	table { font-size:16px; }
+	.tb_profil { max-width:340px; }
+	.tb_gallery { max-width:340px; }
+	.gbook { width:340px; }
+	.backend { width:340px; }
+	input[type=text] {}
+	.size_40 { width:17.2em; }
+	.size_96 { width:27.5em; }
+	textarea {}
+	.cols_60_rows_6 { width:29.7em; height:8.75em; }
+	.cols_96_rows_11 { width:28em; height:15.1em; }
+	.cols_96_rows_22 { width:28em; height:28.75em; }
+	main, header { width:360px; }
+	header img { width:100%; height:auto; }
+	nav { width:360px; height:24px; }
+	aside { display:none; }
+	section, div#profil, div#gallery, div#blog { width:360px; }
+	video { width:320px; height:180px; }
+        div#blog select { max-width:360px; }
+        div#gallery img { width:100%; height:auto; }
+	div#home { font-size:13px; width:360px; }
+	div#fotos { font-size:13px; width:260px; min-height:90%; }
+	div#fotos img { max-width:100%; height:auto; }
+	div#fotoleiste { width:100px; height:80%; }
+	div#fotoleiste img { width:80%; height:auto; }
+	div#fotoleistescroll { width:100px; height:10%; }
+	div#blogbox, footer { font-size:13px; }
+	/******************************* blogtag start ********************************/
+	label.more { display:inline; }
+	div#blogtag { margin:2px 5px 1em 5px; max-width:160px; border:0px; }
+	div#blogtag ul { background-color:#000000; text-align:left; /*display:none;*/ list-style:none; position:absolute; margin:2px; padding:2px; border:2px solid #993366; }
+	div#blogtag ul ul { background-color:#000000; position:relative; top:0px; left:15px; border:0px; }
+	div#blogtag ul ul { display:inline; }
+	div#blogtag ul li { clear:left; margin:0px 15px 0px 0px; padding:0px; border:0px; }
+	div#blogtag ul ul li { background-color:#000000; border-bottom:0px; }
+	input.more:checked ~ ul { /*display:inline;*/ display:none; }
+	/******************************** blogtag end *********************************/
+}
+
+@media only screen and (min-device-width:361px) and (max-device-width:480px) and (orientation:portrait) {
+	body { background-image:url(); font-size:16px; min-width:0px; min-height:0px; }
+	b, i { font-size:16px; }
+	a:link, a:visited, a:active { font-size:16px; }
+	div#blogbox a:link, div#blogbox a:visited, div#blogbox a:active { font-size:13px; }
+	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:13px; }
+        div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:16px; }
+	footer a:link, footer a:visited, footer a:active { font-size:13px; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:16px; }
+	table { font-size:16px; }
+	.tb_profil { max-width:360px; }
+	.tb_gallery { max-width:360px; }
+	.gbook { width:460px; }
+	.backend { width:460px; }
+	input[type=text] {}
+	.size_40 { width:27.2em; }
+	.size_96 { width:37.5em; }
+	textarea {}
+	.cols_60_rows_6 { width:31.25em; height:8.7em; }
+	.cols_96_rows_11 { width:38em; height:15em; }
+	.cols_96_rows_22 { width:38em; height:28.75em; }
+	main, header { width:480px; }
+	header img { width:100%; height:auto; }
+	nav { width:480px; height:24px; }
+	section, div#profil, div#gallery, div#blog { width:380px; }
+	video { width:352px; height:198px; }
+        div#blog select { max-width:380px; }
+        div#gallery img { width:100%; height:auto; }
+	div#home { font-size:13px; width:380px; }
+	div#fotos { font-size:13px; width:280px; min-height:90%; }
+	div#fotos img { max-width:100%; height:auto; }
+	div#fotoleiste { width:100px; height:80%; }
+	div#fotoleiste img { width:80%; height:auto; }
+	div#fotoleistescroll { width:100px; height:10%; }
+	div#blogbox, footer { font-size:13px; }
+	/******************************* blogtag start ********************************/
+	label.more { display:inline; }
+	div#blogtag { margin:2px 5px 1em 5px; max-width:160px; border:0px; }
+	div#blogtag ul { background-color:#000000; text-align:left; /*display:none;*/ list-style:none; position:absolute; margin:2px; padding:2px; border:2px solid #993366; }
+	div#blogtag ul ul { background-color:#000000; position:relative; top:0px; left:15px; border:0px; }
+	div#blogtag ul ul { display:inline; }
+	div#blogtag ul li { clear:left; margin:0px 15px 0px 0px; padding:0px; border:0px; }
+	div#blogtag ul ul li { background-color:#000000; border-bottom:0px; }
+	input.more:checked ~ ul { /*display:inline;*/ display:none; }
+	/******************************** blogtag end *********************************/
+}
+
+@media only screen and (min-device-width:481px) and (max-device-width:603px) and (orientation:portrait) {
+	body { background-image:url(); font-size:16px; min-width:0px; min-height:0px; }
+	b, i { font-size:16px; }
+	a:link, a:visited, a:active { font-size:16px; }
+	div#blogbox a:link, div#blogbox a:visited, div#blogbox a:active { font-size:13px; }
+	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:13px; }
+        div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:16px; }
+	footer a:link, footer a:visited, footer a:active { font-size:13px; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:16px; }
+	table { font-size:16px; }
+	.tb_profil { max-width:480px; }
+	.tb_gallery { max-width:480px; }
+	.gbook { width:580px; }
+	.backend { width:580px; }
+	input[type=text] {}
+	.size_96 { width:47.5em; }
+	textarea {}
+	.cols_96_rows_11 { width:48em; height:15em; }
+	.cols_96_rows_22 { width:48em; height:28.75em; }
+	main, header { width:600px; }
+	header img { width:100%; height:auto; }
+	nav { width:600px; height:24px; }
+	section, div#profil, div#gallery, div#blog { width:500px; }
+	video { width:480px; height:270px; }
+        div#blog select { max-width:500px; }
+        div#gallery img { width:100%; height:auto; }
+	div#home { font-size:13px; width:500px; }
+	div#fotos { font-size:13px; width:400px; min-height:90%; }
+	div#fotos img { max-width:100%; height:auto; }
+	div#fotoleiste { width:100px; height:80%; }
+	div#fotoleiste img { width:80%; height:auto; }
+	div#fotoleistescroll { width:100px; height:10%; }
+	div#blogbox, footer { font-size:13px; }
+	/******************************* blogtag start ********************************/
+	label.more { display:inline; }
+	div#blogtag { margin:2px 5px 1em 5px; max-width:160px; border:0px; }
+	div#blogtag ul { background-color:#000000; text-align:left; /*display:none;*/ list-style:none; position:absolute; margin:2px; padding:2px; border:2px solid #993366; }
+	div#blogtag ul ul { background-color:#000000; position:relative; top:0px; left:15px; border:0px; }
+	div#blogtag ul ul { display:inline; }
+	div#blogtag ul li { clear:left; margin:0px 15px 0px 0px; padding:0px; border:0px; }
+	div#blogtag ul ul li { background-color:#000000; border-bottom:0px; }
+	input.more:checked ~ ul { /*display:inline;*/ display:none; }
+	/******************************** blogtag end *********************************/
+}
+
+@media only screen and (max-device-width:480px) and (orientation:landscape) {
+	body { background-image:url(); font-size:16px; min-width:0px; min-height:0px; }
+	b, i { font-size:16px; }
+	a:link, a:visited, a:active { font-size:16px; }
+	div#blogbox a:link, div#blogbox a:visited, div#blogbox a:active { font-size:13px; }
+	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:13px; }
+        div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:16px; }
+	footer a:link, footer a:visited, footer a:active { font-size:13px; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:16px; }
+	table { font-size:16px; }
+	.tb_profil { max-width:360px; }
+	.tb_gallery { max-width:360px; }
+	.gbook { width:460px; }
+	.backend { width:460px; }
+	input[type=text] {}
+	.size_40 { width:27.2em; }
+	.size_96 { width:37.5em; }
+	textarea {}
+	.cols_60_rows_6 { width:31.25em; height:8.7em; }
+	.cols_96_rows_11 { width:38em; height:15em; }
+	.cols_96_rows_22 { width:38em; height:28.75em; }
+	main, header { width:480px; }
+	header img { width:100%; height:auto; }
+	nav { width:480px; height:24px; }
+	section, div#profil, div#gallery, div#blog { width:380px; }
+	video { width:256px; height:144px; }
+        div#blog select { max-width:380px; }
+        div#gallery img { width:100%; height:auto; }
+	div#home { font-size:13px; width:380px; }
+	div#fotos { font-size:13px; width:280px; min-height:90%; }
+	div#fotos img { max-width:100%; height:auto; }
+	div#fotoleiste { width:100px; height:80%; }
+	div#fotoleiste img { width:80%; height:auto; }
+	div#fotoleistescroll { width:100px; height:10%; }
+	div#blogbox, footer { font-size:13px; }
+	/******************************* blogtag start ********************************/
+	label.more { display:inline; }
+	div#blogtag { margin:2px 5px 1em 5px; max-width:160px; border:0px; }
+	div#blogtag ul { background-color:#000000; text-align:left; /*display:none;*/ list-style:none; position:absolute; margin:2px; padding:2px; border:2px solid #993366; }
+	div#blogtag ul ul { background-color:#000000; position:relative; top:0px; left:15px; border:0px; }
+	div#blogtag ul ul { display:inline; }
+	div#blogtag ul li { clear:left; margin:0px 15px 0px 0px; padding:0px; border:0px; }
+	div#blogtag ul ul li { background-color:#000000; border-bottom:0px; }
+	input.more:checked ~ ul { /*display:inline;*/ display:none; }
+	/******************************** blogtag end *********************************/
+}
+
+@media only screen and (min-device-width:481px) and (max-device-width:533px) and (orientation:landscape) {
+	body { background-image:url(); font-size:16px; min-width:0px; min-height:0px; }
+	b, i { font-size:16px; }
+	a:link, a:visited, a:active { font-size:16px; }
+	div#blogbox a:link, div#blogbox a:visited, div#blogbox a:active { font-size:13px; }
+	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:13px; }
+        div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:16px; }
+	footer a:link, footer a:visited, footer a:active { font-size:13px; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:16px; }
+	table { font-size:16px; }
+	.tb_profil { max-width:413px; }
+	.tb_gallery { max-width:413px; }
+	.gbook { width:513px; }
+	.backend { width:513px; }
+	input[type=text] {}
+	.size_96 { width:41.8em; }
+	textarea {}
+	.cols_60_rows_6 { width:35.7em; height:8.75em; }
+	.cols_96_rows_11 { width:42.3em; height:15.1em; }
+	.cols_96_rows_22 { width:42.3em; height:28.75em; }
+	main, header { width:533px; }
+	header img { width:100%; height:auto; }
+	nav { width:533px; height:24px; }
+	section, div#profil, div#gallery, div#blog { width:433px; }
+	video { width:288px; height:162px; }
+        div#blog select { max-width:433px; }
+        div#gallery img { width:100%; height:auto; }
+	div#home { font-size:13px; width:433px; }
+	div#fotos { font-size:13px; width:333px; min-height:90%; }
+	div#fotos img { max-width:100%; height:auto; }
+	div#fotoleiste { width:100px; height:80%; }
+	div#fotoleiste img { width:80%; height:auto; }
+	div#fotoleistescroll { width:100px; height:10%; }
+	div#blogbox, footer { font-size:13px; }
+	/******************************* blogtag start ********************************/
+	label.more { display:inline; }
+	div#blogtag { margin:2px 5px 1em 5px; max-width:160px; border:0px; }
+	div#blogtag ul { background-color:#000000; text-align:left; /*display:none;*/ list-style:none; position:absolute; margin:2px; padding:2px; border:2px solid #993366; }
+	div#blogtag ul ul { background-color:#000000; position:relative; top:0px; left:15px; border:0px; }
+	div#blogtag ul ul { display:inline; }
+	div#blogtag ul li { clear:left; margin:0px 15px 0px 0px; padding:0px; border:0px; }
+	div#blogtag ul ul li { background-color:#000000; border-bottom:0px; }
+	input.more:checked ~ ul { /*display:inline;*/ display:none; }
+	/******************************** blogtag end *********************************/
+}
+
+@media only screen and (min-device-width:534px) and (max-device-width:568px) and (orientation:landscape) {
+	body { background-image:url(); font-size:16px; min-width:0px; min-height:0px; }
+	b, i { font-size:16px; }
+	a:link, a:visited, a:active { font-size:16px; }
+	div#blogbox a:link, div#blogbox a:visited, div#blogbox a:active { font-size:13px; }
+	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:13px; }
+        div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:16px; }
+	footer a:link, footer a:visited, footer a:active { font-size:13px; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:16px; }
+	table { font-size:16px; }
+	.tb_profil { max-width:448px; }
+	.tb_gallery { max-width:448px; }
+	.gbook { width:548px; }
+	.backend { width:548px; }
+	input[type=text] {}
+	.size_96 { width:44.75em; }
+	textarea {}
+	.cols_96_rows_11 { width:45.25em; height:15em; }
+	.cols_96_rows_22 { width:45.25em; height:28.75em; }
+	main, header { width:568px; }
+	header img { width:100%; height:auto; }
+	nav { width:568px; height:24px; }
+	section, div#profil, div#gallery, div#blog { width:468px; }
+	video { width:288px; height:162px; }
+        div#blog select { max-width:468px; }
+        div#gallery img { width:100%; height:auto; }
+	div#home { font-size:13px; width:468px; }
+	div#fotos { font-size:13px; width:368px; min-height:90%; }
+	div#fotos img { max-width:100%; height:auto; }
+	div#fotoleiste { width:100px; height:80%; }
+	div#fotoleiste img { width:80%; height:auto; }
+	div#fotoleistescroll { width:100px; height:10%; }
+	div#blogbox, footer { font-size:13px; }
+	/******************************* blogtag start ********************************/
+	label.more { display:inline; }
+	div#blogtag { margin:2px 5px 1em 5px; max-width:160px; border:0px; }
+	div#blogtag ul { background-color:#000000; text-align:left; /*display:none;*/ list-style:none; position:absolute; margin:2px; padding:2px; border:2px solid #993366; }
+	div#blogtag ul ul { background-color:#000000; position:relative; top:0px; left:15px; border:0px; }
+	div#blogtag ul ul { display:inline; }
+	div#blogtag ul li { clear:left; margin:0px 15px 0px 0px; padding:0px; border:0px; }
+	div#blogtag ul ul li { background-color:#000000; border-bottom:0px; }
+	input.more:checked ~ ul { /*display:inline;*/ display:none; }
+	/******************************** blogtag end *********************************/
+}
+
+@media only screen and (min-device-width:569px) and (max-device-width:598px) and (orientation:landscape) {
+	body { background-image:url(); font-size:16px; min-width:0px; min-height:0px; }
+	b, i { font-size:16px; }
+	a:link, a:visited, a:active { font-size:16px; }
+	div#blogbox a:link, div#blogbox a:visited, div#blogbox a:active { font-size:13px; }
+	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:13px; }
+        div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:16px; }
+	footer a:link, footer a:visited, footer a:active { font-size:13px; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:16px; }
+	table { font-size:16px; }
+	.tb_profil { max-width:478px; }
+	.tb_gallery { max-width:478px; }
+	.gbook { width:578px; }
+	.backend { width:578px; }
+	input[type=text] {}
+	.size_96 { width:47.25em; }
+	textarea {}
+	.cols_96_rows_11 { width:47.75em; height:15.1em; }
+	.cols_96_rows_22 { width:47.75em; height:28.75em; }
+	main, header { width:598px; }
+	header img { width:100%; height:auto; }
+	nav { width:598px; height:24px; }
+	section, div#profil, div#gallery, div#blog { width:498px; }
+	video { width:320px; height:180px; }
+        div#blog select { max-width:498px; }
+        div#gallery img { width:100%; height:auto; }
+	div#home { font-size:13px; width:498px; }
+	div#fotos { font-size:13px; width:398px; min-height:90%; }
+	div#fotos img { max-width:100%; height:auto; }
+	div#fotoleiste { width:100px; height:80%; }
+	div#fotoleiste img { width:80%; height:auto; }
+	div#fotoleistescroll { width:100px; height:10%; }
+	div#blogbox, footer { font-size:13px; }
+	/******************************* blogtag start ********************************/
+	label.more { display:inline; }
+	div#blogtag { margin:2px 5px 1em 5px; max-width:160px; border:0px; }
+	div#blogtag ul { background-color:#000000; text-align:left; /*display:none;*/ list-style:none; position:absolute; margin:2px; padding:2px; border:2px solid #993366; }
+	div#blogtag ul ul { background-color:#000000; position:relative; top:0px; left:15px; border:0px; }
+	div#blogtag ul ul { display:inline; }
+	div#blogtag ul li { clear:left; margin:0px 15px 0px 0px; padding:0px; border:0px; }
+	div#blogtag ul ul li { background-color:#000000; border-bottom:0px; }
+	input.more:checked ~ ul { /*display:inline;*/ display:none; }
+	/******************************** blogtag end *********************************/
+}
+
+@media only screen and (min-device-width:599px) and (max-device-width:640px) and (orientation:landscape) {
+	body { background-image:url(); font-size:16px; min-width:0px; min-height:0px; }
+	b, i { font-size:16px; }
+	a:link, a:visited, a:active { font-size:16px; }
+	div#blogbox a:link, div#blogbox a:visited, div#blogbox a:active { font-size:13px; }
+	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:13px; }
+        div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:16px; }
+	footer a:link, footer a:visited, footer a:active { font-size:13px; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:16px; }
+	table { font-size:16px; }
+	.tb_profil { max-width:520px; }
+	.tb_gallery { max-width:520px; }
+	.gbook { width:620px; }
+	.backend { width:620px; }
+	input[type=text] {}
+	.size_96 { width:50.75em; }
+	textarea {}
+	.cols_96_rows_11 { width:51.25em; height:15.1em; }
+	.cols_96_rows_22 { width:51.25em; height:28.75em; }
+	main, header { width:640px; }
+	header img { width:100%; height:auto; }
+	nav { width:640px; height:24px; }
+	section, div#profil, div#gallery, div#blog { width:540px; }
+	video { width:352px; height:198px; }
+        div#blog select { max-width:540px; }
+        div#gallery img { width:100%; height:auto; }
+	div#home { font-size:13px; width:540px; }
+	div#fotos { font-size:13px; width:440px; min-height:90%; }
+	div#fotos img { max-width:100%; height:auto; }
+	div#fotoleiste { width:100px; height:80%; }
+	div#fotoleiste img { width:80%; height:auto; }
+	div#fotoleistescroll { width:100px; height:10%; }
+	div#blogbox, footer { font-size:13px; }
+	/******************************* blogtag start ********************************/
+	label.more { display:inline; }
+	div#blogtag { margin:2px 5px 1em 5px; max-width:160px; border:0px; }
+	div#blogtag ul { background-color:#000000; text-align:left; /*display:none;*/ list-style:none; position:absolute; margin:2px; padding:2px; border:2px solid #993366; }
+	div#blogtag ul ul { background-color:#000000; position:relative; top:0px; left:15px; border:0px; }
+	div#blogtag ul ul { display:inline; }
+	div#blogtag ul li { clear:left; margin:0px 15px 0px 0px; padding:0px; border:0px; }
+	div#blogtag ul ul li { background-color:#000000; border-bottom:0px; }
+	input.more:checked ~ ul { /*display:inline;*/ display:none; }
+	/******************************** blogtag end *********************************/
+}
+
+@media only screen and (min-device-width:641px) and (max-device-width:800px) and (orientation:landscape) {
+	body { font-size:16px; min-width:0px; min-height:0px; }
+	b, i { font-size:16px; }
+	a:link, a:visited, a:active { font-size:16px; }
+	div#blogbox a:link, div#blogbox a:visited, div#blogbox a:active { font-size:13px; }
+	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:13px; }
+        div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:16px; }
+	footer a:link, footer a:visited, footer a:active { font-size:13px; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:16px; }
+	table { font-size:16px; }
+	main, header { width:800px; }
+	nav { width:800px; height:24px; }
+	section, div#profil, div#gallery, div#blog { width:700px; }
+	video { width:448px; height:252px; }
+        div#gallery img { width:100%; height:auto; }
+	div#home { font-size:13px; width:700px; }
+	div#fotos { font-size:13px; width:600px; min-height:90%; }
+	div#fotos img { max-width:100%; height:auto; }
+	div#fotoleiste { width:100px; height:80%; }
+	div#fotoleiste img { width:80%; height:auto; }
+	div#fotoleistescroll { width:100px; height:10%; }
+	div#blogbox, footer { font-size:13px; }
+	/******************************* blogtag start ********************************/
+	label.more { display:inline; }
+	div#blogtag { margin:2px 5px 1em 5px; max-width:160px; border:0px; }
+	div#blogtag ul { background-color:#000000; text-align:left; /*display:none;*/ list-style:none; position:absolute; margin:2px; padding:2px; border:2px solid #993366; }
+	div#blogtag ul ul { background-color:#000000; position:relative; top:0px; left:15px; border:0px; }
+	div#blogtag ul ul { display:inline; }
+	div#blogtag ul li { clear:left; margin:0px 15px 0px 0px; padding:0px; border:0px; }
+	div#blogtag ul ul li { background-color:#000000; border-bottom:0px; }
+	input.more:checked ~ ul { /*display:inline;*/ display:none; }
+	/******************************** blogtag end *********************************/
+}
+
+@media only screen and (min-device-width:801px) and (max-device-width:963px) and (orientation:landscape) {
+	body { font-size:16px; min-width:0px; min-height:0px; }
+	b, i { font-size:16px; }
+	a:link, a:visited, a:active { font-size:16px; }
+	div#blogbox a:link, div#blogbox a:visited, div#blogbox a:active { font-size:13px; }
+	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:13px; }
+        div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:16px; }
+	footer a:link, footer a:visited, footer a:active { font-size:13px; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:16px; }
+	table { font-size:16px; }
+	main, header { width:960px; }
+	nav { width:960px; height:24px; }
+	section, div#profil, div#gallery, div#blog { width:860px; }
+	video { width:512px; height:288px; }
+        div#gallery img { width:100%; height:auto; }
+	div#home { font-size:13px; width:860px; }
+	div#fotos { font-size:13px; width:760px; min-height:90%; }
+	div#fotos img { max-width:100%; height:auto; }
+	div#fotoleiste { width:100px; height:80%; }
+	div#fotoleiste img { width:80%; height:auto; }
+	div#fotoleistescroll { width:100px; height:10%; }
+	div#blogbox, footer { font-size:13px; }
+	/******************************* blogtag start ********************************/
+	label.more { display:inline; }
+	div#blogtag { margin:2px 5px 1em 5px; max-width:160px; border:0px; }
+	div#blogtag ul { background-color:#000000; text-align:left; /*display:none;*/ list-style:none; position:absolute; margin:2px; padding:2px; border:2px solid #993366; }
+	div#blogtag ul ul { background-color:#000000; position:relative; top:0px; left:15px; border:0px; }
+	div#blogtag ul ul { display:inline; }
+	div#blogtag ul li { clear:left; margin:0px 15px 0px 0px; padding:0px; border:0px; }
+	div#blogtag ul ul li { background-color:#000000; border-bottom:0px; }
+	input.more:checked ~ ul { /*display:inline;*/ display:none; }
+	/******************************** blogtag end *********************************/
+}

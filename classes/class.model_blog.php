@@ -1,0 +1,921 @@
+<?php
+
+// *****************************************************************************
+// * model - blog
+// *****************************************************************************
+
+define("STATE_PUBLISHED",3);
+define("MB_ENCODING","UTF-8");
+
+class Blog extends Model {
+
+  // variablen
+  private static $anzahl_eps = 20;	// anzahl einträge pro seite
+  private static $anzahl_cps = 20;	// anzahl kommentare pro seite
+
+  // ersetze links im blogtext [|] mit html links <a>
+  public function html_link($text_str, $option, $encoding="UTF-8") {
+    for ($start=0; mb_strpos($text_str,"[",$start,$encoding); $start++) {
+      $start= mb_strpos($text_str,"[",$start,$encoding);
+      $stop = mb_strpos($text_str,"]",$start,$encoding);
+      $link = explode("|", mb_substr($text_str, $start+1, $stop-$start-1, $encoding));
+      if (count($link) == 2 AND $option == 1) {
+        $link_str = "<a href=\"".$link[0]."\">".$link[1]."</a>";
+      }
+      elseif (count($link) == 1 AND $option == 1) {
+        $link_str = "<a href=\"".$link[0]."\">".$link[0]."</a>";
+      }
+      elseif (count($link) == 2 AND $option == 0) {
+        $link_str = $link[1];
+      }
+      elseif (count($link) == 1 AND $option == 0) {
+        $link_str = $link[0];
+      }
+      else {
+        $link_str = "";
+      }
+      $text_str = mb_substr($text_str, 0, $start, $encoding).$link_str.mb_substr($text_str, $stop+1, NULL, $encoding);
+      // mb_substr_replace($text_str, $link_str, $start, $stop-$start+1);
+    }
+    return $text_str;
+  }
+
+  // ausgabe komplette blogzeile
+  private function blog_line($datensatz, &$option_array, &$blog_comment_id_array, $parameter_str) {
+
+    $datum = stripslashes($this->html5specialchars($datensatz["ba_date"]));
+    $blogtext = stripslashes($this->html_link(nl2br($this->html5specialchars($datensatz["ba_text"])),1));
+
+    // blog id für anker
+    $jahr   = substr($datum, 6, 2);
+    $monat  = substr($datum, 3, 2);
+    $tag    = substr($datum, 0, 2);
+    $stunde = substr($datum, 11, 2);
+    $minute = substr($datum, 14, 2);
+    $jmtsm = "20".$jahr.$monat.$tag.$stunde.$minute."00";
+
+    $ersetzen = "<p><a name=\"".$jmtsm."\"></a><b>[".$datum."]</b> ".$blogtext."</p>\n";
+
+    // optional videos in blog
+    if (function_exists("finfo_open")) {
+
+      $finfo = finfo_open(FILEINFO_MIME_TYPE);	// resource für rückgabe mime type
+      if ($finfo and strlen($datensatz["ba_videoid"]) > 0) {
+        $videoid_array = explode(",",$datensatz["ba_videoid"]);
+        foreach ($videoid_array as $videoid) {
+          $videoname = "video/".$videoid.".mp4";
+          $mimetype = finfo_file($finfo, $videoname);
+          if (is_readable($videoname) and $mimetype == "video/mp4") {
+            $ersetzen .= "<p>\n".
+                         "<video controls=\"\">\n".
+                         "<source src=\"".$videoname."\" type=\"video/mp4\">\n".
+                         "Your browser does not support the video tag.\n".
+                         "</video>\n".
+                         "</p>\n";
+          } // if mimetype
+        } // foreach
+        finfo_close($finfo);
+      } // $finfo
+
+    } // module fileinfo
+
+    // optional fotos in blog
+    if (strlen($datensatz["ba_fotoid"]) > 0) {
+      $fotoid_array = explode(",",$datensatz["ba_fotoid"]);
+      foreach ($fotoid_array as $fotoid) {
+        $imagename = "jpeg/".$fotoid.".jpg";
+        $imagenamea = "jpeg/".$fotoid."a.jpg";
+        if (is_readable($imagename) and is_readable($imagenamea)) {
+          $imagesize = getimagesize($imagename);
+          $imagesizea = getimagesize($imagenamea);
+          $ersetzen .= "<div id=\"blogfoto\">\n";
+          $ersetzen .= "<a href=\"".$imagename."\"><img class=\"kantefarbig\" src=\"".$imagenamea."\" ".$imagesizea[3]."></a>\n";
+          $ersetzen .= "<div><img src=\"".$imagename."\" ".$imagesize[3]."></div>\n";
+          $ersetzen .= "</div>\n";
+        }
+      }
+    }
+
+    $blogid = $datensatz["ba_id"];
+    $option_array[$blogid] = "[".$datum."] ".mb_substr($blogtext, 0, 40, MB_ENCODING)."...";	// für select option in kommentar formular, substr problem bei trennung umlaute
+
+    // optional link zu kommentar mit comment-id
+    if (array_key_exists($blogid, $blog_comment_id_array)) {
+      $ersetzen .= "<div id=\"blogcomment\"><a href=\"index.php?action=blog".$parameter_str."#comment".$blog_comment_id_array[$blogid]."\">Kommentar</a></div>";
+    }
+
+    return $ersetzen;
+  }
+
+  // GET page auslesen
+  private function getPage(&$page, $anzahl_s) {
+    if (isset($page) and is_numeric($page)) {
+      // page als zahl vorhanden und nicht NULL
+
+      // page eingrenzen
+      if  ($page < 1) {
+        $page = 1;
+      }
+      elseif ($page > $anzahl_s) {
+        $page = $anzahl_s;
+      }
+
+      return true;
+    }
+    return false;
+  }
+
+  // seitenauswahl mit links und vor/zurück
+  private function seitenauswahl($anzahl_s, $page, $vz_flag=true, $eq_flag=true, $param_1="&page=", $param_2="") {
+    $ersetzen = "<p>\n";
+
+    if ($page > 1 and $vz_flag == true) {
+      $i = $page - 1;
+      $ersetzen .= "<a href=\"index.php?action=blog".$param_1.$i.$param_2."\">prev</a> \n";	// zurück
+    }
+
+    for ($i=1; $i<=$anzahl_s; $i++) {								// seitenauswahl
+      if ($i == $page and $eq_flag == true) {
+        $ersetzen .= $i." \n";
+      }
+      else {
+        $ersetzen .= "<a href=\"index.php?action=blog".$param_1.$i.$param_2."\">".$i."</a> \n";
+      }
+    }
+
+    if ($page < $anzahl_s and $vz_flag == true) {
+      $i = $page + 1;
+      $ersetzen .= "<a href=\"index.php?action=blog".$param_1.$i.$param_2."\">next</a>\n";	// vor
+    }
+
+    $ersetzen .= "</p>\n";
+    return $ersetzen;
+  }
+
+  // liste mit tags
+  private function tagliste($tag, $tags_from_db) {
+    $ersetzen = "<p>\n";
+
+    // array für tags
+    $tags = array();
+
+    foreach ($tags_from_db as $tag_data) {
+      // tags trennen
+      $split_array = preg_split("/\s*[:,;]+\s*|^\s+|\s+$/", $tag_data, 0, PREG_SPLIT_NO_EMPTY);	// preg split liefert 1 array mit allen tags aus der tag_data zeile
+      foreach ($split_array as $tag_str) {
+        $tags[] = $tag_str;
+      }
+    }
+
+    // tags zählen und als array mit tag => anzahl zurückgeben
+    $tag_arr = array_count_values($tags);
+
+    // links tag (einträge)
+    $i = 1;
+    $total = count(array_keys($tag_arr));
+    foreach ($tag_arr as $tag_key => $entries) {
+      $tag_key_html = stripslashes($this->html5specialchars($tag_key));
+
+      if (mb_strtolower($tag_key, MB_ENCODING) == mb_strtolower($tag, MB_ENCODING)) {
+        // tag GET
+        $ersetzen .= $tag_key_html." (".$entries.")";
+      }
+      else {
+        // (alt)     "<a href=\"index.php?action=blog&tag=".rawurlencode(mb_strtolower($tag_key, MB_ENCODING))."\">".$tag_key_html." (".$entries.")</a>";
+        $ersetzen .= "<a href=\"blog/".rawurlencode(mb_strtolower($tag_key, MB_ENCODING))."/\">".$tag_key_html." (".$entries.")</a>";
+      }
+
+      if ($i < $total) {
+        $ersetzen .= ",\n";
+      }
+      else {
+        $ersetzen .= "\n";	// letzter tag
+      }
+
+      $i++;
+    }
+
+    $ersetzen .= "</p>\n";
+    return $ersetzen;
+  }
+
+// *****************************************************************************
+// * funktionen für speichern, ändern,löschen in db
+// *****************************************************************************
+
+  public function getBlog($blog_query, $tag, $page, $year, $compage) {
+    $hd_title_str = "";
+    $ersetzen = "";
+    $errorstring = "";
+
+    //$blog_query = rawurldecode($blog_query)
+    //$tag = rawurldecode($tag);
+
+    if (!$this->datenbank->connect_errno) {
+      // wenn kein fehler
+
+      $ersetzen = "<!-- blog -->\n".
+                  "<div id=\"blog\">\n";
+
+      $parameter_array = array();	// für links
+      $option_array = array();	// für kommentar
+
+      // formular für suche
+      $ersetzen .= "<div id=\"blogquery\">\n";
+      $ersetzen .= "<form action=\"index.php\" method=\"get\">\n";
+      $ersetzen .= "<input type=\"hidden\" name=\"action\" value=\"blog\" />\n";
+      $ersetzen .= "<input type=\"text\" name=\"q\" class=\"size_20\" maxlength=\"64\" onkeyup=\"suggest(this.value);\" />\n";
+      $ersetzen .= "<input type=\"submit\" value=\"Suche\" />\n";
+      $ersetzen .= "<div id=\"suggestion\"></div>";
+      $ersetzen .= "</form>\n";
+      $ersetzen .= "</div>\n";
+
+      // tags
+      $tags_from_db = array();	// weiterverwendung weiter unten
+
+      $sql = "SELECT ba_tag FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND ba_tag != ''";
+      $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
+      if ($ret) {
+        // ausgabeschleife
+        while ($datensatz = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
+          $tags_from_db[] = $datensatz["ba_tag"];	// array mit allen tag_data zeilen
+        }
+        $ret->close();
+        unset($ret);
+      }
+
+      $gruppen = array();
+      foreach ($tags_from_db as $tag_data) {
+        $explode_array = explode(";", $tag_data);
+        foreach ($explode_array as $tag_data) {
+          $gruppen[] = $tag_data;
+        }
+      }
+
+      $rubriken = array();
+      foreach ($gruppen as $tag_data) {
+        $explode_array = explode(":", $tag_data);
+        if (count($explode_array) > 1) {
+          // keine leeren rubriken, keine einzelnen tags
+          $key = trim($explode_array[0]);
+          if (isset($rubriken[$key])) {
+            $rubriken[$key] .= ", ".$explode_array[1];	// tag string erweitern
+          }
+          else {
+            $rubriken[$key] = $explode_array[1];	// rubrik mit tag string neu anlegen
+          }
+        }
+      }
+
+      // tags und rubriken als drop down menue (checkbox + label für mobile version)
+      $ersetzen .= "<div id=\"blogtag\">\n".
+                   "<input type=\"checkbox\" class=\"checkbox_hack more\" id=\"mobile_menue\" checked=\"checked\">\n".
+                   "<label class=\"more\" for=\"mobile_menue\">&equiv;</label>\n".
+                   "<ul>\n";
+
+      foreach ($rubriken as $rubrik => $tag_str) {
+        $tag_arr = preg_split("/\s*,+\s*|^\s+|\s+$/", $tag_str, 0, PREG_SPLIT_NO_EMPTY);	// tags einzeln, ohne leerzeichen
+        $tag_arr_unique = array_unique($tag_arr);
+        $tag_arr_unique_lower = array();
+        foreach ($tag_arr_unique as $tag_str) {
+          $tag_arr_unique_lower[] = mb_strtolower($tag_str, MB_ENCODING);
+        }
+        $html_a_ext = "";
+        if (mb_strtolower($tag, MB_ENCODING) == mb_strtolower($rubrik, MB_ENCODING) or in_array(mb_strtolower($tag, MB_ENCODING), $tag_arr_unique_lower)) {
+          // tag GET
+          $html_a_ext = "id=\"aktiviert\" ";
+        }
+        // (alt)     "<li><a ".$html_a_ext."href=\"index.php?action=blog&tag=".rawurlencode(mb_strtolower($rubrik, MB_ENCODING))."\">".stripslashes($this->html5specialchars($rubrik))."</a>\n".
+        $ersetzen .= "<li><a ".$html_a_ext."href=\"blog/".rawurlencode(mb_strtolower($rubrik, MB_ENCODING))."/\">".stripslashes($this->html5specialchars($rubrik))."</a>\n".
+                     "<ul>\n";
+        foreach ($tag_arr_unique as $tag_out) {
+          if (mb_strtolower($tag, MB_ENCODING) == mb_strtolower($tag_out, MB_ENCODING)) {
+            // tag GET
+            $ersetzen .= "<li><span>".stripslashes($this->html5specialchars($tag_out))."</span>\n";
+          }
+          else {
+            // (alt)     "<li><a href=\"index.php?action=blog&tag=".rawurlencode(mb_strtolower($tag_out, MB_ENCODING))."\">".stripslashes($this->html5specialchars($tag_out))."</a>\n";
+            $ersetzen .= "<li><a href=\"blog/".rawurlencode(mb_strtolower($tag_out, MB_ENCODING))."/\">".stripslashes($this->html5specialchars($tag_out))."</a>\n";
+          }
+        }
+        $ersetzen .= "</ul>\n".
+                     "</li>\n";
+      }
+
+      $ersetzen .= "</ul>\n".
+                   "</div>\n";
+
+      // array mit comment-id und blog-id
+      $blog_comment_id_array = array();
+      $sql = "SELECT ba_id, ba_blogid FROM ba_comment WHERE ba_blogid > 1";
+      $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
+      if ($ret) {
+        // ausgabeschleife
+        while ($datensatz = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
+          $commentid = $datensatz["ba_id"];
+          $blogid = $datensatz["ba_blogid"];
+          $blog_comment_id_array[$blogid] = $commentid;
+        }
+        $ret->close();
+        unset($ret);
+      }
+
+      // blog - anzeigen oder suchen
+      if (isset($blog_query)) {
+        // suchen
+
+        $ret_array = $this->getQuery($blog_query, $page, $parameter_array, $option_array, $blog_comment_id_array);
+        $hd_title_str = $ret_array["hd_titel"];
+
+      }
+      elseif (isset($tag)) {
+        // tag suchen, mit tag flag
+
+        $ret_array = $this->getQuery($tag, $page, $parameter_array, $option_array, $blog_comment_id_array, true, $tags_from_db);
+        $hd_title_str = $ret_array["hd_titel"];
+
+      }
+      else {
+        // anzeigen
+
+        $ret_array = $this->getEntry($page, $year, $parameter_array, $option_array, $blog_comment_id_array, $tags_from_db);
+        $hd_title_str = $ret_array["hd_titel"];
+
+      } // suche oder anzeigen
+
+      $ersetzen .= $ret_array["inhalt"];
+      $errorstring .= $ret_array["error"];
+
+      // kommentar
+      if (sizeof($option_array) > 0) {
+        // nur wenn einträge angezeigt werden
+
+        $ret_array = $this->getComment($parameter_array, $option_array, $compage);
+        $ersetzen .= $ret_array["inhalt"];
+        $errorstring .= $ret_array["error"];
+
+      } // kommentar
+
+      $ersetzen .= "</div>";
+
+    } // datenbank
+    else {
+      $errorstring .= "<br>db error\n";
+    }
+
+    return array("hd_titel" => $hd_title_str, "inhalt" => $ersetzen, "error" => $errorstring);
+  }
+
+  // in blog suchen
+  private function getQuery($blog_query_or_tag, $page, &$parameter_array, &$option_array, &$blog_comment_id_array, $tagflag = false, $tags_from_db = NULL) {
+    $hd_title_str = "";
+    $ersetzen = "";
+    $errorstring = "";
+    if (!$tagflag) { 
+      $hd_title_str = " query";
+    }
+
+    // auf leer überprüfen
+    if (mb_strlen($blog_query_or_tag, MB_ENCODING) > 0) {
+      // wenn kein fehler
+
+      $blog_query_or_tag2 = "[[:<:]]".$blog_query_or_tag."[[:>:]]";	// vorher mit LIKE "%".$blog_query."%" jetzt mit RLIKE word boundaries
+
+      // zugriff auf mysql datenbank (5), in mysql select mit prepare() - sql injections verhindern
+      if (!$tagflag) {
+        // query
+        $sql = "SELECT ba_id FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_text RLIKE ?)";	// (1) ohne LIMIT
+      }
+      else {
+        // tag
+        $sql = "SELECT ba_id FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_tag RLIKE ?)";	// (1) ohne LIMIT
+      }
+      $stmt = $this->datenbank->prepare($sql);	// liefert mysqli-statement-objekt
+      if ($stmt) {
+        // wenn kein fehler 5a
+
+        // austauschen ? durch string (s)
+        $stmt->bind_param("s", $blog_query_or_tag2);
+        $stmt->execute();	// ausführen geänderte zeile
+
+        $stmt->store_result();
+
+        // suche ausgeben (1), results
+
+        $anzahl_e = $stmt->num_rows;	// anzahl ergebnisse
+
+        if (!$tagflag) {
+          // query
+          $results = $anzahl_e." Ergebnisse";
+          if ($anzahl_e == 1) {
+            $results = $anzahl_e." Ergebnis";
+          }
+          $ersetzen = "<p>".$results."</p>\n";
+        }
+        else {
+          // tag
+          if ($anzahl_e > 0) {
+            $hd_title_str .= " - ".stripslashes($this->html5specialchars($blog_query_or_tag));
+          }
+        }
+
+        if ($anzahl_e > 0) {
+
+          $anzahl_s = ceil($anzahl_e/self::$anzahl_eps);	// anzahl seiten, ceil() rundet auf
+
+          // GET page auslesen
+          if ($this->getPage($page, $anzahl_s)) {
+            $hd_title_str .= " - ".$page;
+          }
+          else {
+            $page = 1;
+          }
+
+          // LIMIT für sql berechnen
+          $lmt_start = ($page-1) * self::$anzahl_eps;
+
+          // zugriff auf mysql datenbank (6), in mysql select mit prepare() - sql injections verhindern
+          if (!$tagflag) {
+            // query
+            $sql = "SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_text RLIKE ?) ORDER BY ba_id DESC LIMIT ".$lmt_start.",".self::$anzahl_eps;	// (2) mit LIMIT
+          }
+          else {
+            // tag
+            $sql = "";	// blog eintrag nr.1 nur auf erster seite, danach alle absteigend 100..99...2 (ohne 1)
+            if ($page == 1) {
+              $sql .= "SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id = 1".
+                      "\nUNION\n";
+            }
+            $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_tag RLIKE ?) ORDER BY ba_id DESC LIMIT ".$lmt_start.",".self::$anzahl_eps.")";	// (2) mit LIMIT
+          }
+          $stmt = $this->datenbank->prepare($sql);	// liefert mysqli-statement-objekt
+          if ($stmt) {
+            // wenn kein fehler 6a
+
+            // austauschen ? durch string (s)
+            $stmt->bind_param("s", $blog_query_or_tag2);
+            $stmt->execute();	// ausführen geänderte zeile
+
+            $stmt->store_result();
+
+            $stmt->bind_result($datensatz["ba_id"],$datensatz["ba_date"],$datensatz["ba_text"],$datensatz["ba_videoid"],$datensatz["ba_fotoid"]);
+            // oder ohne array datensatz: $stmt->bind_result($ba_id, $ba_date, $ba_text, $ba_videoid, $ba_fotoid);
+            // mysqli-statement-objekt kennt kein fetch_assoc(), nur fetch(), kein array als rückgabe
+
+            // suche ausgeben (2), bei mehreren ergebnissen auf mehreren seiten
+
+            // parameter für link zu kommentar
+            if (!$tagflag) {
+              // query
+              $parameter_array["query"] = $blog_query_or_tag;	// für kommentar weiter unten
+              $parameter_str = "&q=".rawurlencode($blog_query_or_tag);
+            }
+            else {
+              // tag
+              $parameter_array["tag"] = $blog_query_or_tag;	// für kommentar weiter unten
+              $parameter_str = "&q=".rawurlencode($blog_query_or_tag);
+            }
+            if (isset($page)) {
+              $parameter_array["page"] = $page;	// für kommentar weiter unten
+              $parameter_str .= "&page=".$page;
+            }
+
+            // blog schreiben , ausgabeschleife
+            while ($stmt->fetch()) {	// $datensatz = $stmt->fetch_assoc(), fetch_assoc() liefert array, solange nicht NULL (letzter datensatz), hier jetzt nur fetch()
+              $ersetzen .= $this->blog_line($datensatz, $option_array, $blog_comment_id_array, $parameter_str);
+            }
+
+            // seitenauswahl mit links und vor/zurück, mehrere suchergebnisse
+            if (!$tagflag) {
+              // query
+              $ersetzen .= $this->seitenauswahl($anzahl_s, $page, false, true, "&q=".rawurlencode(mb_strtolower($blog_query_or_tag, MB_ENCODING))."&page=");
+            }
+            else {
+              // tag
+              $ersetzen .= $this->seitenauswahl($anzahl_s, $page, false, true, "&tag=".rawurlencode(mb_strtolower($blog_query_or_tag, MB_ENCODING))."&page=");
+            }
+
+            // tags
+            if ($tagflag) {
+              $ersetzen .= $this->tagliste($blog_query_or_tag, $tags_from_db);
+            }
+
+          }
+          else {
+            $errorstring .= "<br>db error 6a\n";
+          }
+
+        } // anzahl_e > 0
+
+        $stmt->close();	// stmt-ojekt schließen
+        unset($stmt);	// referenz löschen
+
+      }
+      else {
+        $errorstring .= "<br>db error 5a\n";
+      }
+
+    }
+    else {
+      $errorstring .= "<br>empty query or tag\n";	// query leer
+    }
+
+    return array("hd_titel" => $hd_title_str, "inhalt" => $ersetzen, "error" => $errorstring);
+  }
+
+  // blog anzeigen
+  private function getEntry($page, $year, &$parameter_array, &$option_array, &$blog_comment_id_array, $tags_from_db) {
+    $hd_title_str = "";
+    $ersetzen = "";
+    $errorstring = "";
+
+    // zugriff auf mysql datenbank (5)
+    $sql = "SELECT ba_id FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id != 1";
+    $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
+    if ($ret) {
+      // wenn kein fehler 5b
+
+      $anzahl_e = $ret->num_rows;	// anzahl einträge in ba_blog
+      $anzahl_s = ceil($anzahl_e/self::$anzahl_eps);	// anzahl seiten in blog, ceil() rundet auf
+
+      $ret->close();	// db-ojekt schließen
+      unset($ret);	// referenz löschen
+
+      // init
+      $show_page = false;
+      $show_year = false;
+      $year_min = 2009;
+      $year_max = intval(date("Y"));
+      //$year = $year_max;
+      //$page = 1;
+
+      // GET page auslesen
+      if ($this->getPage($page, $anzahl_s)) {
+        $show_page = true;
+
+        $hd_title_str .= " - ".$page;
+      }
+
+      // GET year auslesen
+      elseif (isset($year) and is_numeric($year)) {
+        // year als zahl vorhanden und nicht NULL
+
+        // year eingrenzen
+        if ($year < $year_min) {
+          $year = $year_min;
+        }
+        elseif ($year > $year_max) {
+          $year = $year_max;
+        }
+
+        $show_year = true;
+
+        if ($show_page == false) {
+          $hd_title_str .= " - ".$year;
+        }
+      }
+
+      else {
+        // init
+        $year = $year_max;
+        $page = 1;
+      }
+
+      // aufruf ohne page und year
+      if ($show_page == false and $show_year == false) {
+        $show_page = true;
+      }
+      // page vorrang vor year
+      elseif ($show_page == true and $show_year == true) {
+        $show_year = false;
+      }
+
+      // LIMIT für sql berechnen
+      $lmt_start = ($page-1) * self::$anzahl_eps;
+
+      // zugriff auf mysql datenbank (6)
+      $sql = "";	// blog eintrag nr.1 nur auf erster seite, danach alle absteigend 100..99...2 (ohne 1)
+      if ($page == 1 or $show_year == true) {
+        $sql .= "SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id = 1".
+                "\nUNION\n";
+      }
+      if ($show_page == true) {
+        $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id != 1 ORDER BY ba_id DESC LIMIT ".$lmt_start.",".self::$anzahl_eps.")";
+      }
+      elseif ($show_year == true) {
+        $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$year." ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
+      }
+      else {
+        $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id = 1)";
+      }
+      $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
+      if ($ret) {
+        // wenn kein fehler 6b
+
+        // parameter für link zu kommentar
+        $parameter_str = "";
+        if (isset($page) and $show_page) {
+          $parameter_array["page"] = $page;	// für kommentar weiter unten
+          $parameter_str = "&page=".$page;
+        }
+        elseif (isset($year) and $show_year) {
+          $parameter_array["year"] = $year;	// für kommentar weiter unten
+          $parameter_str = "&year=".$year;
+        }
+
+        // blog schreiben , ausgabeschleife
+        while ($datensatz = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
+          $ersetzen .= $this->blog_line($datensatz, $option_array, $blog_comment_id_array, $parameter_str);
+        }
+
+        $ret->close();	// db-ojekt schließen
+        unset($ret);	// referenz löschen
+
+      }
+      else {
+        $errorstring .= "<br>db error 6b\n";
+      }
+
+      // seitenauswahl mit links und vor/zurück
+      $ersetzen .= $this->seitenauswahl($anzahl_s, $page, $show_page, $show_page);
+
+      // tags
+      $ersetzen .= $this->tagliste("", $tags_from_db);
+
+      // array für links jahr (einträge), aktuelles jahr zuerst
+      $year_arr = array();
+      for ($i=$year_max; $i>=$year_min; $i--) {
+        $sql = "SELECT ba_id FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$i;
+        $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
+        if ($ret) {
+          $year_arr[$i] = $ret->num_rows;
+          $ret->close();
+          unset($ret);
+        }
+      }
+
+      // links jahr(einträge)
+      $ersetzen .= "<p>\n";
+      foreach ($year_arr as $year_key => $entries) {
+        if ($year_key == $year and $show_year == true) {
+          $ersetzen .= $year_key." (".$entries.")<br>\n";
+        }
+        else {
+          // (alt)     "<a href=\"index.php?action=blog&year=".$year_key."\">".$year_key." (".$entries.")</a><br>\n";
+          $ersetzen .= "<a href=\"blog/".$year_key."/\">".$year_key." (".$entries.")</a><br>\n";
+        }
+      }
+      $ersetzen .= "</p>\n";
+
+    }
+    else {
+      $errorstring .= "<br>db error 5b\n";
+    }
+
+    return array("hd_titel" => $hd_title_str, "inhalt" => $ersetzen, "error" => $errorstring);
+  }
+
+  // kommentar
+  private function getComment(&$parameter_array, &$option_array, $compage) {
+    $ersetzen = "";
+    $errorstring = "";
+
+    $ersetzen .= "<p><br><a name=\"comment\"></a><b>Kommentar:</b></p>\n";
+
+    // für SELECT
+    $min_blogid = 0;
+    $max_blogid = 0;
+    $keys = array_keys($option_array);
+    if (array_key_exists("query", $parameter_array)) {
+      // WHERE ba_blogid IN
+      $sql_part = "ba_blogid IN (".implode(",", $keys).")";
+    }
+    else {
+      // WHERE ba_blogid BETWEEN
+      $len = sizeof($keys);
+      if ($len == 1 and $keys[0] != 1) {
+        $max_blogid = $keys[0];
+        $min_blogid = $keys[0];
+      }
+      elseif ($len >= 2) {
+        if ($keys[0] == 1) {
+          // [1,letztes,erstes]
+          $max_blogid = $keys[1];
+        }
+        else {
+          // [letztes,erstes]
+          $max_blogid = $keys[0];
+        }
+        $min_blogid = $keys[$len-1];
+      }
+      $sql_part = "ba_blogid BETWEEN ".$min_blogid." AND ".$max_blogid;
+    }
+
+    // zugriff auf mysql datenbank (7)
+    $sql = "SELECT * FROM ba_comment WHERE ba_blogid = 1 OR ".$sql_part;
+    $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
+    if ($ret) {
+      // wenn kein fehler 7
+
+      $anzahl_c = $ret->num_rows;	// anzahl kommentare in ba_comment
+      $anzahl_s = ceil($anzahl_c/self::$anzahl_cps);	// anzahl seiten für kommentar, ceil() rundet auf
+
+      $ret->close();	// db-ojekt schließen
+      unset($ret);	// referenz löschen
+
+      // GET comment-page auslesen
+      if (!$this->getPage($compage, $anzahl_s)) {
+        $compage = 1;
+      }
+
+      // LIMIT für sql berechnen
+      $lmt_start = ($compage-1) * self::$anzahl_cps;
+
+      // zugriff auf mysql datenbank (8)
+      $sql = "SELECT ba_id, ba_date, ba_name, ba_mail, ba_text, ba_comment, ba_blogid FROM ba_comment WHERE ba_blogid = 1 OR ".$sql_part." ORDER BY ba_id DESC LIMIT ".$lmt_start.",".self::$anzahl_cps;
+      $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
+      if ($ret) {
+        // wenn kein fehler 8
+
+        // kommentare schreiben, ausgabeschleife
+        while ($datensatz = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
+
+          $comment_id = intval($datensatz["ba_id"]);
+          $date = date_create($datensatz["ba_date"]);
+          $comment_date = date_format($date, "d.m.y / H:i");
+          $comment_name = stripslashes($this->html5specialchars($datensatz["ba_name"]));
+          $comment_mail = stripslashes($this->html5specialchars($datensatz["ba_mail"]));
+          $comment_text = stripslashes(nl2br($this->html5specialchars($datensatz["ba_text"])));
+          $comment_comment = stripslashes(nl2br($this->html5specialchars($datensatz["ba_comment"])));
+          //$comment_blogid = intval($datensatz["ba_blogid"]);
+
+          $ersetzen .= "<p><a name=\"comment".$comment_id."\"></a><b>[".$comment_date."]</b> <span id=\"white\">";
+          if ($comment_mail != "") {
+            $ersetzen .= "<a href=\"mailto:".$comment_mail."\">".$comment_name."</a>";
+          }
+          else {
+            $ersetzen .= $comment_name;
+          }
+          $ersetzen .= ":</span> ".$comment_text."</p>\n";
+
+          if ($comment_comment != "") {
+            $ersetzen .= "<p><i>Morgana: ".$comment_comment."</i></p>\n";
+          }
+
+        } // while
+
+        $ret->close();	// db-ojekt schließen
+        unset($ret);	// referenz löschen
+
+      }
+      else {
+        $errorstring .= "<br>db error 8\n";
+      }
+
+      $parameter_str = "";
+
+      if (array_key_exists("query", $parameter_array)) {
+        $parameter_str .= "&q=".rawurlencode($parameter_array["query"]);
+        if (array_key_exists("page", $parameter_array)) {
+          $parameter_str .= "&page=".$parameter_array["page"];
+        }
+      }
+      elseif (array_key_exists("page", $parameter_array)) {
+        $parameter_str .= "&page=".$parameter_array["page"];
+      }
+      elseif (array_key_exists("year", $parameter_array)) {
+        $parameter_str = "&year=".$parameter_array["year"];
+      }
+
+      // seitenauswahl mit links und vor/zurück
+      $ersetzen .= $this->seitenauswahl($anzahl_s, $page, true, true, $parameter_str."&compage=", "#comment");
+
+    }
+    else {
+      $errorstring .= "<br>db error 7\n";
+    }
+
+    // kommentar formular
+    $ersetzen .= "<form action=\"index.php\" method=\"post\">\n".
+                 "<div id=\"input_name\">Name:\n".
+                 "<br><input type=\"text\" name=\"comment[name]\" class=\"size_20\" maxlength=\"64\" />\n".
+                 "</div>\n".
+                 "<div id=\"input_mail\">Mail:\n".
+                 "<br><input type=\"text\" name=\"comment[mail]\" class=\"size_20\" maxlength=\"64\" />\n".
+                 "</div>\n".
+                 "<div id=\"input_website\">Website:\n".
+                 "<br><input type=\"text\" name=\"comment[website]\" class=\"size_20\" maxlength=\"128\" value=\"http://\" />\n".
+                 "</div>\n".
+                 "<p>Der Blog-Eintrag auf dem sich dein Kommentar bezieht:\n".
+                 "<br><select name=\"comment[blogid]\" size=\"1\">\n".
+                 "<option value=\"0\" selected>Ich bin ein Bot und mein Kommentar wird ignoriert</option>\n";
+    foreach ($option_array as $blogid => $blogtext) {
+      if ($blogid == 1) {
+        $blogtext = "keiner";
+      }
+      $ersetzen .= "<option value=\"".$blogid."\">".$blogtext."</option>\n";
+    }
+    $ersetzen .= "</select></p>\n".
+                 "<p>Kommentar (max. 2048 Zeichen):\n".
+                 "<br><textarea name=\"comment[text]\" class=\"cols_60_rows_6\"></textarea></p>\n".
+                 "<p><input type=\"submit\" value=\"send\" /><input type=\"reset\" value=\"clear\" /></p>\n".
+                 "</form>\n";
+
+    return array("inhalt" => $ersetzen, "error" => $errorstring);
+  }
+
+  // comment_array[name, mail, website, blogid, text]
+  public function postComment($comment_array) {
+    $ersetzen = "";
+    $errorstring = "";
+
+    if (!$this->datenbank->connect_errno) {
+      // wenn kein fehler
+
+      $ersetzen = "<!-- blog (POST comment) -->\n".
+                  "<div id=\"blog\">\n";
+
+      // IP zeitlimit überprüfen
+      $comment_ip = $_SERVER["REMOTE_ADDR"];
+      $sql = "SELECT ba_ip,
+                     TIMESTAMPDIFF(MINUTE, ba_date, NOW()) AS zeitdifferenz
+              FROM ba_comment ORDER BY ba_id DESC LIMIT 1";
+      $ret = $this->datenbank->query($sql);	// letzte eingetragene zeile IP und zeitdifferenz auslesen
+      $datensatz = $ret->fetch_assoc();	// IP und zeitdifferenz auswertbar als array
+
+      // gleiche IP und weniger als 1 minute ist nicht ok
+      if ($comment_ip != $datensatz["ba_ip"] or $datensatz["zeitdifferenz"] > 1) {
+        // wenn kein zeit-limit
+
+        // überflüssige leerzeichen entfernen, str zu int
+        $comment_name = trim($comment_array["name"]);
+        $comment_mail = trim($comment_array["mail"]);
+        $comment_website = trim($comment_array["website"]);
+        $comment_text = trim($comment_array["text"]);
+        $comment_blogid = intval($comment_array["blogid"]);
+
+        if ($comment_website == "http://") {
+          $comment_website = "";
+        }
+
+        // kein honeypot
+        if ($comment_website == "" and $comment_blogid > 0) {
+
+          // auf leer überprüfen
+          if ($comment_name != "" or $comment_mail != "" or $comment_text != "") {
+
+            // zeichen limit
+            if (mb_strlen($comment_name, MB_ENCODING) > 64) {
+              $comment_name = mb_substr($comment_name, 0, 64, MB_ENCODING);
+            }
+            if (strlen($comment_mail) > 64) {
+              $comment_mail = substr($comment_mail, 0, 64);
+            }
+            if (mb_strlen($comment_text, MB_ENCODING) > 2048) {
+              $comment_text = mb_substr($comment_text, 0, 2048, MB_ENCODING);
+            }
+
+            // in mysql einfügen mit prepare() - sql injections verhindern
+            $sql = "INSERT INTO ba_comment(ba_date, ba_ip, ba_name, ba_mail, ba_text, ba_blogid) VALUES (NOW(), ?, ?, ?, ?, ?)";
+            $stmt = $this->datenbank->prepare($sql);	// liefert mysqli-statement-objekt
+            if ($stmt) {
+              // wenn kein fehler 9
+
+              // austauschen ????? durch string und int 
+              $stmt->bind_param("ssssi", $comment_ip, $comment_name, $comment_mail, $comment_text, $comment_blogid);
+              $stmt->execute();	// ausführen geänderte zeile
+
+              $ersetzen .= "Kommentar dazugefügt - <a href=\"index.php?action=blog#comment\">Zurück zum Blog</a> (automatisch in 5 Sekunden)\n";
+
+              mail("morgana@oscilloworld.de", "neuer blog kommentar", $comment_name." (".$comment_mail."): ".$comment_text." (".$comment_blogid.")", "from:morgana@oscilloworld.de");
+
+            }
+            else {
+              $errorstring .= "<br>db error 9\n";
+            }
+
+          }
+          else {
+            $ersetzen .= "Leere Felder - Kein Inhalt\n";
+          }
+
+        } // kein honeypot
+
+      }
+      else {
+        $ersetzen .= "Zeit-Limit 1 Minute\n";
+      }
+
+      $ersetzen .= "</div>";
+
+    } // datenbank
+    else {
+      $errorstring .= "<br>db error\n";
+    }
+
+    return array("inhalt" => $ersetzen, "error" => $errorstring);
+  }
+
+}
+
+?>
