@@ -72,14 +72,14 @@ class Fotos extends Model {
                                "<table class=\"backend\">\n".
                                "<tr>\n<td class=\"td_backend\">ID</td>\n<td>ALIAS</td>\n<td>TEXT</td>\n<td>ORDER</td>\n<td>DEL</td>\n</tr>\n".
                                "<tr>\n<td class=\"td_backend\">\n".
-                               "<a href=\"backend.php?action=fotos&gallery=0\">0</a>\n".
+                               "<a href=\"backend.php?".$this->html_build_query(array("action" => "fotos", "gallery" => 0))."\">0</a>\n".
                                "</td>\n<td>\n".
                                "not in gallery\n".
                                "</td>\n<td>---</td>\n<td>---</td>\n<td>---</td>\n</tr>\n";
 
           while ($datensatz = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
             $html_backend_ext .= "<tr>\n<td class=\"td_backend\">\n".
-                                 "<a href=\"backend.php?action=fotos&gallery=".$datensatz["ba_id"]."\">".$datensatz["ba_id"]."</a>\n".
+                                 "<a href=\"backend.php?".$this->html_build_query(array("action" => "fotos", "gallery" => $datensatz["ba_id"]))."\">".$datensatz["ba_id"]."</a>\n".
                                  "</td>\n<td>\n".
                                  "<input type=\"text\" name=\"ba_gallery[".$datensatz["ba_id"]."][ba_alias]\" class=\"size_12\" maxlength=\"".MAXLEN_GALLERYALIAS."\" value=\"".stripslashes($this->html5specialchars($datensatz["ba_alias"]))."\"/>\n".
                                  "</td>\n<td>\n".

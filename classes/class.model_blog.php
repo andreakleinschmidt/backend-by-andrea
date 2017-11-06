@@ -41,10 +41,11 @@ class Blog extends Model {
   }
 
   // ausgabe komplette blogzeile
-  private function blog_line($datensatz, &$option_array, &$blog_comment_id_array, $parameter_str) {
+  private function blog_line($datensatz, &$option_array, &$blog_comment_id_array, $query_data) {
 
     $datum = stripslashes($this->html5specialchars($datensatz["ba_date"]));
     $blogtext = stripslashes($this->html_link(nl2br($this->html5specialchars($datensatz["ba_text"])),1));
+    $blogtext40 = stripslashes($this->html_link($this->html5specialchars(mb_substr($datensatz["ba_text"], 0, 40, MB_ENCODING)),0));	// substr problem bei trennung umlaute
 
     // blog id für anker
     $jahr   = substr($datum, 6, 2);
@@ -97,11 +98,11 @@ class Blog extends Model {
     }
 
     $blogid = $datensatz["ba_id"];
-    $option_array[$blogid] = "[".$datum."] ".mb_substr($blogtext, 0, 40, MB_ENCODING)."...";	// für select option in kommentar formular, substr problem bei trennung umlaute
+    $option_array[$blogid] = "[".$datum."] ".$blogtext40."...";	// für select option in kommentar formular
 
     // optional link zu kommentar mit comment-id
     if (array_key_exists($blogid, $blog_comment_id_array)) {
-      $ersetzen .= "<div id=\"blogcomment\"><a href=\"index.php?action=blog".$parameter_str."#comment".$blog_comment_id_array[$blogid]."\">Kommentar</a></div>";
+      $ersetzen .= "<div id=\"blogcomment\"><a href=\"index.php?".$this->html_build_query($query_data)."#comment".$blog_comment_id_array[$blogid]."\">Kommentar</a></div>";
     }
 
     return $ersetzen;
@@ -126,26 +127,43 @@ class Blog extends Model {
   }
 
   // seitenauswahl mit links und vor/zurück
-  private function seitenauswahl($anzahl_s, $page, $vz_flag=true, $eq_flag=true, $param_1="&page=", $param_2="") {
+  private function seitenauswahl($anzahl_s, $page, $vz_flag=true, $eq_flag=true, $query_data=array(), $anchor="") {
     $ersetzen = "<p>\n";
+
+    // default
+    if(empty($query_data)) {
+      $query_data["action"] = "blog";
+      $query_data["page"] = 0;
+    }
+
+    // page oder compage
+    if (array_key_exists("compage", $query_data)) {
+      $page_key = "compage";
+    }
+    else {
+      $page_key = "page";
+    }
 
     if ($page > 1 and $vz_flag == true) {
       $i = $page - 1;
-      $ersetzen .= "<a href=\"index.php?action=blog".$param_1.$i.$param_2."\">prev</a> \n";	// zurück
+      $query_data[$page_key] = $i;
+      $ersetzen .= "<a href=\"index.php?".$this->html_build_query($query_data).$anchor."\">prev</a> \n";	// zurück
     }
 
-    for ($i=1; $i<=$anzahl_s; $i++) {								// seitenauswahl
+    for ($i=1; $i<=$anzahl_s; $i++) {										// seitenauswahl
       if ($i == $page and $eq_flag == true) {
         $ersetzen .= $i." \n";
       }
       else {
-        $ersetzen .= "<a href=\"index.php?action=blog".$param_1.$i.$param_2."\">".$i."</a> \n";
+        $query_data[$page_key] = $i;
+        $ersetzen .= "<a href=\"index.php?".$this->html_build_query($query_data).$anchor."\">".$i."</a> \n";
       }
     }
 
     if ($page < $anzahl_s and $vz_flag == true) {
       $i = $page + 1;
-      $ersetzen .= "<a href=\"index.php?action=blog".$param_1.$i.$param_2."\">next</a>\n";	// vor
+      $query_data[$page_key] = $i;
+      $ersetzen .= "<a href=\"index.php?".$this->html_build_query($query_data).$anchor."\">next</a>\n";		// vor
     }
 
     $ersetzen .= "</p>\n";
@@ -465,35 +483,40 @@ class Blog extends Model {
             // suche ausgeben (2), bei mehreren ergebnissen auf mehreren seiten
 
             // parameter für link zu kommentar
+            $query_data = array("action" => "blog");
+
             if (!$tagflag) {
               // query
               $parameter_array["query"] = $blog_query_or_tag;	// für kommentar weiter unten
-              $parameter_str = "&q=".rawurlencode($blog_query_or_tag);
+              $query_data["q"] = $blog_query_or_tag;
             }
             else {
               // tag
               $parameter_array["tag"] = $blog_query_or_tag;	// für kommentar weiter unten
-              $parameter_str = "&q=".rawurlencode($blog_query_or_tag);
+              $query_data["q"] = $blog_query_or_tag;
             }
             if (isset($page)) {
               $parameter_array["page"] = $page;	// für kommentar weiter unten
-              $parameter_str .= "&page=".$page;
+              $query_data["page"] = $page;
             }
 
             // blog schreiben , ausgabeschleife
             while ($stmt->fetch()) {	// $datensatz = $stmt->fetch_assoc(), fetch_assoc() liefert array, solange nicht NULL (letzter datensatz), hier jetzt nur fetch()
-              $ersetzen .= $this->blog_line($datensatz, $option_array, $blog_comment_id_array, $parameter_str);
+              $ersetzen .= $this->blog_line($datensatz, $option_array, $blog_comment_id_array, $query_data);
             }
 
             // seitenauswahl mit links und vor/zurück, mehrere suchergebnisse
+            $query_data = array("action" => "blog");
             if (!$tagflag) {
               // query
-              $ersetzen .= $this->seitenauswahl($anzahl_s, $page, false, true, "&q=".rawurlencode(mb_strtolower($blog_query_or_tag, MB_ENCODING))."&page=");
+              $query_data["q"] = mb_strtolower($blog_query_or_tag, MB_ENCODING);
             }
             else {
               // tag
-              $ersetzen .= $this->seitenauswahl($anzahl_s, $page, false, true, "&tag=".rawurlencode(mb_strtolower($blog_query_or_tag, MB_ENCODING))."&page=");
+              $query_data["tag"] = mb_strtolower($blog_query_or_tag, MB_ENCODING);
             }
+            $query_data["page"] = 0;
+            $ersetzen .= $this->seitenauswahl($anzahl_s, $page, false, true, $query_data);
 
             // tags
             if ($tagflag) {
@@ -613,19 +636,20 @@ class Blog extends Model {
         // wenn kein fehler 6b
 
         // parameter für link zu kommentar
-        $parameter_str = "";
+        $query_data = array("action" => "blog");
+
         if (isset($page) and $show_page) {
           $parameter_array["page"] = $page;	// für kommentar weiter unten
-          $parameter_str = "&page=".$page;
+          $query_data["page"] = $page;
         }
         elseif (isset($year) and $show_year) {
           $parameter_array["year"] = $year;	// für kommentar weiter unten
-          $parameter_str = "&year=".$year;
+          $query_data["year"] = $year;
         }
 
         // blog schreiben , ausgabeschleife
         while ($datensatz = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
-          $ersetzen .= $this->blog_line($datensatz, $option_array, $blog_comment_id_array, $parameter_str);
+          $ersetzen .= $this->blog_line($datensatz, $option_array, $blog_comment_id_array, $query_data);
         }
 
         $ret->close();	// db-ojekt schließen
@@ -772,23 +796,24 @@ class Blog extends Model {
         $errorstring .= "<br>db error 8\n";
       }
 
-      $parameter_str = "";
+      $query_data = array("action" => "blog");
 
       if (array_key_exists("query", $parameter_array)) {
-        $parameter_str .= "&q=".rawurlencode($parameter_array["query"]);
+        $query_data["q"] = $parameter_array["query"];
         if (array_key_exists("page", $parameter_array)) {
-          $parameter_str .= "&page=".$parameter_array["page"];
+          $query_data["page"] = $parameter_array["page"];
         }
       }
       elseif (array_key_exists("page", $parameter_array)) {
-        $parameter_str .= "&page=".$parameter_array["page"];
+        $query_data["page"] = $parameter_array["page"];
       }
       elseif (array_key_exists("year", $parameter_array)) {
-        $parameter_str = "&year=".$parameter_array["year"];
+        $query_data["year"] = $parameter_array["year"];
       }
 
       // seitenauswahl mit links und vor/zurück
-      $ersetzen .= $this->seitenauswahl($anzahl_s, $page, true, true, $parameter_str."&compage=", "#comment");
+      $query_data["compage"] = 0;
+      $ersetzen .= $this->seitenauswahl($anzahl_s, $page, true, true, $query_data, "#comment");
 
     }
     else {

@@ -58,7 +58,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
       if (isset($suggest_tab) and count($suggest_tab) > 0) {
         foreach($suggest_tab as $suggestion) {
           if ($query == mb_strtolower(mb_substr($suggestion, 0, mb_strlen($query, "UTF-8"), "UTF-8"), "UTF-8")) {
-            echo "<a href=\"index.php?action=blog&q=".rawurlencode($suggestion)."\">".stripslashes(xhtmlspecialchars($suggestion))."</a><br>\n";
+            echo "<a href=\"index.php?".http_build_query(array("action" => "blog", "q" => $suggestion), "", "&amp;", PHP_QUERY_RFC3986)."\">".stripslashes(xhtmlspecialchars($suggestion))."</a><br>\n";
             // vergleich der strings als utf-8, ausgabe als utf-8 (für xmlhttp), übergabe in link als utf-8, strlen problem bei umlaute, substr problem bei trennung umlaute
           }
         }

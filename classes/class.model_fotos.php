@@ -172,12 +172,13 @@ class Fotos extends Model {
 
       foreach ($fotos as $fotoid => $fototext) {
         $imagename = "jpeg/".$fotoid."a.jpg";
+        $query_data = array("action" => "fotos", "gallery" => $alias, "id" => $fotoid);
         if (is_readable($imagename)) {
           $imagesize = getimagesize($imagename);
-          $ersetzen .= "<p><a href=\"index.php?action=fotos&gallery=".$alias."&id=".$fotoid."\"><img class=\"kantefarbig\" src=\"".$imagename."\" ".$imagesize[3]." title=\"".stripslashes($this->html5specialchars($fototext))."\"></a></p>\n";
+          $ersetzen .= "<p><a href=\"index.php?".$this->html_build_query($query_data)."\"><img class=\"kantefarbig\" src=\"".$imagename."\" ".$imagesize[3]." title=\"".stripslashes($this->html5specialchars($fototext))."\"></a></p>\n";
         }
         else {
-          $ersetzen .= "<p><a href=\"index.php?action=fotos&gallery=".$alias."&id=".$fotoid."\">Foto</a></p>\n";
+          $ersetzen .= "<p><a href=\"index.php?".$this->html_build_query($query_data)."\">Foto</a></p>\n";
         }
       }
 

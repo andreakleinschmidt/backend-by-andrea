@@ -28,6 +28,12 @@ class Model {
     return htmlspecialchars($str, ENT_COMPAT | ENT_HTML5, "UTF-8");
   }
 
+  // input array("x" => "y z", "a" => "b")
+  // return query "x=y%20z&amp;a=123" ("x=y z&a=b")
+  public function html_build_query($query_data) {
+    return http_build_query($query_data, "", "&amp;", PHP_QUERY_RFC3986);
+  }
+
   // file_get_contents mit cURL
   public function file_get_contents_curl($url) {
     $ch = curl_init();

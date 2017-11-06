@@ -365,7 +365,7 @@ class Blog extends Model {
             }
 
             $html_backend_ext .= "<tr>\n<td>\n".
-                                 "<a href=\"backend.php?action=blog&id=".$datensatz["ba_id"]."\">".$ba_date." - ".$ba_text."...</a>\n".
+                                 "<a href=\"backend.php?".$this->html_build_query(array("action" => "blog", "id" => $datensatz["ba_id"]))."\">".$ba_date." - ".$ba_text."...</a>\n".
                                  "</td>\n<td>\n";
             if (strlen($ba_videoid) > 0) {
               $html_backend_ext .= "(".$ba_videoid.")\n";	// nur wenn verwendet
@@ -381,24 +381,28 @@ class Blog extends Model {
 
           // seitenauswahl mit links und vor/zurück
           $html_backend_ext .= "<tr>\n<td>\n";
+          $query_data = array("action" => "blog", "page" => 0);
 
           if ($page > 1) {
             $i = $page - 1;
-            $html_backend_ext .= "<a href=\"backend.php?action=blog&page=".$i."\">prev</a> \n";	// zurück
+            $query_data["page"] = $i;
+            $html_backend_ext .= "<a href=\"backend.php?".$this->html_build_query($query_data)."\">prev</a> \n";	// zurück
           }
 
-          for ($i=1; $i<=$anzahl_s; $i++) {							// seitenauswahl
+          for ($i=1; $i<=$anzahl_s; $i++) {										// seitenauswahl
             if ($i == $page) {
               $html_backend_ext .= $i." \n";
             }
             else {
-              $html_backend_ext .= "<a href=\"backend.php?action=blog&page=".$i."\">".$i."</a> \n";
+              $query_data["page"] = $i;
+              $html_backend_ext .= "<a href=\"backend.php?".$this->html_build_query($query_data)."\">".$i."</a> \n";
             }
           }
 
           if ($page < $anzahl_s) {
             $i = $page + 1;
-            $html_backend_ext .= "<a href=\"backend.php?action=blog&page=".$i."\">next</a>\n";	// vor
+            $query_data["page"] = $i;
+            $html_backend_ext .= "<a href=\"backend.php?".$this->html_build_query($query_data)."\">next</a>\n";		// vor
           }
 
           $html_backend_ext .= "</td>\n<td>\n</td>\n<td>\n</td>\n<td>\n</td>\n</tr>\n".

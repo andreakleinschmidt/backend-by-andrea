@@ -154,6 +154,12 @@ class Model {
     return htmlspecialchars($str, ENT_COMPAT | ENT_HTML5, "UTF-8");
   }
 
+  // input array("x" => "y z", "a" => "b")
+  // return query "x=y%20z&amp;a=123" ("x=y z&a=b")
+  public function html_build_query($query_data) {
+    return http_build_query($query_data, "", "&amp;", PHP_QUERY_RFC3986);
+  }
+
   // echo $html_backend individuell mit user_name und links nach user_role
   public function html_backend($user_role, $user_name) {
     $ret = "<nav>\n\n".
