@@ -186,7 +186,7 @@ atom:
       while ($datensatz = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
 
         $datum = stripslashes($this->html5specialchars($datensatz["ba_date"]));
-        $blogtext80 = stripslashes(Blog::html_link($this->html5specialchars(mb_substr($datensatz["ba_text"], 0, 80, MB_ENCODING)),0));	// substr problem bei trennung umlaute
+        $blogtext80 = stripslashes(Blog::html_tags($this->html5specialchars(mb_substr($datensatz["ba_text"], 0, 80, MB_ENCODING)), false));	// substr problem bei trennung umlaute
 
         // blog id für anker
         $jahr   = substr($datum, 6, 2);

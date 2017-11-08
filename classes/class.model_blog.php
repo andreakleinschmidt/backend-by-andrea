@@ -13,30 +13,85 @@ class Blog extends Model {
   private static $anzahl_eps = 20;	// anzahl einträge pro seite
   private static $anzahl_cps = 20;	// anzahl kommentare pro seite
 
-  // ersetze links im blogtext [|] mit html links <a>
-  public function html_link($text_str, $option, $encoding="UTF-8") {
-    for ($start=0; mb_strpos($text_str,"[",$start,$encoding); $start++) {
-      $start= mb_strpos($text_str,"[",$start,$encoding);
-      $stop = mb_strpos($text_str,"]",$start,$encoding);
-      $link = explode("|", mb_substr($text_str, $start+1, $stop-$start-1, $encoding));
-      if (count($link) == 2 AND $option == 1) {
-        $link_str = "<a href=\"".$link[0]."\">".$link[1]."</a>";
-      }
-      elseif (count($link) == 1 AND $option == 1) {
-        $link_str = "<a href=\"".$link[0]."\">".$link[0]."</a>";
-      }
-      elseif (count($link) == 2 AND $option == 0) {
-        $link_str = $link[1];
-      }
-      elseif (count($link) == 1 AND $option == 0) {
-        $link_str = $link[0];
-      }
-      else {
-        $link_str = "";
-      }
-      $text_str = mb_substr($text_str, 0, $start, $encoding).$link_str.mb_substr($text_str, $stop+1, NULL, $encoding);
-      // mb_substr_replace($text_str, $link_str, $start, $stop-$start+1);
-    }
+  // ersetze tag kommandos im blogtext ~cmd{content} mit html tags <a>, <b>, <i>
+  public function html_tags($text_str, $tag_flag, $encoding="UTF-8") {
+    for ($start=0; mb_strpos($text_str, "~", $start, $encoding); $start++) {
+      // suche tilde, abbruch der schleife wenn keine tilde mehr in text_str vorhanden (strpos return false)
+
+      $start   = mb_strpos($text_str, "~", $start, $encoding);
+      $brace   = mb_strpos($text_str, "{", $start, $encoding);
+      $stop    = mb_strpos($text_str, "}", $start, $encoding);
+
+      if ($brace AND $stop) {
+        // nur ausführen wenn {} gefunden
+        $cmd     = mb_substr($text_str, $start+1, $brace-$start-1, $encoding);
+        $content = mb_substr($text_str, $brace+1, $stop-$brace-1 , $encoding);
+
+        switch ($cmd) {
+
+          case "link":
+
+            if (mb_strlen($content, $encoding) > 0 AND $tag_flag) {
+              $link = explode("|", $content);
+              if (count($link) == 2) {
+                $tag_str = "<a href=\"".$link[0]."\">".$link[1]."</a>";
+              }
+              else {
+                $tag_str = "<a href=\"".$link[0]."\">".$link[0]."</a>";
+              }
+            }
+            elseif (mb_strlen($content, $encoding) > 0 AND !$tag_flag) {
+              $link = explode("|", $content);
+              if (count($link) == 2) {
+                $tag_str = $link[1];
+              }
+              else {
+                $tag_str = $link[0];
+              }
+            }
+            else {
+              $tag_str = "";
+            }
+            break;
+
+          case "bold":
+
+            if (mb_strlen($content, $encoding) > 0 AND $tag_flag) {
+              $tag_str = "<b>".$content."</b>";
+            }
+            elseif (mb_strlen($content, $encoding) > 0 AND !$tag_flag) {
+              $tag_str = $content;
+            }
+            else {
+              $tag_str = "";
+            }
+            break;
+
+          case "italic":
+
+            if (mb_strlen($content, $encoding) > 0 AND $tag_flag) {
+              $tag_str = "<i>".$content."</i>";
+            }
+            elseif (mb_strlen($content, $encoding) > 0 AND !$tag_flag) {
+              $tag_str = $content;
+            }
+            else {
+              $tag_str = "";
+            }
+            break;
+
+          default:
+            $tag_str = $cmd.$content;
+
+        } // switch
+
+        $text_str = mb_substr($text_str, 0, $start, $encoding).$tag_str.mb_substr($text_str, $stop+1, NULL, $encoding);
+        // mb_substr_replace($text_str, $tag_str, $start, $stop-$start+1);
+
+      } // if
+
+    } // for
+
     return $text_str;
   }
 
@@ -44,8 +99,8 @@ class Blog extends Model {
   private function blog_line($datensatz, &$option_array, &$blog_comment_id_array, $query_data) {
 
     $datum = stripslashes($this->html5specialchars($datensatz["ba_date"]));
-    $blogtext = stripslashes($this->html_link(nl2br($this->html5specialchars($datensatz["ba_text"])),1));
-    $blogtext40 = stripslashes($this->html_link($this->html5specialchars(mb_substr($datensatz["ba_text"], 0, 40, MB_ENCODING)),0));	// substr problem bei trennung umlaute
+    $blogtext = stripslashes($this->html_tags(nl2br($this->html5specialchars($datensatz["ba_text"])), true));
+    $blogtext40 = stripslashes($this->html_tags($this->html5specialchars(mb_substr($datensatz["ba_text"], 0, 40, MB_ENCODING)), false));	// substr problem bei trennung umlaute
 
     // blog id für anker
     $jahr   = substr($datum, 6, 2);
