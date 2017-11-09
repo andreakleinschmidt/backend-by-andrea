@@ -52,21 +52,22 @@ class Blog extends Model {
       // TABLE ba_blog_history (history_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
       //                        history_datetime DATETIME NOT NULL,
       //                        history_info VARCHAR(8) NOT NULL,
-      //                        ba_blogid INT UNSIGNED NOT NULL);
+      //                        ba_blogid INT UNSIGNED NOT NULL,
+      //                        ba_userid INT UNSIGNED NOT NULL);
 
       // TRIGGER trigger_ba_blog_insert AFTER INSERT ON ba_blog
-      //  FOR EACH ROW INSERT INTO ba_blog_history (history_datetime, history_info, ba_blogid) VALUES(NOW(), "created", NEW.ba_id);
-      // TRIGGER trigger_ba_blog_update BEFORE UPDATE ON ba_blog
-      //  FOR EACH ROW INSERT INTO ba_blog_history (history_datetime, history_info, ba_blogid) VALUES(NOW(), "modifed", OLD.ba_id);
+      //  FOR EACH ROW INSERT INTO ba_blog_history (history_datetime, history_info, ba_blogid, ba_userid) VALUES(NOW(), "created", NEW.ba_id, NEW.ba_userid);
+      // TRIGGER trigger_ba_blog_update AFTER UPDATE ON ba_blog
+      //  FOR EACH ROW INSERT INTO ba_blog_history (history_datetime, history_info, ba_blogid, ba_userid) VALUES(NOW(), "modifed", NEW.ba_id, NEW.ba_userid);
       // TRIGGER trigger_ba_blog_delete BEFORE DELETE ON ba_blog
-      //  FOR EACH ROW INSERT INTO ba_blog_history (history_datetime, history_info, ba_blogid) VALUES(NOW(), "deleted", OLD.ba_id);
+      //  FOR EACH ROW INSERT INTO ba_blog_history (history_datetime, history_info, ba_blogid, ba_userid) VALUES(NOW(), "deleted", OLD.ba_id, OLD.ba_userid);
 
       // GET id auslesen
       if (isset($id) AND is_numeric($id)) {
         // id als zahl vorhanden und nicht NULL
 
         // zugriff auf mysql datenbank (1) , select mit prepare() , ($id aus GET)
-        $sql = "SELECT history_id, history_datetime, history_info FROM ba_blog_history WHERE ba_blogid = ? ORDER BY history_id DESC";
+        $sql = "SELECT history_id, history_datetime, history_info, ba_userid, user FROM ba_blog_history, backend WHERE ba_blogid = ? AND id = ba_userid ORDER BY history_id DESC";
         $stmt = $this->datenbank->prepare($sql);	// liefert mysqli-statement-objekt
         if ($stmt) {
           // wenn kein fehler 3m
@@ -77,7 +78,7 @@ class Blog extends Model {
 
           $stmt->store_result();
 
-          $stmt->bind_result($datensatz["history_id"],$datensatz["history_datetime"],$datensatz["history_info"]);
+          $stmt->bind_result($datensatz["history_id"],$datensatz["history_datetime"],$datensatz["history_info"],$datensatz["ba_userid"],$datensatz["user"]);
           // mysqli-statement-objekt kennt kein fetch_assoc(), nur fetch(), kein assoc-array als rückgabe
 
           if ($stmt->num_rows > 0) {
@@ -95,8 +96,9 @@ class Blog extends Model {
 
             $history_datetime = stripslashes($this->html5specialchars($datensatz["history_datetime"]));
             $history_info = stripslashes($this->html5specialchars($datensatz["history_info"]));
+            $user = stripslashes($this->html5specialchars($datensatz["user"]));
 
-            $html_backend_ext .= "<br><i>".$history_info." at ".$history_datetime."</i>\n";
+            $html_backend_ext .= "<br><i>".$history_info." at ".$history_datetime." by ".$user."</i>\n";
 
           } // while
 
@@ -131,16 +133,18 @@ class Blog extends Model {
       // wenn kein fehler
 
       // TABLE ba_blog (ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      //                ba_userid INT UNSIGNED NOT NULL,
       //                ba_datetime DATETIME NOT NULL,
       //                ba_date VARCHAR(32) NOT NULL,
       //                ba_text VARCHAR(8192) NOT NULL,
       //                ba_videoid VARCHAR(32) NOT NULL,
       //                ba_fotoid VARCHAR(128) NOT NULL,
-      //                ba_tag VARCHAR(128) NOT NULL),
+      //                ba_tag VARCHAR(128) NOT NULL,
       //                ba_state TINYINT UNSIGNED NOT NULL);
 
       // preset
       $ba_id = 0xffff;	// error
+      $ba_userid = $_SESSION["user_id"];	// wird immer neu gesetzt
       $ba_datetime = "0000-00-00 00:00:00";
       $ba_date = "";
       $ba_text = "";
@@ -214,7 +218,7 @@ class Blog extends Model {
 
       } // keine id
 
-      // formular felder für blog eintrag , GET id oder neu , ba_id in hidden feld , ba_daten aus preset (ohne ba_datetime, hier nur info-anzeige, wird bei POST neu gesetzt)
+      // formular felder für blog eintrag , GET id oder neu , ba_id und ba_userid in hidden feld , ba_daten aus preset (ohne ba_datetime, hier nur info-anzeige, wird bei POST neu gesetzt)
 
       $html_backend_ext .= "<form action=\"backend.php\" method=\"post\">\n".
                            "<table class=\"backend\">\n".
@@ -222,6 +226,7 @@ class Blog extends Model {
                            "date:\n".
                            "</td>\n<td>\n".
                            "<input type=\"hidden\" name=\"ba_blog[ba_id]\" value=\"".$ba_id."\"/>\n".
+                           "<input type=\"hidden\" name=\"ba_blog[ba_userid]\" value=\"".$ba_userid."\"/>\n".
                            "<input type=\"text\" name=\"ba_blog[ba_date]\" class=\"size_32\" maxlength=\"".MAXLEN_BLOGDATE."\" value=\"".$ba_date."\"/>\n".
                            "(".$ba_datetime.")\n".
                            "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">\n".
@@ -478,7 +483,7 @@ class Blog extends Model {
     return array("inhalt" => $html_backend_ext, "error" => $errorstring);
   }
 
-  public function postBlog($ba_id, $ba_date, $ba_text, $ba_videoid, $ba_fotoid, $ba_tag, $ba_state, $ba_delete) {
+  public function postBlog($ba_id, $ba_userid, $ba_date, $ba_text, $ba_videoid, $ba_fotoid, $ba_tag, $ba_state, $ba_delete) {
     $html_backend_ext = "";
     $errorstring = "";
 
@@ -498,7 +503,7 @@ class Blog extends Model {
 
         // einfügen in datenbank:
         if ($ba_id == 0) {
-          $sql = "INSERT INTO ba_blog (ba_datetime, ba_date, ba_text, ba_videoid, ba_fotoid, ba_tag, ba_state) VALUES (?, ?, ?, ?, ?, ?, ?)";
+          $sql = "INSERT INTO ba_blog (ba_userid, ba_datetime, ba_date, ba_text, ba_videoid, ba_fotoid, ba_tag, ba_state) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         }
 
         // löschen in datenbank:
@@ -508,7 +513,7 @@ class Blog extends Model {
 
         // update in datenbank:
         else {
-          $sql = "UPDATE ba_blog SET ba_datetime = ?, ba_date = ?, ba_text = ?, ba_videoid = ?, ba_fotoid = ?, ba_tag = ?, ba_state = ? WHERE ba_id = ?";
+          $sql = "UPDATE ba_blog SET ba_userid = ?, ba_datetime = ?, ba_date = ?, ba_text = ?, ba_videoid = ?, ba_fotoid = ?, ba_tag = ?, ba_state = ? WHERE ba_id = ?";
         }
 
         // mit prepare() - sql injections verhindern
@@ -516,9 +521,9 @@ class Blog extends Model {
         if ($stmt) {
           // wenn kein fehler 4e
 
-          // austauschen ???????, ? oder ???????? durch string und int
+          // austauschen ????????, ? oder ????????? durch string und int
           if ($ba_id == 0) {
-            $stmt->bind_param("ssssssi", $ba_datetime, $ba_date, $ba_text, $ba_videoid, $ba_fotoid, $ba_tag, $ba_state);	// einfügen in datenbank
+            $stmt->bind_param("issssssi", $ba_userid, $ba_datetime, $ba_date, $ba_text, $ba_videoid, $ba_fotoid, $ba_tag, $ba_state);	// einfügen in datenbank
             $html_backend_ext .= "<p>blog - new</p>\n";
           }
           elseif ($ba_delete) {
@@ -526,7 +531,7 @@ class Blog extends Model {
             $html_backend_ext .= "<p>blog - delete</p>\n";
           }
           else {
-            $stmt->bind_param("ssssssii", $ba_datetime, $ba_date, $ba_text, $ba_videoid, $ba_fotoid, $ba_tag, $ba_state, $ba_id);	// update in datenbank
+            $stmt->bind_param("issssssii", $ba_userid, $ba_datetime, $ba_date, $ba_text, $ba_videoid, $ba_fotoid, $ba_tag, $ba_state, $ba_id);	// update in datenbank
             $html_backend_ext .= "<p>blog - update</p>\n";
           }
           $stmt->execute();	// ausführen geänderte zeile

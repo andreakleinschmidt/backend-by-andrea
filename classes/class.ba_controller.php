@@ -1104,7 +1104,7 @@ class Controller {
 // *****************************************************************************
 
           elseif (isset($this->request["ba_blog"]) && ($_SESSION["user_role"] >= ROLE_EDITOR)) {
-            // ba_blog[ba_id, ba_date, ba_text, ba_videoid, ba_fotoid, ba_tag, ba_state, "delete"]
+            // ba_blog[ba_id, ba_userid, ba_date, ba_text, ba_videoid, ba_fotoid, ba_tag, ba_state, "delete"]
             // ba_id == 0 -> neuer blog eintrag
             // ba_id == 0xffff -> error
 
@@ -1112,6 +1112,7 @@ class Controller {
             $ba_blog_array = $this->request["ba_blog"];
 
             $ba_id = $ba_blog_array["ba_id"];
+            $ba_userid = $ba_blog_array["ba_userid"];
 
             // überflüssige leerzeichen entfernen
             $ba_date = trim($ba_blog_array["ba_date"]);
@@ -1148,7 +1149,7 @@ class Controller {
 
             $ba_delete = in_array("delete", $ba_blog_array);	// in array nach string suchen
 
-            $ret = $model_blog->postBlog($ba_id, $ba_date, $ba_text, $ba_videoid, $ba_fotoid, $ba_tag, $ba_state, $ba_delete);	// daten für blog in das model
+            $ret = $model_blog->postBlog($ba_id, $ba_userid, $ba_date, $ba_text, $ba_videoid, $ba_fotoid, $ba_tag, $ba_state, $ba_delete);	// daten für blog in das model
             $html_backend_ext .= $ret["inhalt"];
             $errorstring = $ret["error"];
 
