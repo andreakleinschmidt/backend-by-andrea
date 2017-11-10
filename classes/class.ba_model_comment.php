@@ -35,6 +35,138 @@ define("MB_ENCODING","UTF-8");
 
 class Comment extends Model {
 
+  private function getCommentlist($page) {
+    $html_backend_ext = "";
+    $errorstring = "";
+
+    if (!$this->datenbank->connect_errno) {
+      // wenn kein fehler
+
+      // TABLE ba_comment (ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      //                   ba_date DATETIME NOT NULL,
+      //                   ba_ip VARCHAR(48) NOT NULL,
+      //                   ba_name VARCHAR(64) NOT NULL,
+      //                   ba_mail VARCHAR(64) NOT NULL,
+      //                   ba_text VARCHAR(2048) NOT NULL,
+      //                   ba_comment VARCHAR(2048) NOT NULL,
+      //                   ba_blogid INT UNSIGNED NOT NULL);
+
+      // liste mit älteren kommentar-einträgen
+
+      $anzahl_eps = 20;	// anzahl einträge pro seite
+
+      // zugriff auf mysql datenbank (2)
+      $sql = "SELECT ba_id FROM ba_comment";
+      $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
+      if ($ret) {
+        // wenn kein fehler 3h
+
+        $anzahl_e = $ret->num_rows;	// anzahl einträge in ba_comment
+        $anzahl_s = ceil($anzahl_e/$anzahl_eps);	// anzahl seiten in ba_blog, ceil() rundet auf
+
+        // GET page auslesen
+        if (isset($page) and is_numeric($page)) {
+          // page als zahl vorhanden und nicht NULL
+
+          // page eingrenzen
+          if  ($page < 1) {
+            $page = 1;
+          }
+          elseif ($page > $anzahl_s) {
+            $page = $anzahl_s;
+          }
+
+        }
+        else {
+          $page = 1;
+        }
+
+        // LIMIT für sql berechnen
+        $lmt_start = ($page-1) * $anzahl_eps;
+
+        // zugriff auf mysql datenbank (3)
+        $sql = "SELECT ba_id, ba_date, ba_name, ba_text, ba_comment, ba_blogid FROM ba_comment ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;
+        $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
+        if ($ret) {
+          // wenn kein fehler 3i
+
+          $html_backend_ext .= "<table class=\"backend\">\n".
+                               "<tr>\n<td>\n".
+                               "date - name: text (total:".$anzahl_e.")\n".
+                               "</td>\n<td>\n".
+                               "comment\n".
+                               "</td>\n<td>\n".
+                               "blogid\n".
+                               "</td>\n</tr>\n";
+
+          // ausgabeschleife
+          while ($datensatz = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
+
+            $date = date_create($datensatz["ba_date"]);
+            $ba_date = date_format($date, "d.m.y / H:i");
+            $ba_name = stripslashes($this->html5specialchars($datensatz["ba_name"]));
+            $ba_text = stripslashes($this->html5specialchars(mb_substr($datensatz["ba_text"], 0, 80, MB_ENCODING)));	// substr problem bei trennung umlaute
+            $ba_blogid = intval($datensatz["ba_blogid"]);
+
+            $html_backend_ext .= "<tr>\n<td>\n".
+                                 "<a href=\"backend.php?".$this->html_build_query(array("action" => "comment", "id" => $datensatz["ba_id"]))."\">".$ba_date." - ".$ba_name.": ".$ba_text."...</a>\n".
+                                 "</td>\n<td>\n";
+            if (mb_strlen($datensatz["ba_comment"], MB_ENCODING) > 0) {
+              $html_backend_ext .= "x\n";	// nur wenn vorhanden
+            }
+            $html_backend_ext .= "</td>\n<td>\n".$ba_blogid."</td>\n</tr>\n";
+          }
+
+          // seitenauswahl mit links und vor/zurück
+          $html_backend_ext .= "<tr>\n<td>\n";
+          $query_data = array("action" => "comment", "page" => 0);
+
+          if ($page > 1) {
+            $i = $page - 1;
+            $query_data["page"] = $i;
+            $html_backend_ext .= "<a href=\"backend.php?".$this->html_build_query($query_data)."\">prev</a> \n";	// zurück
+          }
+
+          for ($i=1; $i<=$anzahl_s; $i++) {										// seitenauswahl
+            if ($i == $page) {
+              $html_backend_ext .= $i." \n";
+            }
+            else {
+              $query_data["page"] = $i;
+              $html_backend_ext .= "<a href=\"backend.php?".$this->html_build_query($query_data)."\">".$i."</a> \n";
+            }
+          }
+
+          if ($page < $anzahl_s) {
+            $i = $page + 1;
+            $query_data["page"] = $i;
+            $html_backend_ext .= "<a href=\"backend.php?".$this->html_build_query($query_data)."\">next</a>\n";		// vor
+          }
+
+          $html_backend_ext .= "</td>\n<td>\n</td>\n<td>\n</td>\n</tr>\n".
+                               "</table>\n\n";
+
+          $ret->close();	// db-ojekt schließen
+          unset($ret);	// referenz löschen
+
+        }
+        else {
+          $errorstring .= "<p>db error 3i</p>\n\n";
+        }
+
+      }
+      else {
+        $errorstring .= "<p>db error 3h</p>\n\n";
+      }
+
+    } // datenbank
+    else {
+      $errorstring .= "<br>db error 1\n";
+    }
+
+    return array("inhalt" => $html_backend_ext, "error" => $errorstring);
+  }
+
   public function getComment($id, $page) {
     $html_backend_ext = "";
     $errorstring = "";
@@ -161,118 +293,15 @@ class Comment extends Model {
                            "</table>\n".
                            "</form>\n\n";
 
-      // liste mit älteren kommentar-einträgen
-
-      $anzahl_eps = 20;	// anzahl einträge pro seite
-
-      // zugriff auf mysql datenbank (2)
-      $sql = "SELECT ba_id FROM ba_comment";
-      $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
-      if ($ret) {
-        // wenn kein fehler 3h
-
-        $anzahl_e = $ret->num_rows;	// anzahl einträge in ba_comment
-        $anzahl_s = ceil($anzahl_e/$anzahl_eps);	// anzahl seiten in ba_blog, ceil() rundet auf
-
-        // GET page auslesen
-        if (isset($page) and is_numeric($page)) {
-          // page als zahl vorhanden und nicht NULL
-
-          // page eingrenzen
-          if  ($page < 1) {
-            $page = 1;
-          }
-          elseif ($page > $anzahl_s) {
-            $page = $anzahl_s;
-          }
-
-        }
-        else {
-          $page = 1;
-        }
-
-        // LIMIT für sql berechnen
-        $lmt_start = ($page-1) * $anzahl_eps;
-
-        // zugriff auf mysql datenbank (3)
-        $sql = "SELECT ba_id, ba_date, ba_name, ba_text, ba_comment, ba_blogid FROM ba_comment ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;
-        $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
-        if ($ret) {
-          // wenn kein fehler 3i
-
-          $html_backend_ext .= "<table class=\"backend\">\n".
-                               "<tr>\n<td>\n".
-                               "date - name: text (total:".$anzahl_e.")\n".
-                               "</td>\n<td>\n".
-                               "comment\n".
-                               "</td>\n<td>\n".
-                               "blogid\n".
-                               "</td>\n</tr>\n";
-
-          // ausgabeschleife
-          while ($datensatz = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
-
-            $date = date_create($datensatz["ba_date"]);
-            $ba_date = date_format($date, "d.m.y / H:i");
-            $ba_name = stripslashes($this->html5specialchars($datensatz["ba_name"]));
-            $ba_text = stripslashes($this->html5specialchars(mb_substr($datensatz["ba_text"], 0, 80, MB_ENCODING)));	// substr problem bei trennung umlaute
-            $ba_blogid = intval($datensatz["ba_blogid"]);
-
-            $html_backend_ext .= "<tr>\n<td>\n".
-                                 "<a href=\"backend.php?".$this->html_build_query(array("action" => "comment", "id" => $datensatz["ba_id"]))."\">".$ba_date." - ".$ba_name.": ".$ba_text."...</a>\n".
-                                 "</td>\n<td>\n";
-            if (mb_strlen($datensatz["ba_comment"], MB_ENCODING) > 0) {
-              $html_backend_ext .= "x\n";	// nur wenn vorhanden
-            }
-            $html_backend_ext .= "</td>\n<td>\n".$ba_blogid."</td>\n</tr>\n";
-          }
-
-          // seitenauswahl mit links und vor/zurück
-          $html_backend_ext .= "<tr>\n<td>\n";
-          $query_data = array("action" => "comment", "page" => 0);
-
-          if ($page > 1) {
-            $i = $page - 1;
-            $query_data["page"] = $i;
-            $html_backend_ext .= "<a href=\"backend.php?".$this->html_build_query($query_data)."\">prev</a> \n";	// zurück
-          }
-
-          for ($i=1; $i<=$anzahl_s; $i++) {										// seitenauswahl
-            if ($i == $page) {
-              $html_backend_ext .= $i." \n";
-            }
-            else {
-              $query_data["page"] = $i;
-              $html_backend_ext .= "<a href=\"backend.php?".$this->html_build_query($query_data)."\">".$i."</a> \n";
-            }
-          }
-
-          if ($page < $anzahl_s) {
-            $i = $page + 1;
-            $query_data["page"] = $i;
-            $html_backend_ext .= "<a href=\"backend.php?".$this->html_build_query($query_data)."\">next</a>\n";		// vor
-          }
-
-          $html_backend_ext .= "</td>\n<td>\n</td>\n<td>\n</td>\n</tr>\n".
-                               "</table>\n";
-
-          $ret->close();	// db-ojekt schließen
-          unset($ret);	// referenz löschen
-
-        }
-        else {
-          $errorstring .= "<p>db error 3i</p>\n\n";
-        }
-
-      }
-      else {
-        $errorstring .= "<p>db error 3h</p>\n\n";
-      }
-
     } // datenbank
     else {
       $errorstring .= "<br>db error 1\n";
     }
+
+    // liste mit älteren kommentar-einträgen
+    $commentlist = $this->getCommentlist($page);
+    $html_backend_ext .= $commentlist["inhalt"];
+    $errorstring .= $commentlist["error"];
 
     return array("inhalt" => $html_backend_ext, "error" => $errorstring);
   }
@@ -311,15 +340,15 @@ class Comment extends Model {
           // austauschen ???????, ? oder ???????? durch string und int
           if ($ba_id == 0) {
             $stmt->bind_param("ssssssi", $ba_date, $ba_ip, $ba_name, $ba_mail, $ba_text, $ba_comment, $ba_blogid);	// einfügen in datenbank
-            $html_backend_ext .= "<p>comment - new</p>\n";
+            $html_backend_ext .= "<p>comment - new</p>\n\n";
           }
           elseif ($ba_delete) {
             $stmt->bind_param("i", $ba_id);	// löschen in datenbank
-            $html_backend_ext .= "<p>comment - delete</p>\n";
+            $html_backend_ext .= "<p>comment - delete</p>\n\n";
           }
           else {
             $stmt->bind_param("ssssssii", $ba_date, $ba_ip, $ba_name, $ba_mail, $ba_text, $ba_comment, $ba_blogid, $ba_id);	// update in datenbank
-            $html_backend_ext .= "<p>comment - update</p>\n";
+            $html_backend_ext .= "<p>comment - update</p>\n\n";
           }
           $stmt->execute();	// ausführen geänderte zeile
           $count += $stmt->affected_rows;

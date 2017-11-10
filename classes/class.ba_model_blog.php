@@ -125,6 +125,242 @@ class Blog extends Model {
     return array("inhalt" => $html_backend_ext, "error" => $errorstring);
   }
 
+  private function getBloglist($page) {
+    $html_backend_ext = "";
+    $errorstring = "";
+
+    if (!$this->datenbank->connect_errno) {
+
+      // wenn kein fehler
+
+      // TABLE ba_blog (ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      //                ba_userid INT UNSIGNED NOT NULL,
+      //                ba_datetime DATETIME NOT NULL,
+      //                ba_date VARCHAR(32) NOT NULL,
+      //                ba_text VARCHAR(8192) NOT NULL,
+      //                ba_videoid VARCHAR(32) NOT NULL,
+      //                ba_fotoid VARCHAR(128) NOT NULL,
+      //                ba_tag VARCHAR(128) NOT NULL,
+      //                ba_state TINYINT UNSIGNED NOT NULL);
+
+      // liste mit älteren blog-einträgen
+
+      $anzahl_eps = 20;	// anzahl einträge pro seite
+
+      // zugriff auf mysql datenbank (2)
+      $sql = "SELECT ba_id FROM ba_blog";
+      $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
+      if ($ret) {
+        // wenn kein fehler 3e
+
+        $anzahl_e = $ret->num_rows;	// anzahl einträge in ba_blog
+        $anzahl_s = ceil($anzahl_e/$anzahl_eps);	// anzahl seiten in ba_blog, ceil() rundet auf
+
+        // GET page auslesen
+        if (isset($page) and is_numeric($page)) {
+          // page als zahl vorhanden und nicht NULL
+
+          // page eingrenzen
+          if  ($page < 1) {
+            $page = 1;
+          }
+          elseif ($page > $anzahl_s) {
+            $page = $anzahl_s;
+          }
+
+        }
+        else {
+          $page = 1;
+        }
+
+        // LIMIT für sql berechnen
+        $lmt_start = ($page-1) * $anzahl_eps;
+
+        // zugriff auf mysql datenbank (3)
+        $sql = "SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid, ba_tag, ba_state FROM ba_blog ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;
+        $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
+        if ($ret) {
+          // wenn kein fehler 3f
+
+          $html_backend_ext .= "<table class=\"backend\">\n".
+                               "<tr>\n<td>\n".
+                               "date - text (total:".$anzahl_e.")\n".
+                               "</td>\n<td>\n".
+                               "videoid\n".
+                               "</td>\n<td>\n".
+                               "fotoid\n".
+                               "</td>\n<td>\n".
+                               "tag\n".
+                               "</td>\n<td>\n".
+                               "state\n".
+                               "</td>\n</tr>\n";
+
+          // ausgabeschleife
+          while ($datensatz = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
+
+            $ba_date = stripslashes($this->html5specialchars($datensatz["ba_date"]));
+            $ba_text = stripslashes($this->html5specialchars(mb_substr($datensatz["ba_text"], 0, 80, MB_ENCODING)));	// 80 wie blogbox in class.model.php, substr problem bei trennung umlaute
+            $ba_videoid = stripslashes($this->html5specialchars($datensatz["ba_videoid"]));
+            $ba_fotoid = stripslashes($this->html5specialchars($datensatz["ba_fotoid"]));
+            $ba_tag_flag = "";
+            if (!empty($datensatz["ba_tag"])) {
+              $ba_tag_flag = "x";
+            }
+
+            $ba_state = intval($datensatz["ba_state"]);
+
+            switch($ba_state) {
+              case STATE_CREATED: {
+                $ba_state_short = "-c-";
+                break;
+              }
+              case STATE_EDITED: {
+                $ba_state_short = "-e-";
+                break;
+              }
+              case STATE_APPROVAL: {
+                $ba_state_short = "-a-";
+                break;
+              }
+              case STATE_PUBLISHED: {
+                $ba_state_short = "-p-";
+                break;
+              }
+              default: {
+                $ba_state_short = "";
+              }
+            }
+
+            $html_backend_ext .= "<tr>\n<td>\n".
+                                 "<a href=\"backend.php?".$this->html_build_query(array("action" => "blog", "id" => $datensatz["ba_id"]))."\">".$ba_date." - ".$ba_text."...</a>\n".
+                                 "</td>\n<td>\n";
+            if (strlen($ba_videoid) > 0) {
+              $html_backend_ext .= "(".$ba_videoid.")\n";	// nur wenn verwendet
+            }
+            $html_backend_ext .= "</td>\n<td>\n";
+            if (strlen($ba_fotoid) > 0) {
+              $html_backend_ext .= "(".$ba_fotoid.")\n";	// nur wenn verwendet
+            }
+            $html_backend_ext .= "</td>\n<td>\n".$ba_tag_flag."\n".
+                                 "</td>\n<td>\n".$ba_state_short."\n".
+                                 "</td>\n</tr>\n";
+          }
+
+          // seitenauswahl mit links und vor/zurück
+          $html_backend_ext .= "<tr>\n<td>\n";
+          $query_data = array("action" => "blog", "page" => 0);
+
+          if ($page > 1) {
+            $i = $page - 1;
+            $query_data["page"] = $i;
+            $html_backend_ext .= "<a href=\"backend.php?".$this->html_build_query($query_data)."\">prev</a> \n";	// zurück
+          }
+
+          for ($i=1; $i<=$anzahl_s; $i++) {										// seitenauswahl
+            if ($i == $page) {
+              $html_backend_ext .= $i." \n";
+            }
+            else {
+              $query_data["page"] = $i;
+              $html_backend_ext .= "<a href=\"backend.php?".$this->html_build_query($query_data)."\">".$i."</a> \n";
+            }
+          }
+
+          if ($page < $anzahl_s) {
+            $i = $page + 1;
+            $query_data["page"] = $i;
+            $html_backend_ext .= "<a href=\"backend.php?".$this->html_build_query($query_data)."\">next</a>\n";		// vor
+          }
+
+          $html_backend_ext .= "</td>\n<td>\n</td>\n<td>\n</td>\n<td>\n</td>\n</tr>\n".
+                               "</table>\n\n";
+
+          $ret->close();	// db-ojekt schließen
+          unset($ret);	// referenz löschen
+
+        }
+        else {
+          $errorstring .= "<p>db error 3f</p>\n\n";
+        }
+
+      }
+      else {
+        $errorstring .= "<p>db error 3e</p>\n\n";
+      }
+
+    } // datenbank
+    else {
+      $errorstring .= "<br>db error 1\n";
+    }
+
+    return array("inhalt" => $html_backend_ext, "error" => $errorstring);
+  }
+
+  private function getBlogroll() {
+    $html_backend_ext = "";
+    $errorstring = "";
+
+    if (!$this->datenbank->connect_errno) {
+
+      // wenn kein fehler
+
+      // TABLE ba_blogroll (ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      //                    ba_feed VARCHAR(128) NOT NULL);
+
+      $html_backend_ext .= "<p><b>blogroll</b></p>\n\n";
+
+      // zugriff auf mysql datenbank (4)
+      $sql = "SELECT ba_id, ba_feed FROM ba_blogroll";
+      $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
+      if ($ret) {
+        // wenn kein fehler 3l
+        if ($ret->num_rows > 0) {
+          // feeds anzeigen, auswählen&löschen
+          $html_backend_ext .= "<form action=\"backend.php\" method=\"post\">\n".
+                               "<table class=\"backend\">\n".
+                               "<tr>\n<td class=\"td_backend\">\n".
+                               "feed:\n".
+                               "</td>\n<td>\n".
+                              "<select multiple name=\"ba_blogroll[]\" size=\"5\">\n";
+          while ($datensatz = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
+            $html_backend_ext .= "<option value=\"".$datensatz["ba_id"]."\">".$datensatz["ba_feed"]."</option>\n";
+          }
+          $html_backend_ext .= "</select>\n".
+                               "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">\n</td>\n<td>\n".
+                               "<input type=\"submit\" value=\"del\" />\n".
+                               "</td>\n</tr>\n".
+                               "</table>\n".
+                               "</form>\n\n";
+        } // $ret->num_rows > 0
+        $ret->close();	// db-ojekt schließen
+        unset($ret);	// referenz löschen
+
+      }
+      else {
+        $errorstring .= "<p>db error 3l</p>\n\n";
+      }
+
+      // neuer feed
+      $html_backend_ext .= "<form action=\"backend.php\" method=\"post\">\n".
+                           "<table class=\"backend\">\n".
+                           "<tr>\n<td class=\"td_backend\">\n".
+                           "neuer feed:\n".
+                           "</td>\n<td>\n".
+                           "<input type=\"text\" name=\"ba_blogroll_new[feed]\" class=\"size_32\" maxlength=\"".MAXLEN_FEED."\" value=\"http://\"/>\n".
+                           "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">\n</td>\n<td>\n".
+                           "<input type=\"submit\" value=\"new\" />\n".
+                           "</td>\n</tr>\n".
+                           "</table>\n".
+                           "</form>\n\n";
+
+    } // datenbank
+    else {
+      $errorstring .= "<br>db error 1\n";
+    }
+
+    return array("inhalt" => $html_backend_ext, "error" => $errorstring);
+  }
+
   public function getBlog($id, $page) {
     $html_backend_ext = "";
     $errorstring = "";
@@ -276,209 +512,25 @@ class Blog extends Model {
                            "</table>\n".
                            "</form>\n\n";
 
-      // blog entry history
-      $history = $this->getHistory($id);
-      $html_backend_ext .= $history["inhalt"];
-      $errorstring .= $history["error"];
-
-      // liste mit älteren blog-einträgen
-
-      $anzahl_eps = 20;	// anzahl einträge pro seite
-
-      // zugriff auf mysql datenbank (2)
-      $sql = "SELECT ba_id FROM ba_blog";
-      $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
-      if ($ret) {
-        // wenn kein fehler 3e
-
-        $anzahl_e = $ret->num_rows;	// anzahl einträge in ba_blog
-        $anzahl_s = ceil($anzahl_e/$anzahl_eps);	// anzahl seiten in ba_blog, ceil() rundet auf
-
-        // GET page auslesen
-        if (isset($page) and is_numeric($page)) {
-          // page als zahl vorhanden und nicht NULL
-
-          // page eingrenzen
-          if  ($page < 1) {
-            $page = 1;
-          }
-          elseif ($page > $anzahl_s) {
-            $page = $anzahl_s;
-          }
-
-        }
-        else {
-          $page = 1;
-        }
-
-        // LIMIT für sql berechnen
-        $lmt_start = ($page-1) * $anzahl_eps;
-
-        // zugriff auf mysql datenbank (3)
-        $sql = "SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid, ba_tag, ba_state FROM ba_blog ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;
-        $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
-        if ($ret) {
-          // wenn kein fehler 3f
-
-          $html_backend_ext .= "<table class=\"backend\">\n".
-                               "<tr>\n<td>\n".
-                               "date - text (total:".$anzahl_e.")\n".
-                               "</td>\n<td>\n".
-                               "videoid\n".
-                               "</td>\n<td>\n".
-                               "fotoid\n".
-                               "</td>\n<td>\n".
-                               "tag\n".
-                               "</td>\n<td>\n".
-                               "state\n".
-                               "</td>\n</tr>\n";
-
-          // ausgabeschleife
-          while ($datensatz = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
-
-            $ba_date = stripslashes($this->html5specialchars($datensatz["ba_date"]));
-            $ba_text = stripslashes($this->html5specialchars(mb_substr($datensatz["ba_text"], 0, 80, MB_ENCODING)));	// 80 wie blogbox in class.model.php, substr problem bei trennung umlaute
-            $ba_videoid = stripslashes($this->html5specialchars($datensatz["ba_videoid"]));
-            $ba_fotoid = stripslashes($this->html5specialchars($datensatz["ba_fotoid"]));
-            $ba_tag_flag = "";
-            if (!empty($datensatz["ba_tag"])) {
-              $ba_tag_flag = "x";
-            }
-
-            $ba_state = intval($datensatz["ba_state"]);
-
-            switch($ba_state) {
-              case STATE_CREATED: {
-                $ba_state_short = "-c-";
-                break;
-              }
-              case STATE_EDITED: {
-                $ba_state_short = "-e-";
-                break;
-              }
-              case STATE_APPROVAL: {
-                $ba_state_short = "-a-";
-                break;
-              }
-              case STATE_PUBLISHED: {
-                $ba_state_short = "-p-";
-                break;
-              }
-              default: {
-                $ba_state_short = "";
-              }
-            }
-
-            $html_backend_ext .= "<tr>\n<td>\n".
-                                 "<a href=\"backend.php?".$this->html_build_query(array("action" => "blog", "id" => $datensatz["ba_id"]))."\">".$ba_date." - ".$ba_text."...</a>\n".
-                                 "</td>\n<td>\n";
-            if (strlen($ba_videoid) > 0) {
-              $html_backend_ext .= "(".$ba_videoid.")\n";	// nur wenn verwendet
-            }
-            $html_backend_ext .= "</td>\n<td>\n";
-            if (strlen($ba_fotoid) > 0) {
-              $html_backend_ext .= "(".$ba_fotoid.")\n";	// nur wenn verwendet
-            }
-            $html_backend_ext .= "</td>\n<td>\n".$ba_tag_flag."\n".
-                                 "</td>\n<td>\n".$ba_state_short."\n".
-                                 "</td>\n</tr>\n";
-          }
-
-          // seitenauswahl mit links und vor/zurück
-          $html_backend_ext .= "<tr>\n<td>\n";
-          $query_data = array("action" => "blog", "page" => 0);
-
-          if ($page > 1) {
-            $i = $page - 1;
-            $query_data["page"] = $i;
-            $html_backend_ext .= "<a href=\"backend.php?".$this->html_build_query($query_data)."\">prev</a> \n";	// zurück
-          }
-
-          for ($i=1; $i<=$anzahl_s; $i++) {										// seitenauswahl
-            if ($i == $page) {
-              $html_backend_ext .= $i." \n";
-            }
-            else {
-              $query_data["page"] = $i;
-              $html_backend_ext .= "<a href=\"backend.php?".$this->html_build_query($query_data)."\">".$i."</a> \n";
-            }
-          }
-
-          if ($page < $anzahl_s) {
-            $i = $page + 1;
-            $query_data["page"] = $i;
-            $html_backend_ext .= "<a href=\"backend.php?".$this->html_build_query($query_data)."\">next</a>\n";		// vor
-          }
-
-          $html_backend_ext .= "</td>\n<td>\n</td>\n<td>\n</td>\n<td>\n</td>\n</tr>\n".
-                               "</table>\n";
-
-          $ret->close();	// db-ojekt schließen
-          unset($ret);	// referenz löschen
-
-        }
-        else {
-          $errorstring .= "<p>db error 3f</p>\n\n";
-        }
-
-      }
-      else {
-        $errorstring .= "<p>db error 3e</p>\n\n";
-      }
-
-      // TABLE ba_blogroll (ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
-      //                    ba_feed VARCHAR(128) NOT NULL);
-
-      $html_backend_ext .= "<p><b>blogroll</b></p>\n\n";
-
-      // zugriff auf mysql datenbank (4)
-      $sql = "SELECT ba_id, ba_feed FROM ba_blogroll";
-      $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
-      if ($ret) {
-        // wenn kein fehler 3l
-        if ($ret->num_rows > 0) {
-          // feeds anzeigen, auswählen&löschen
-          $html_backend_ext .= "<form action=\"backend.php\" method=\"post\">\n".
-                               "<table class=\"backend\">\n".
-                               "<tr>\n<td class=\"td_backend\">\n".
-                               "feed:\n".
-                               "</td>\n<td>\n".
-                              "<select multiple name=\"ba_blogroll[]\" size=\"5\">\n";
-          while ($datensatz = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
-            $html_backend_ext .= "<option value=\"".$datensatz["ba_id"]."\">".$datensatz["ba_feed"]."</option>\n";
-          }
-          $html_backend_ext .= "</select>\n".
-                               "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">\n</td>\n<td>\n".
-                               "<input type=\"submit\" value=\"del\" />\n".
-                               "</td>\n</tr>\n".
-                               "</table>\n".
-                               "</form>\n\n";
-        } // $ret->num_rows > 0
-        $ret->close();	// db-ojekt schließen
-        unset($ret);	// referenz löschen
-
-      }
-      else {
-        $errorstring .= "<p>db error 3l</p>\n\n";
-      }
-
-      // neuer feed
-      $html_backend_ext .= "<form action=\"backend.php\" method=\"post\">\n".
-                           "<table class=\"backend\">\n".
-                           "<tr>\n<td class=\"td_backend\">\n".
-                           "neuer feed:\n".
-                           "</td>\n<td>\n".
-                           "<input type=\"text\" name=\"ba_blogroll_new[feed]\" class=\"size_32\" maxlength=\"".MAXLEN_FEED."\" value=\"http://\"/>\n".
-                           "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">\n</td>\n<td>\n".
-                           "<input type=\"submit\" value=\"new\" />\n".
-                           "</td>\n</tr>\n".
-                           "</table>\n".
-                           "</form>\n\n";
-
     } // datenbank
     else {
       $errorstring .= "<br>db error 1\n";
     }
+
+    // blog entry history
+    $history = $this->getHistory($id);
+    $html_backend_ext .= $history["inhalt"];
+    $errorstring .= $history["error"];
+
+    // liste mit älteren blog-einträgen
+    $bloglist = $this->getBloglist($page);
+    $html_backend_ext .= $bloglist["inhalt"];
+    $errorstring .= $bloglist["error"];
+
+    // blogroll
+    $blogroll = $this->getBlogroll();
+    $html_backend_ext .= $blogroll["inhalt"];
+    $errorstring .= $blogroll["error"];
 
     return array("inhalt" => $html_backend_ext, "error" => $errorstring);
   }
@@ -524,15 +576,15 @@ class Blog extends Model {
           // austauschen ????????, ? oder ????????? durch string und int
           if ($ba_id == 0) {
             $stmt->bind_param("issssssi", $ba_userid, $ba_datetime, $ba_date, $ba_text, $ba_videoid, $ba_fotoid, $ba_tag, $ba_state);	// einfügen in datenbank
-            $html_backend_ext .= "<p>blog - new</p>\n";
+            $html_backend_ext .= "<p>blog - new</p>\n\n";
           }
           elseif ($ba_delete) {
             $stmt->bind_param("i", $ba_id);	// löschen in datenbank
-            $html_backend_ext .= "<p>blog - delete</p>\n";
+            $html_backend_ext .= "<p>blog - delete</p>\n\n";
           }
           else {
             $stmt->bind_param("issssssii", $ba_userid, $ba_datetime, $ba_date, $ba_text, $ba_videoid, $ba_fotoid, $ba_tag, $ba_state, $ba_id);	// update in datenbank
-            $html_backend_ext .= "<p>blog - update</p>\n";
+            $html_backend_ext .= "<p>blog - update</p>\n\n";
           }
           $stmt->execute();	// ausführen geänderte zeile
           $count += $stmt->affected_rows;
