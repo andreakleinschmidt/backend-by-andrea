@@ -23,6 +23,7 @@ class Controller {
   private $tag;
   private $page;
   private $year;
+  private $month;
   private $compage;
 
   // konstruktor, controller erstellen
@@ -37,6 +38,7 @@ class Controller {
     $this->tag = !empty($request["tag"]) ? mb_substr(trim($request["tag"]), 0, 32, MB_ENCODING) : NULL;	// GET tag auslesen, überflüssige leerzeichen entfernen, zu langes GET abschneiden
     $this->page = !empty($request["page"]) ? (is_numeric($request["page"]) ? intval($request["page"]) : NULL) : NULL;	// GET page auslesen, string in int umwandeln
     $this->year = !empty($request["year"]) ? (is_numeric($request["year"]) ? intval($request["year"]) : NULL) : NULL;	// GET year auslesen, string in int umwandeln
+    $this->month = !empty($request["month"]) ? (is_numeric($request["month"]) ? intval($request["month"]) : NULL) : NULL;	// GET month auslesen, string in int umwandeln
     $this->compage = !empty($request["compage"]) ? (is_numeric($request["compage"]) ? intval($request["compage"]) : NULL) : NULL;	// GET comment-page auslesen, string in int umwandeln
     $this->model = new Model();	// model erstellen
   }
@@ -115,7 +117,7 @@ class Controller {
 
         case "blog": {
           $model_blog = new Blog();	// model erstellen
-          $ret = $model_blog->getBlog($this->q, $this->tag, $this->page, $this->year, $this->compage);	// daten für blog aus dem model
+          $ret = $model_blog->getBlog($this->q, $this->tag, $this->page, $this->year, $this->month, $this->compage);	// daten für blog aus dem model
           $view->setContent("hd_titel", " blog".$ret["hd_titel"]);
           break;
         }

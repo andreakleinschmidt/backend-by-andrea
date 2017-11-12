@@ -112,6 +112,20 @@ ul {}
 li {}
 .li_backend { list-style:none; }
 
+details {
+  width:150px;
+}
+
+details ul {
+  margin-top:0px;
+  margin-bottom:0.5em;
+  padding-left:2em;;
+}
+
+details li {
+  list-style:none;
+}
+
 input[type=text] {}
 .size_4 { width:4.1em; }	/* { width:59px; }	table backend (foto) 2./3. spalte */
 .size_5 { width:4.75em; }	/* { width:67px; }	table gbook 2. spalte */

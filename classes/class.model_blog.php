@@ -276,7 +276,81 @@ class Blog extends Model {
 // * funktionen für speichern, ändern,löschen in db
 // *****************************************************************************
 
-  public function getBlog($blog_query, $tag, $page, $year, $compage) {
+  // links jahr, monat mit anzahl einträge als aufklappbare liste
+  private function jahr_monat_liste($year_max, $year_min, $month_max, $month_min, $year, $show_year, $month, $show_month) {
+    $ersetzen = "";
+
+    if (!$this->datenbank->connect_errno) {
+      // wenn kein fehler
+
+      // array für links jahr (einträge), aktuelles jahr zuerst
+      $year_arr = array();
+      for ($i=$year_max; $i>=$year_min; $i--) {
+        $sql = "SELECT ba_id FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$i;
+        $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
+        if ($ret) {
+          $year_arr[$i] = $ret->num_rows;
+          $ret->close();
+          unset($ret);
+        }
+      }
+
+      $month_names = array("Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember");
+
+      // links jahr(einträge) als liste
+      foreach ($year_arr as $year_key => $year_entries) {
+        $ersetzen .= "<details>\n";
+
+        // array für links monat (einträge), neuster monat zuerst
+        $month_arr = array();
+        for ($i=$month_max; $i>=$month_min; $i--) {
+          $sql = "SELECT ba_id FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$year_key." AND MONTH(ba_datetime) = ".$i;
+          $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
+          if ($ret) {
+            $month_arr[$i] = $ret->num_rows;
+            $ret->close();
+            unset($ret);
+          }
+        }
+
+        // jahr
+        if ($year_key == $year and $show_year == true and $show_month == false) {
+          $ersetzen .= "<summary>".$year_key." (".$year_entries.")</summary>\n";
+        }
+        else {
+          // (alt)     "<summary><a href=\"index.php?action=blog&year=".$year_key."\">".$year_key." (".$year_entries.")</a></summary>\n";
+          $ersetzen .= "<summary><a href=\"blog/".$year_key."/\">".$year_key." (".$year_entries.")</a></summary>\n";
+        }
+
+        // links monat(einträge) als liste
+        $ersetzen .= "<ul>\n";
+        foreach ($month_arr as $month_key => $month_entries) {
+          if ($month_entries > 0) {
+
+            // monat
+            if ($year_key == $year and $show_year == true and $month_key == $month and $show_month == true) {
+              $ersetzen .= "<li>".$month_names[$month_key-1]." (".$month_entries.")</li>\n";
+            }
+            else {
+              // (alt)     "<li><a href=\"index.php?action=blog&year=".$year_key."&month=".$month_key."\">".$month_names[$month_key-1]." (".$month_entries.")</a></li>\n";
+              $ersetzen .= "<li><a href=\"blog/".$year_key."/".str_pad($month_key, 2, "0", STR_PAD_LEFT)."/\">".$month_names[$month_key-1]." (".$month_entries.")</a></li>\n";
+            }
+
+          }
+
+        } // foreach month
+        $ersetzen .= "</ul>\n";
+
+        $ersetzen .= "</details>\n";
+      } // foreach year
+
+    } // datenbank
+
+    return $ersetzen;
+  }
+
+
+  public function getBlog($blog_query, $tag, $page, $year, $month, $compage) {
     $hd_title_str = "";
     $ersetzen = "";
     $errorstring = "";
@@ -411,7 +485,7 @@ class Blog extends Model {
       else {
         // anzeigen
 
-        $ret_array = $this->getEntry($page, $year, $parameter_array, $option_array, $blog_comment_id_array, $tags_from_db);
+        $ret_array = $this->getEntry($page, $year, $month, $parameter_array, $option_array, $blog_comment_id_array, $tags_from_db);
         $hd_title_str = $ret_array["hd_titel"];
 
       } // suche oder anzeigen
@@ -602,7 +676,7 @@ class Blog extends Model {
   }
 
   // blog anzeigen
-  private function getEntry($page, $year, &$parameter_array, &$option_array, &$blog_comment_id_array, $tags_from_db) {
+  private function getEntry($page, $year, $month, &$parameter_array, &$option_array, &$blog_comment_id_array, $tags_from_db) {
     $hd_title_str = "";
     $ersetzen = "";
     $errorstring = "";
@@ -622,8 +696,12 @@ class Blog extends Model {
       // init
       $show_page = false;
       $show_year = false;
+      $show_month = false;
       $year_min = 2009;
       $year_max = intval(date("Y"));
+      $month_min = 1;
+      $month_max = 12;
+      $month_now = intval(date("n"));	// ohne führende null
       //$year = $year_max;
       //$page = 1;
 
@@ -651,11 +729,33 @@ class Blog extends Model {
         if ($show_page == false) {
           $hd_title_str .= " - ".$year;
         }
+
+        // GET month auslesen
+        if (isset($month) and is_numeric($month)) {
+          // month als zahl vorhanden und nicht NULL
+
+          // month eingrenzen
+          if ($month < $month_min) {
+            $month = $month_min;
+          }
+          elseif ($month > $month_max) {
+            $month = $month_max;
+          }
+
+          $show_month = true;
+
+          if ($show_page == false) {
+            $hd_title_str .= "/".str_pad($month, 2, "0", STR_PAD_LEFT);	// mit führender null
+          }
+
+        }
+
       }
 
       else {
         // init
         $year = $year_max;
+        $month = $month_now;
         $page = 1;
       }
 
@@ -680,8 +780,11 @@ class Blog extends Model {
       if ($show_page == true) {
         $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id != 1 ORDER BY ba_id DESC LIMIT ".$lmt_start.",".self::$anzahl_eps.")";
       }
-      elseif ($show_year == true) {
+      elseif ($show_year == true and $show_month == false) {
         $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$year." ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
+      }
+      elseif ($show_year == true and $show_month == true) {
+        $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$year." AND MONTH(ba_datetime) = ".$month." ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
       }
       else {
         $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id = 1)";
@@ -700,6 +803,10 @@ class Blog extends Model {
         elseif (isset($year) and $show_year) {
           $parameter_array["year"] = $year;	// für kommentar weiter unten
           $query_data["year"] = $year;
+          if (isset($month) and $show_month) {
+            $parameter_array["month"] = $month;	// für kommentar weiter unten
+            $query_data["month"] = $month;
+          }
         }
 
         // blog schreiben , ausgabeschleife
@@ -721,30 +828,8 @@ class Blog extends Model {
       // tags
       $ersetzen .= $this->tagliste("", $tags_from_db);
 
-      // array für links jahr (einträge), aktuelles jahr zuerst
-      $year_arr = array();
-      for ($i=$year_max; $i>=$year_min; $i--) {
-        $sql = "SELECT ba_id FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$i;
-        $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
-        if ($ret) {
-          $year_arr[$i] = $ret->num_rows;
-          $ret->close();
-          unset($ret);
-        }
-      }
-
-      // links jahr(einträge)
-      $ersetzen .= "<p>\n";
-      foreach ($year_arr as $year_key => $entries) {
-        if ($year_key == $year and $show_year == true) {
-          $ersetzen .= $year_key." (".$entries.")<br>\n";
-        }
-        else {
-          // (alt)     "<a href=\"index.php?action=blog&year=".$year_key."\">".$year_key." (".$entries.")</a><br>\n";
-          $ersetzen .= "<a href=\"blog/".$year_key."/\">".$year_key." (".$entries.")</a><br>\n";
-        }
-      }
-      $ersetzen .= "</p>\n";
+      // links jahr, monat mit anzahl einträge als aufklappbare liste
+      $ersetzen .= $this->jahr_monat_liste($year_max, $year_min, $month_max, $month_min, $year, $show_year, $month, $show_month);
 
     }
     else {
@@ -864,6 +949,9 @@ class Blog extends Model {
       }
       elseif (array_key_exists("year", $parameter_array)) {
         $query_data["year"] = $parameter_array["year"];
+        if (array_key_exists("month", $parameter_array)) {
+          $query_data["month"] = $parameter_array["month"];
+        }
       }
 
       // seitenauswahl mit links und vor/zurück
