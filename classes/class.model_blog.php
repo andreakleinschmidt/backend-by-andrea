@@ -299,54 +299,101 @@ class Blog extends Model {
 
       // links jahr(einträge) als liste
       foreach ($year_arr as $year_key => $year_entries) {
-        $ersetzen .= "<details>\n";
+        if ($year_entries > 0) {
+          $ersetzen .= "<details>\n";
 
-        // array für links monat (einträge), neuster monat zuerst
-        $month_arr = array();
-        for ($i=self::$month_max; $i>=self::$month_min; $i--) {
-          $sql = "SELECT ba_id FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$year_key." AND MONTH(ba_datetime) = ".$i;
-          $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
-          if ($ret) {
-            $month_arr[$i] = $ret->num_rows;
-            $ret->close();
-            unset($ret);
-          }
-        }
-
-        // jahr
-        if ($year_key == $year and $show_year == true and $show_month == false) {
-          $ersetzen .= "<summary>".$year_key." (".$year_entries.")</summary>\n";
-        }
-        else {
-          // (alt)     "<summary><a href=\"index.php?action=blog&year=".$year_key."\">".$year_key."</a> (".$year_entries.")</summary>\n";
-          $ersetzen .= "<summary><a href=\"blog/".$year_key."/\">".$year_key."</a> (".$year_entries.")</summary>\n";
-        }
-
-        // links monat(einträge) als liste
-        $ersetzen .= "<ul>\n";
-        foreach ($month_arr as $month_key => $month_entries) {
-          if ($month_entries > 0) {
-
-            // monat
-            if ($year_key == $year and $show_year == true and $month_key == $month and $show_month == true) {
-              $ersetzen .= "<li>".$month_names[$month_key-1]." (".$month_entries.")</li>\n";
+          // array für links monat (einträge), neuster monat zuerst
+          $month_arr = array();
+          for ($i=self::$month_max; $i>=self::$month_min; $i--) {
+            $sql = "SELECT ba_id FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$year_key." AND MONTH(ba_datetime) = ".$i;
+            $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
+            if ($ret) {
+              $month_arr[$i] = $ret->num_rows;
+              $ret->close();
+              unset($ret);
             }
-            else {
-              // (alt)     "<li><a href=\"index.php?action=blog&year=".$year_key."&month=".$month_key."\">".$month_names[$month_key-1]."</a> (".$month_entries.")</li>\n";
-              $ersetzen .= "<li><a href=\"blog/".$year_key."/".str_pad($month_key, 2, "0", STR_PAD_LEFT)."/\">".$month_names[$month_key-1]."</a> (".$month_entries.")</li>\n";
-            }
-
           }
 
-        } // foreach month
-        $ersetzen .= "</ul>\n";
+          // jahr
+          if ($year_key == $year and $show_year == true and $show_month == false) {
+            $ersetzen .= "<summary>".$year_key." (".$year_entries.")</summary>\n";
+          }
+          else {
+            // (alt)     "<summary><a href=\"index.php?action=blog&year=".$year_key."\">".$year_key."</a> (".$year_entries.")</summary>\n";
+            $ersetzen .= "<summary><a href=\"blog/".$year_key."/\">".$year_key."</a> (".$year_entries.")</summary>\n";
+          }
 
-        $ersetzen .= "</details>\n";
+          // links monat(einträge) als liste
+          $ersetzen .= "<ul>\n";
+          foreach ($month_arr as $month_key => $month_entries) {
+            if ($month_entries > 0) {
+
+              // monat
+              if ($year_key == $year and $show_year == true and $month_key == $month and $show_month == true) {
+                $ersetzen .= "<li>".$month_names[$month_key-1]." (".$month_entries.")</li>\n";
+              }
+              else {
+                // (alt)     "<li><a href=\"index.php?action=blog&year=".$year_key."&month=".$month_key."\">".$month_names[$month_key-1]."</a> (".$month_entries.")</li>\n";
+                $ersetzen .= "<li><a href=\"blog/".$year_key."/".str_pad($month_key, 2, "0", STR_PAD_LEFT)."/\">".$month_names[$month_key-1]."</a> (".$month_entries.")</li>\n";
+              }
+
+            } // month_entries > 0
+          } // foreach month
+          $ersetzen .= "</ul>\n";
+
+          $ersetzen .= "</details>\n";
+        } // year_entries > 0
       } // foreach year
 
     } // datenbank
 
     return $ersetzen;
+  }
+
+  private function get_tags_from_db() {
+    $tags_from_db = array();
+
+    if (!$this->datenbank->connect_errno) {
+      // wenn kein fehler
+
+      $sql = "SELECT ba_tag FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND ba_tag != ''";
+      $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
+      if ($ret) {
+        // ausgabeschleife
+        while ($datensatz = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
+          $tags_from_db[] = $datensatz["ba_tag"];	// array mit allen tag_data zeilen
+        }
+        $ret->close();
+        unset($ret);
+      }
+
+    } // datenbank
+
+    return $tags_from_db;
+  }
+
+  private function get_blog_comment_id_array() {
+    $blog_comment_id_array = array();
+
+    if (!$this->datenbank->connect_errno) {
+      // wenn kein fehler
+
+      $sql = "SELECT ba_id, ba_blogid FROM ba_comment WHERE ba_blogid > 1";
+      $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
+      if ($ret) {
+        // ausgabeschleife
+        while ($datensatz = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
+          $commentid = $datensatz["ba_id"];
+          $blogid = $datensatz["ba_blogid"];
+          $blog_comment_id_array[$blogid] = $commentid;
+        }
+        $ret->close();
+        unset($ret);
+      }
+
+    } // datenbank
+
+    return $blog_comment_id_array;
   }
 
   public function getBlog($blog_query, $tag, $page, $year, $month, $compage) {
@@ -369,25 +416,14 @@ class Blog extends Model {
       $ersetzen .= "<div id=\"blogquery\">\n";
       $ersetzen .= "<form action=\"index.php\" method=\"get\">\n";
       $ersetzen .= "<input type=\"hidden\" name=\"action\" value=\"blog\" />\n";
-      $ersetzen .= "<input type=\"text\" name=\"q\" class=\"size_20\" maxlength=\"64\" onkeyup=\"suggest(this.value);\" />\n";
+      $ersetzen .= "<input type=\"text\" name=\"q\" placeholder=\"Suche\" class=\"size_20\" maxlength=\"64\" onkeyup=\"suggest(this.value);\" />\n";
       $ersetzen .= "<input type=\"submit\" value=\"Suche\" style=\"display:none;\" />\n";
       $ersetzen .= "<div id=\"suggestion\"></div>";
       $ersetzen .= "</form>\n";
       $ersetzen .= "</div>\n";
 
       // tags
-      $tags_from_db = array();	// weiterverwendung weiter unten
-
-      $sql = "SELECT ba_tag FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND ba_tag != ''";
-      $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
-      if ($ret) {
-        // ausgabeschleife
-        while ($datensatz = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
-          $tags_from_db[] = $datensatz["ba_tag"];	// array mit allen tag_data zeilen
-        }
-        $ret->close();
-        unset($ret);
-      }
+      $tags_from_db = $this->get_tags_from_db();	// weiterverwendung weiter unten
 
       $gruppen = array();
       foreach ($tags_from_db as $tag_data) {
@@ -451,25 +487,13 @@ class Blog extends Model {
                    "</div>\n";
 
       // array mit comment-id und blog-id
-      $blog_comment_id_array = array();
-      $sql = "SELECT ba_id, ba_blogid FROM ba_comment WHERE ba_blogid > 1";
-      $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
-      if ($ret) {
-        // ausgabeschleife
-        while ($datensatz = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
-          $commentid = $datensatz["ba_id"];
-          $blogid = $datensatz["ba_blogid"];
-          $blog_comment_id_array[$blogid] = $commentid;
-        }
-        $ret->close();
-        unset($ret);
-      }
+      $blog_comment_id_array = $this->get_blog_comment_id_array();
 
       // blog - anzeigen oder suchen
       if (isset($blog_query)) {
-        // suchen
+        // suchen, ohne tag flag
 
-        $ret_array = $this->getQuery($blog_query, $page, $parameter_array, $option_array, $blog_comment_id_array);
+        $ret_array = $this->getQuery($blog_query, $page, $parameter_array, $option_array, $blog_comment_id_array, false, $tags_from_db);
         $hd_title_str = $ret_array["hd_titel"];
 
       }
@@ -483,7 +507,7 @@ class Blog extends Model {
       else {
         // anzeigen
 
-        $ret_array = $this->getEntry($page, $year, $month, $parameter_array, $option_array, $blog_comment_id_array, $tags_from_db);
+        $ret_array = $this->getEntry($page, $year, $month, $parameter_array, $option_array, $blog_comment_id_array);
         $hd_title_str = $ret_array["hd_titel"];
 
       } // suche oder anzeigen
@@ -536,7 +560,7 @@ class Blog extends Model {
   }
 
   // in blog suchen
-  private function getQuery($blog_query_or_tag, $page, &$parameter_array, &$option_array, &$blog_comment_id_array, $tagflag = false, $tags_from_db = NULL) {
+  private function getQuery($blog_query_or_tag, $page, &$parameter_array, &$option_array, &$blog_comment_id_array, $tagflag, $tags_from_db) {
     $hd_title_str = "";
     $ersetzen = "";
     $tagliste = "";
@@ -674,6 +698,9 @@ class Blog extends Model {
             if ($tagflag) {
               $tagliste .= $this->tagliste($blog_query_or_tag, $tags_from_db);
             }
+            else {
+              $tagliste .= $this->tagliste("", $tags_from_db);
+            }
 
           }
           else {
@@ -699,7 +726,7 @@ class Blog extends Model {
   }
 
   // blog anzeigen
-  private function getEntry($page, $year, $month, &$parameter_array, &$option_array, &$blog_comment_id_array, $tags_from_db) {
+  private function getEntry($page, $year, $month, &$parameter_array, &$option_array, &$blog_comment_id_array) {
     $hd_title_str = "";
     $ersetzen = "";
     $tagliste = "";
