@@ -13,6 +13,13 @@ class Blog extends Model {
   private static $anzahl_eps = 20;	// anzahl einträge pro seite
   private static $anzahl_cps = 20;	// anzahl kommentare pro seite
 
+  private static $month_min = 1;
+  private static $month_max = 12;
+  private static $year_min = 2009;
+  private function year_max() {
+    return intval(date("Y"));
+  }
+
   // ersetze tag kommandos im blogtext ~cmd{content} mit html tags <a>, <b>, <i>
   public function html_tags($text_str, $tag_flag, $encoding="UTF-8") {
     for ($start=0; mb_strpos($text_str, "~", $start, $encoding); $start++) {
@@ -227,7 +234,8 @@ class Blog extends Model {
 
   // liste mit tags
   private function tagliste($tag, $tags_from_db) {
-    $ersetzen = "<p>\n";
+    $ersetzen = "<p><b>Tags:</b></p>\n".
+                "<p>\n";
 
     // array für tags
     $tags = array();
@@ -244,29 +252,21 @@ class Blog extends Model {
     $tag_arr = array_count_values($tags);
 
     // links tag (einträge)
-    $i = 1;
-    $total = count(array_keys($tag_arr));
+    $tagliste_arr = array();
     foreach ($tag_arr as $tag_key => $entries) {
       $tag_key_html = stripslashes($this->html5specialchars($tag_key));
 
       if (mb_strtolower($tag_key, MB_ENCODING) == mb_strtolower($tag, MB_ENCODING)) {
         // tag GET
-        $ersetzen .= $tag_key_html." (".$entries.")";
+        $tagliste_arr[] = $tag_key_html." (".$entries.")";
       }
       else {
-        // (alt)     "<a href=\"index.php?action=blog&tag=".rawurlencode(mb_strtolower($tag_key, MB_ENCODING))."\">".$tag_key_html." (".$entries.")</a>";
-        $ersetzen .= "<a href=\"blog/".rawurlencode(mb_strtolower($tag_key, MB_ENCODING))."/\">".$tag_key_html." (".$entries.")</a>";
+        // (alt)          "<a href=\"index.php?action=blog&tag=".rawurlencode(mb_strtolower($tag_key, MB_ENCODING))."\">".$tag_key_html."</a> (".$entries.")";
+        $tagliste_arr[] = "<a href=\"blog/".rawurlencode(mb_strtolower($tag_key, MB_ENCODING))."/\">".$tag_key_html."</a> (".$entries.")";
       }
 
-      if ($i < $total) {
-        $ersetzen .= ",\n";
-      }
-      else {
-        $ersetzen .= "\n";	// letzter tag
-      }
-
-      $i++;
     }
+    $ersetzen .= implode(",\n", $tagliste_arr)."\n";
 
     $ersetzen .= "</p>\n";
     return $ersetzen;
@@ -277,15 +277,15 @@ class Blog extends Model {
 // *****************************************************************************
 
   // links jahr, monat mit anzahl einträge als aufklappbare liste
-  private function jahr_monat_liste($year_max, $year_min, $month_max, $month_min, $year, $show_year, $month, $show_month) {
-    $ersetzen = "";
+  private function jahr_monat_liste($year, $month, $show_year=false, $show_month=false) {
+    $ersetzen = "<p><b>Archiv:</b></p>\n";
 
     if (!$this->datenbank->connect_errno) {
       // wenn kein fehler
 
       // array für links jahr (einträge), aktuelles jahr zuerst
       $year_arr = array();
-      for ($i=$year_max; $i>=$year_min; $i--) {
+      for ($i=$this->year_max(); $i>=self::$year_min; $i--) {
         $sql = "SELECT ba_id FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$i;
         $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
         if ($ret) {
@@ -303,7 +303,7 @@ class Blog extends Model {
 
         // array für links monat (einträge), neuster monat zuerst
         $month_arr = array();
-        for ($i=$month_max; $i>=$month_min; $i--) {
+        for ($i=self::$month_max; $i>=self::$month_min; $i--) {
           $sql = "SELECT ba_id FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$year_key." AND MONTH(ba_datetime) = ".$i;
           $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
           if ($ret) {
@@ -318,8 +318,8 @@ class Blog extends Model {
           $ersetzen .= "<summary>".$year_key." (".$year_entries.")</summary>\n";
         }
         else {
-          // (alt)     "<summary><a href=\"index.php?action=blog&year=".$year_key."\">".$year_key." (".$year_entries.")</a></summary>\n";
-          $ersetzen .= "<summary><a href=\"blog/".$year_key."/\">".$year_key." (".$year_entries.")</a></summary>\n";
+          // (alt)     "<summary><a href=\"index.php?action=blog&year=".$year_key."\">".$year_key."</a> (".$year_entries.")</summary>\n";
+          $ersetzen .= "<summary><a href=\"blog/".$year_key."/\">".$year_key."</a> (".$year_entries.")</summary>\n";
         }
 
         // links monat(einträge) als liste
@@ -332,8 +332,8 @@ class Blog extends Model {
               $ersetzen .= "<li>".$month_names[$month_key-1]." (".$month_entries.")</li>\n";
             }
             else {
-              // (alt)     "<li><a href=\"index.php?action=blog&year=".$year_key."&month=".$month_key."\">".$month_names[$month_key-1]." (".$month_entries.")</a></li>\n";
-              $ersetzen .= "<li><a href=\"blog/".$year_key."/".str_pad($month_key, 2, "0", STR_PAD_LEFT)."/\">".$month_names[$month_key-1]." (".$month_entries.")</a></li>\n";
+              // (alt)     "<li><a href=\"index.php?action=blog&year=".$year_key."&month=".$month_key."\">".$month_names[$month_key-1]."</a> (".$month_entries.")</li>\n";
+              $ersetzen .= "<li><a href=\"blog/".$year_key."/".str_pad($month_key, 2, "0", STR_PAD_LEFT)."/\">".$month_names[$month_key-1]."</a> (".$month_entries.")</li>\n";
             }
 
           }
@@ -349,7 +349,6 @@ class Blog extends Model {
     return $ersetzen;
   }
 
-
   public function getBlog($blog_query, $tag, $page, $year, $month, $compage) {
     $hd_title_str = "";
     $ersetzen = "";
@@ -361,8 +360,7 @@ class Blog extends Model {
     if (!$this->datenbank->connect_errno) {
       // wenn kein fehler
 
-      $ersetzen = "<!-- blog -->\n".
-                  "<div id=\"blog\">\n";
+      $ersetzen = "<!-- blog -->\n";
 
       $parameter_array = array();	// für links
       $option_array = array();	// für kommentar
@@ -372,7 +370,7 @@ class Blog extends Model {
       $ersetzen .= "<form action=\"index.php\" method=\"get\">\n";
       $ersetzen .= "<input type=\"hidden\" name=\"action\" value=\"blog\" />\n";
       $ersetzen .= "<input type=\"text\" name=\"q\" class=\"size_20\" maxlength=\"64\" onkeyup=\"suggest(this.value);\" />\n";
-      $ersetzen .= "<input type=\"submit\" value=\"Suche\" />\n";
+      $ersetzen .= "<input type=\"submit\" value=\"Suche\" style=\"display:none;\" />\n";
       $ersetzen .= "<div id=\"suggestion\"></div>";
       $ersetzen .= "</form>\n";
       $ersetzen .= "</div>\n";
@@ -490,8 +488,32 @@ class Blog extends Model {
 
       } // suche oder anzeigen
 
+      $ersetzen .= "<div id=\"blog\">\n";
+
       $ersetzen .= $ret_array["inhalt"];
       $errorstring .= $ret_array["error"];
+
+      $ersetzen .= "</div>\n";
+
+      // blogleiste
+
+      if (isset($ret_array["tagliste"])) {
+        $tagliste = $ret_array["tagliste"];
+      }
+      else {
+        $tagliste .= $this->tagliste("", $tags_from_db);	// default
+      }
+
+      if (isset($ret_array["jahr_monat_liste"])) {
+        $jahr_monat_liste = $ret_array["jahr_monat_liste"];
+      }
+      else {
+        $jahr_monat_liste .= $this->jahr_monat_liste(0, 0);	// default
+      }
+
+      $ersetzen .= "<div id=\"blogleiste\">\n".$tagliste.$jahr_monat_liste."</div>\n";
+
+      $ersetzen .= "<div id=\"blogcommentform\">\n";
 
       // kommentar
       if (sizeof($option_array) > 0) {
@@ -517,6 +539,7 @@ class Blog extends Model {
   private function getQuery($blog_query_or_tag, $page, &$parameter_array, &$option_array, &$blog_comment_id_array, $tagflag = false, $tags_from_db = NULL) {
     $hd_title_str = "";
     $ersetzen = "";
+    $tagliste = "";
     $errorstring = "";
     if (!$tagflag) { 
       $hd_title_str = " query";
@@ -649,7 +672,7 @@ class Blog extends Model {
 
             // tags
             if ($tagflag) {
-              $ersetzen .= $this->tagliste($blog_query_or_tag, $tags_from_db);
+              $tagliste .= $this->tagliste($blog_query_or_tag, $tags_from_db);
             }
 
           }
@@ -672,13 +695,14 @@ class Blog extends Model {
       $errorstring .= "<br>empty query or tag\n";	// query leer
     }
 
-    return array("hd_titel" => $hd_title_str, "inhalt" => $ersetzen, "error" => $errorstring);
+    return array("hd_titel" => $hd_title_str, "inhalt" => $ersetzen, "tagliste" => $tagliste, "error" => $errorstring);
   }
 
   // blog anzeigen
   private function getEntry($page, $year, $month, &$parameter_array, &$option_array, &$blog_comment_id_array, $tags_from_db) {
     $hd_title_str = "";
     $ersetzen = "";
+    $tagliste = "";
     $errorstring = "";
 
     // zugriff auf mysql datenbank (5)
@@ -697,12 +721,8 @@ class Blog extends Model {
       $show_page = false;
       $show_year = false;
       $show_month = false;
-      $year_min = 2009;
-      $year_max = intval(date("Y"));
-      $month_min = 1;
-      $month_max = 12;
       $month_now = intval(date("n"));	// ohne führende null
-      //$year = $year_max;
+      //$year = $this->year_max();
       //$page = 1;
 
       // GET page auslesen
@@ -717,11 +737,11 @@ class Blog extends Model {
         // year als zahl vorhanden und nicht NULL
 
         // year eingrenzen
-        if ($year < $year_min) {
-          $year = $year_min;
+        if ($year < self::$year_min) {
+          $year = sel::$year_min;
         }
-        elseif ($year > $year_max) {
-          $year = $year_max;
+        elseif ($year > $this->year_max()) {
+          $year = $this->year_max();
         }
 
         $show_year = true;
@@ -735,11 +755,11 @@ class Blog extends Model {
           // month als zahl vorhanden und nicht NULL
 
           // month eingrenzen
-          if ($month < $month_min) {
-            $month = $month_min;
+          if ($month < self::$month_min) {
+            $month = self::$month_min;
           }
-          elseif ($month > $month_max) {
-            $month = $month_max;
+          elseif ($month > self::$month_max) {
+            $month = self::$month_max;
           }
 
           $show_month = true;
@@ -754,7 +774,7 @@ class Blog extends Model {
 
       else {
         // init
-        $year = $year_max;
+        $year = $this->year_max();
         $month = $month_now;
         $page = 1;
       }
@@ -825,18 +845,15 @@ class Blog extends Model {
       // seitenauswahl mit links und vor/zurück
       $ersetzen .= $this->seitenauswahl($anzahl_s, $page, $show_page, $show_page);
 
-      // tags
-      $ersetzen .= $this->tagliste("", $tags_from_db);
-
       // links jahr, monat mit anzahl einträge als aufklappbare liste
-      $ersetzen .= $this->jahr_monat_liste($year_max, $year_min, $month_max, $month_min, $year, $show_year, $month, $show_month);
+      $jahr_monat_liste .= $this->jahr_monat_liste($year, $month, $show_year, $show_month);
 
     }
     else {
       $errorstring .= "<br>db error 5b\n";
     }
 
-    return array("hd_titel" => $hd_title_str, "inhalt" => $ersetzen, "error" => $errorstring);
+    return array("hd_titel" => $hd_title_str, "inhalt" => $ersetzen, "jahr_monat_liste" => $jahr_monat_liste, "error" => $errorstring);
   }
 
   // kommentar
@@ -844,7 +861,7 @@ class Blog extends Model {
     $ersetzen = "";
     $errorstring = "";
 
-    $ersetzen .= "<p><br><a name=\"comment\"></a><b>Kommentar:</b></p>\n";
+    $ersetzen .= "<p><a name=\"comment\"></a><b>Kommentar:</b></p>\n";
 
     // für SELECT
     $min_blogid = 0;
