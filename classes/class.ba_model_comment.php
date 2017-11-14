@@ -16,6 +16,10 @@ define("MAXLEN_COMMENTMAIL",64);
 define("MAXLEN_COMMENTBLOGID",8);
 define("MAXLEN_COMMENTTEXT",2048);
 define("MAXLEN_COMMENTCOMMENT",2048);
+define("STATE_CREATED",0);
+define("STATE_EDITED",1);
+define("STATE_APPROVAL",2);
+define("STATE_PUBLISHED",3);
 define("MB_ENCODING","UTF-8");
 
 // *****************************************************************************
@@ -49,7 +53,8 @@ class Comment extends Model {
       //                   ba_mail VARCHAR(64) NOT NULL,
       //                   ba_text VARCHAR(2048) NOT NULL,
       //                   ba_comment VARCHAR(2048) NOT NULL,
-      //                   ba_blogid INT UNSIGNED NOT NULL);
+      //                   ba_blogid INT UNSIGNED NOT NULL,
+      //                   ba_state TINYINT UNSIGNED NOT NULL);
 
       // liste mit älteren kommentar-einträgen
 
@@ -85,7 +90,7 @@ class Comment extends Model {
         $lmt_start = ($page-1) * $anzahl_eps;
 
         // zugriff auf mysql datenbank (3)
-        $sql = "SELECT ba_id, ba_date, ba_name, ba_text, ba_comment, ba_blogid FROM ba_comment ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;
+        $sql = "SELECT ba_id, ba_date, ba_name, ba_text, ba_comment, ba_blogid, ba_state FROM ba_comment ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;
         $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
         if ($ret) {
           // wenn kein fehler 3i
@@ -97,6 +102,8 @@ class Comment extends Model {
                                "comment\n".
                                "</td>\n<td>\n".
                                "blogid\n".
+                               "</td>\n<td>\n".
+                               "state\n".
                                "</td>\n</tr>\n";
 
           // ausgabeschleife
@@ -107,6 +114,29 @@ class Comment extends Model {
             $ba_name = stripslashes($this->html5specialchars($datensatz["ba_name"]));
             $ba_text = stripslashes($this->html5specialchars(mb_substr($datensatz["ba_text"], 0, 80, MB_ENCODING)));	// substr problem bei trennung umlaute
             $ba_blogid = intval($datensatz["ba_blogid"]);
+            $ba_state = intval($datensatz["ba_state"]);
+
+            switch($ba_state) {
+              case STATE_CREATED: {
+                $ba_state_short = "-c-";
+                break;
+              }
+              case STATE_EDITED: {
+                $ba_state_short = "-e-";
+                break;
+              }
+              case STATE_APPROVAL: {
+                $ba_state_short = "-a-";
+                break;
+              }
+              case STATE_PUBLISHED: {
+                $ba_state_short = "-p-";
+                break;
+              }
+              default: {
+                $ba_state_short = "";
+              }
+            }
 
             $html_backend_ext .= "<tr>\n<td>\n".
                                  "<a href=\"backend.php?".$this->html_build_query(array("action" => "comment", "id" => $datensatz["ba_id"]))."\">".$ba_date." - ".$ba_name.": ".$ba_text."...</a>\n".
@@ -114,7 +144,9 @@ class Comment extends Model {
             if (mb_strlen($datensatz["ba_comment"], MB_ENCODING) > 0) {
               $html_backend_ext .= "x\n";	// nur wenn vorhanden
             }
-            $html_backend_ext .= "</td>\n<td>\n".$ba_blogid."</td>\n</tr>\n";
+            $html_backend_ext .= "</td>\n<td>\n".$ba_blogid."\n".
+                                 "</td>\n<td>\n".$ba_state_short."\n".
+                                 "</td>\n</tr>\n";
           }
 
           // seitenauswahl mit links und vor/zurück
@@ -143,7 +175,7 @@ class Comment extends Model {
             $html_backend_ext .= "<a href=\"backend.php?".$this->html_build_query($query_data)."\">next</a>\n";		// vor
           }
 
-          $html_backend_ext .= "</td>\n<td>\n</td>\n<td>\n</td>\n</tr>\n".
+          $html_backend_ext .= "</td>\n<td>\n</td>\n<td>\n</td>\n<td>\n</td>\n</tr>\n".
                                "</table>\n\n";
 
           $ret->close();	// db-ojekt schließen
@@ -181,7 +213,8 @@ class Comment extends Model {
       //                   ba_mail VARCHAR(64) NOT NULL,
       //                   ba_text VARCHAR(2048) NOT NULL,
       //                   ba_comment VARCHAR(2048) NOT NULL,
-      //                   ba_blogid INT UNSIGNED NOT NULL);
+      //                   ba_blogid INT UNSIGNED NOT NULL,
+      //                   ba_state TINYINT UNSIGNED NOT NULL);
 
       // preset
       $ba_id = 0xffff;	// error
@@ -192,6 +225,7 @@ class Comment extends Model {
       $ba_text = "";
       $ba_comment = "";
       $ba_blogid = 0;
+      $ba_state = STATE_CREATED;
 
       // GET id auslesen
       if (isset($id) AND is_numeric($id)) {
@@ -200,7 +234,7 @@ class Comment extends Model {
         $html_backend_ext .= "<p><b>comment</b></p>\n\n";
 
         // zugriff auf mysql datenbank (1) , select mit prepare() , ($id aus GET)
-        $sql = "SELECT ba_id, ba_date, ba_ip, ba_name, ba_mail, ba_text, ba_comment, ba_blogid FROM ba_comment WHERE ba_id = ?";
+        $sql = "SELECT ba_id, ba_date, ba_ip, ba_name, ba_mail, ba_text, ba_comment, ba_blogid, ba_state FROM ba_comment WHERE ba_id = ?";
         $stmt = $this->datenbank->prepare($sql);	// liefert mysqli-statement-objekt
         if ($stmt) {
           // wenn kein fehler 3g
@@ -209,7 +243,7 @@ class Comment extends Model {
           $stmt->bind_param("i", $id);
           $stmt->execute();	// ausführen geänderte zeile
 
-          $stmt->bind_result($datensatz["ba_id"],$datensatz["ba_date"],$datensatz["ba_ip"],$datensatz["ba_name"],$datensatz["ba_mail"],$datensatz["ba_text"],$datensatz["ba_comment"],$datensatz["ba_blogid"]);
+          $stmt->bind_result($datensatz["ba_id"],$datensatz["ba_date"],$datensatz["ba_ip"],$datensatz["ba_name"],$datensatz["ba_mail"],$datensatz["ba_text"],$datensatz["ba_comment"],$datensatz["ba_blogid"],$datensatz["ba_state"]);
           // mysqli-statement-objekt kennt kein fetch_assoc(), nur fetch(), kein assoc-array als rückgabe
 
           if ($stmt->fetch()) {
@@ -224,6 +258,7 @@ class Comment extends Model {
             $ba_text = stripslashes($this->html5specialchars($datensatz["ba_text"]));
             $ba_comment = stripslashes($this->html5specialchars($datensatz["ba_comment"]));
             $ba_blogid = intval($datensatz["ba_blogid"]);
+            $ba_state = intval($datensatz["ba_state"]);
 
           }
           else {
@@ -286,6 +321,29 @@ class Comment extends Model {
                            "blogid:\n".
                            "</td>\n<td>\n".
                            "<input type=\"text\" name=\"ba_comment[ba_blogid]\" class=\"size_16\" maxlength=\"".MAXLEN_COMMENTBLOGID."\" value=\"".$ba_blogid."\"/>\n".
+                           "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">\n".
+                           "state:\n".
+                           "</td>\n<td>\n".
+                           "<input type=\"radio\" name=\"ba_comment[ba_state]\" value=\"".STATE_CREATED."\"";
+      if ($ba_state == STATE_CREATED) {
+        $html_backend_ext .= " checked=\"checked\"";
+      }
+      $html_backend_ext .= "/>created\n<br>".
+                           "<input type=\"radio\" name=\"ba_comment[ba_state]\" value=\"".STATE_EDITED."\"";
+      if ($ba_state == STATE_EDITED) {
+        $html_backend_ext .= " checked=\"checked\"";
+      }
+      $html_backend_ext .= "/>edited\n<br>".
+                           "<input type=\"radio\" name=\"ba_comment[ba_state]\" value=\"".STATE_APPROVAL."\"";
+      if ($ba_state == STATE_APPROVAL) {
+        $html_backend_ext .= " checked=\"checked\"";
+      }
+      $html_backend_ext .= "/>approval\n<br>".
+                           "<input type=\"radio\" name=\"ba_comment[ba_state]\" value=\"".STATE_PUBLISHED."\"";
+      if ($ba_state == STATE_PUBLISHED) {
+        $html_backend_ext .= " checked=\"checked\"";
+      }
+      $html_backend_ext .= "/>published\n".
                            "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">\n</td>\n<td>\n".
                            "<input type=\"submit\" value=\"POST\" />\n".
                            " delete:<input type=\"checkbox\" name=\"ba_comment[]\" value=\"delete\" />\n".
@@ -306,7 +364,7 @@ class Comment extends Model {
     return array("inhalt" => $html_backend_ext, "error" => $errorstring);
   }
 
-  public function postComment($ba_id, $ba_date, $ba_ip, $ba_name, $ba_mail, $ba_text, $ba_comment, $ba_blogid, $ba_delete) {
+  public function postComment($ba_id, $ba_date, $ba_ip, $ba_name, $ba_mail, $ba_text, $ba_comment, $ba_blogid, $ba_state, $ba_delete) {
     $html_backend_ext = "";
     $errorstring = "";
 
@@ -319,7 +377,7 @@ class Comment extends Model {
 
         // einfügen in datenbank:
         if ($ba_id == 0) {
-          $sql = "INSERT INTO ba_comment (ba_date, ba_ip, ba_name, ba_mail, ba_text, ba_comment, ba_blogid) VALUES (?, ?, ?, ?, ?, ?, ?)";
+          $sql = "INSERT INTO ba_comment (ba_date, ba_ip, ba_name, ba_mail, ba_text, ba_comment, ba_blogid, ba_state) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         }
 
         // löschen in datenbank:
@@ -329,7 +387,7 @@ class Comment extends Model {
 
         // update in datenbank:
         else {
-          $sql = "UPDATE ba_comment SET ba_date = ?, ba_ip = ?, ba_name = ?, ba_mail = ?, ba_text = ?, ba_comment = ?, ba_blogid = ? WHERE ba_id = ?";
+          $sql = "UPDATE ba_comment SET ba_date = ?, ba_ip = ?, ba_name = ?, ba_mail = ?, ba_text = ?, ba_comment = ?, ba_blogid = ?, ba_state = ? WHERE ba_id = ?";
         }
 
         // mit prepare() - sql injections verhindern
@@ -337,9 +395,9 @@ class Comment extends Model {
         if ($stmt) {
           // wenn kein fehler 4f
 
-          // austauschen ???????, ? oder ???????? durch string und int
+          // austauschen ????????, ? oder ????????? durch string und int
           if ($ba_id == 0) {
-            $stmt->bind_param("ssssssi", $ba_date, $ba_ip, $ba_name, $ba_mail, $ba_text, $ba_comment, $ba_blogid);	// einfügen in datenbank
+            $stmt->bind_param("ssssssii", $ba_date, $ba_ip, $ba_name, $ba_mail, $ba_text, $ba_comment, $ba_blogid, $ba_state);	// einfügen in datenbank
             $html_backend_ext .= "<p>comment - new</p>\n\n";
           }
           elseif ($ba_delete) {
@@ -347,7 +405,7 @@ class Comment extends Model {
             $html_backend_ext .= "<p>comment - delete</p>\n\n";
           }
           else {
-            $stmt->bind_param("ssssssii", $ba_date, $ba_ip, $ba_name, $ba_mail, $ba_text, $ba_comment, $ba_blogid, $ba_id);	// update in datenbank
+            $stmt->bind_param("ssssssiii", $ba_date, $ba_ip, $ba_name, $ba_mail, $ba_text, $ba_comment, $ba_blogid, $ba_state, $ba_id);	// update in datenbank
             $html_backend_ext .= "<p>comment - update</p>\n\n";
           }
           $stmt->execute();	// ausführen geänderte zeile

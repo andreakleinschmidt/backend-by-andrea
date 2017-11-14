@@ -1199,7 +1199,7 @@ class Controller {
 // *****************************************************************************
 
           elseif (isset($this->request["ba_comment"]) && ($_SESSION["user_role"] >= ROLE_MASTER)) {
-            // ba_comment[ba_id, ba_date, ba_ip, ba_name, ba_mail, ba_text, ba_comment, ba_blogid, "delete"]
+            // ba_comment[ba_id, ba_date, ba_ip, ba_name, ba_mail, ba_text, ba_comment, ba_blogid, ba_state, "delete"]
             // ba_id == 0 -> neuer kommentar eintrag
             // ba_id == 0xffff -> error
 
@@ -1216,6 +1216,7 @@ class Controller {
             $ba_text = trim($ba_comment_array["ba_text"]);
             $ba_comment = trim($ba_comment_array["ba_comment"]);
             $ba_blogid = intval($ba_comment_array["ba_blogid"]);
+            $ba_state = intval($ba_comment_array["ba_state"]);
 
             // zeichen limit
             if (strlen($ba_date) > MAXLEN_COMMENTDATE) {
@@ -1237,9 +1238,15 @@ class Controller {
               $ba_comment = mb_substr($ba_comment, 0, MAXLEN_COMMENTCOMMENT, MB_ENCODING);
             }
 
+            // nur definierte states, sonst 0 (STATE_CREATED)
+            $defined_states = array(STATE_CREATED, STATE_EDITED, STATE_APPROVAL, STATE_PUBLISHED);
+            if (!in_array($ba_state, $defined_states)) {
+              $ba_state = STATE_CREATED;
+            }
+
             $ba_delete = in_array("delete", $ba_comment_array);	// in array nach string suchen
 
-            $ret = $model_comment->postComment($ba_id, $ba_date, $ba_ip, $ba_name, $ba_mail, $ba_text, $ba_comment, $ba_blogid, $ba_delete);	// daten für comment in das model
+            $ret = $model_comment->postComment($ba_id, $ba_date, $ba_ip, $ba_name, $ba_mail, $ba_text, $ba_comment, $ba_blogid, $ba_state, $ba_delete);	// daten für comment in das model
             $html_backend_ext .= $ret["inhalt"];
             $errorstring = $ret["error"];
 

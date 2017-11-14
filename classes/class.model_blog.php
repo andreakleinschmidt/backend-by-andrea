@@ -4,6 +4,7 @@
 // * model - blog
 // *****************************************************************************
 
+define("STATE_APPROVAL",2);
 define("STATE_PUBLISHED",3);
 define("MB_ENCODING","UTF-8");
 
@@ -378,7 +379,7 @@ class Blog extends Model {
     if (!$this->datenbank->connect_errno) {
       // wenn kein fehler
 
-      $sql = "SELECT ba_id, ba_blogid FROM ba_comment WHERE ba_blogid > 1";
+      $sql = "SELECT ba_id, ba_blogid FROM ba_comment WHERE ba_state >= ".STATE_PUBLISHED." AND ba_blogid > 1";
       $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
       if ($ret) {
         // ausgabeschleife
@@ -920,7 +921,7 @@ class Blog extends Model {
     }
 
     // zugriff auf mysql datenbank (7)
-    $sql = "SELECT * FROM ba_comment WHERE ba_blogid = 1 OR ".$sql_part;
+    $sql = "SELECT ba_id FROM ba_comment WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_blogid = 1 OR ".$sql_part.")";
     $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
     if ($ret) {
       // wenn kein fehler 7
@@ -940,7 +941,7 @@ class Blog extends Model {
       $lmt_start = ($compage-1) * self::$anzahl_cps;
 
       // zugriff auf mysql datenbank (8)
-      $sql = "SELECT ba_id, ba_date, ba_name, ba_mail, ba_text, ba_comment, ba_blogid FROM ba_comment WHERE ba_blogid = 1 OR ".$sql_part." ORDER BY ba_id DESC LIMIT ".$lmt_start.",".self::$anzahl_cps;
+      $sql = "SELECT ba_id, ba_date, ba_name, ba_mail, ba_text, ba_comment, ba_blogid FROM ba_comment WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_blogid = 1 OR ".$sql_part.") ORDER BY ba_id DESC LIMIT ".$lmt_start.",".self::$anzahl_cps;
       $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
       if ($ret) {
         // wenn kein fehler 8
@@ -1065,6 +1066,7 @@ class Blog extends Model {
         $comment_website = trim($comment_array["website"]);
         $comment_text = trim($comment_array["text"]);
         $comment_blogid = intval($comment_array["blogid"]);
+        $comment_state = STATE_APPROVAL;	// kommentare werden erst im backend freigegeben
 
         if ($comment_website == "http://") {
           $comment_website = "";
@@ -1088,16 +1090,16 @@ class Blog extends Model {
             }
 
             // in mysql einfügen mit prepare() - sql injections verhindern
-            $sql = "INSERT INTO ba_comment(ba_date, ba_ip, ba_name, ba_mail, ba_text, ba_blogid) VALUES (NOW(), ?, ?, ?, ?, ?)";
+            $sql = "INSERT INTO ba_comment(ba_date, ba_ip, ba_name, ba_mail, ba_text, ba_blogid, ba_state) VALUES (NOW(), ?, ?, ?, ?, ?, ?)";
             $stmt = $this->datenbank->prepare($sql);	// liefert mysqli-statement-objekt
             if ($stmt) {
               // wenn kein fehler 9
 
-              // austauschen ????? durch string und int 
-              $stmt->bind_param("ssssi", $comment_ip, $comment_name, $comment_mail, $comment_text, $comment_blogid);
+              // austauschen ?????? durch string und int 
+              $stmt->bind_param("ssssii", $comment_ip, $comment_name, $comment_mail, $comment_text, $comment_blogid, $comment_state);
               $stmt->execute();	// ausführen geänderte zeile
 
-              $ersetzen .= "Kommentar dazugefügt - <a href=\"index.php?action=blog#comment\">Zurück zum Blog</a> (automatisch in 5 Sekunden)\n";
+              $ersetzen .= "<p>Dein Kommentar wird in Kürze freigegeben, zensiert oder gelöscht - <a href=\"index.php?action=blog#comment\">Zurück zum Blog</a> (automatisch in 10 Sekunden)</p>\n";
 
               mail("morgana@oscilloworld.de", "neuer blog kommentar", $comment_name." (".$comment_mail."): ".$comment_text." (".$comment_blogid.")", "from:morgana@oscilloworld.de");
 
@@ -1108,14 +1110,14 @@ class Blog extends Model {
 
           }
           else {
-            $ersetzen .= "Leere Felder - Kein Inhalt\n";
+            $ersetzen .= "<p>Leere Felder - Kein Inhalt</p>\n";
           }
 
         } // kein honeypot
 
       }
       else {
-        $ersetzen .= "Zeit-Limit 1 Minute\n";
+        $ersetzen .= "<p>Zeit-Limit 1 Minute</p>\n";
       }
 
       $ersetzen .= "</div>";

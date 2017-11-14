@@ -8,6 +8,7 @@
 // * - datenweitergabe zum view
 // *****************************************************************************
 
+define("STATE_APPROVAL",2);
 define("STATE_PUBLISHED",3);
 define("MB_ENCODING","UTF-8");
 
@@ -146,7 +147,7 @@ class Controller {
       }
 
       // redirect index.php?action=blog#comment
-      header("refresh:5;index.php?action=blog#comment");
+      header("refresh:10;index.php?action=blog#comment");
 
     } // POST
 
