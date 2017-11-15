@@ -533,7 +533,9 @@ class Controller {
 
                 $model_home = new Home();	// model erstellen
                 $ret = $model_home->getHome();	// daten für home aus dem model
+                $html_backend_ext .= $this->model->html_backend_section("start");
                 $html_backend_ext .= $ret["inhalt"];
+                $html_backend_ext .= $this->model->html_backend_section("stop");
                 $errorstring = $ret["error"];
 
               } // ROLE_EDITOR
@@ -551,7 +553,9 @@ class Controller {
 
                 $model_profil = new Profil();	// model erstellen
                 $ret = $model_profil->getProfil();	// daten für profil aus dem model
+                $html_backend_ext .= $this->model->html_backend_section("start");
                 $html_backend_ext .= $ret["inhalt"];
+                $html_backend_ext .= $this->model->html_backend_section("stop");
                 $errorstring = $ret["error"];
 
               } // ROLE_EDITOR
@@ -569,7 +573,9 @@ class Controller {
 
                 $model_fotos = new Fotos();	// model erstellen
                 $ret = $model_fotos->getFotos($this->galleryid);	// daten für fotos aus dem model
+                $html_backend_ext .= $this->model->html_backend_section("start");
                 $html_backend_ext .= $ret["inhalt"];
+                $html_backend_ext .= $this->model->html_backend_section("stop");
                 $errorstring = $ret["error"];
 
               } // ROLE_EDITOR
@@ -587,7 +593,9 @@ class Controller {
 
                 $model_blog = new Blog();	// model erstellen
                 $ret = $model_blog->getBlog($this->id, $this->page);	// daten für blog aus dem model
+                $html_backend_ext .= $this->model->html_backend_section("start");
                 $html_backend_ext .= $ret["inhalt"];
+                $html_backend_ext .= $this->model->html_backend_section("stop");
                 $errorstring = $ret["error"];
 
               } // ROLE_EDITOR
@@ -605,7 +613,9 @@ class Controller {
 
                 $model_comment = new Comment();	// model erstellen
                 $ret = $model_comment->getComment($this->id, $this->page);	// daten für comment aus dem model
+                $html_backend_ext .= $this->model->html_backend_section("start");
                 $html_backend_ext .= $ret["inhalt"];
+                $html_backend_ext .= $this->model->html_backend_section("stop");
                 $errorstring = $ret["error"];
 
               } // ROLE_MASTER
@@ -623,7 +633,9 @@ class Controller {
 
                 $model_upload = new Upload();	// model erstellen
                 $ret = $model_upload->getUpload();	// daten für upload aus dem model
+                $html_backend_ext .= $this->model->html_backend_section("start");
                 $html_backend_ext .= $ret["inhalt"];
+                $html_backend_ext .= $this->model->html_backend_section("stop");
 
               } // ROLE_MASTER
 
@@ -640,7 +652,9 @@ class Controller {
 
                 $model_admin = new Admin();	// model erstellen
                 $ret = $model_admin->getAdmin();	// daten für admin aus dem model
+                $html_backend_ext .= $this->model->html_backend_section("start");
                 $html_backend_ext .= $ret["inhalt"];
+                $html_backend_ext .= $this->model->html_backend_section("stop");
                 $errorstring = $ret["error"];
 
               } // ROLE_ADMIN
@@ -658,6 +672,7 @@ class Controller {
               // - alt (zur überprüfung)
               // - neu
               // - neu2
+              $html_backend_ext .= $this->model->html_backend_section("start");
               $html_backend_ext .= $this->model->password_form();
 
               // php stellt alle rsa komponenten
@@ -679,6 +694,7 @@ class Controller {
               // - telegram_id
               // - use_2fa (an/aus)
               $html_backend_ext .= $this->model->twofa_form($ret["telegram_id"], $ret["use_2fa"]);
+              $html_backend_ext .= $this->model->html_backend_section("stop");
               $errorstring = $ret["error"];
 
               break;
@@ -798,7 +814,9 @@ class Controller {
 
                     // update in datenbank (passwort in datenbank ist md5 mit salt)
                     $ret = $this->model->update_password($password_new_hash);
+                    $html_backend_ext .= $this->model->html_backend_section("start");
                     $html_backend_ext .= $ret["inhalt"];
+                    $html_backend_ext .= $this->model->html_backend_section("stop");
                     $errorstring = $ret["error"];
 
                   } // passwort ok
@@ -854,7 +872,9 @@ class Controller {
 
             // update in datenbank
             $ret = $this->model->update_twofa($telegram_id, $use_2fa);
+            $html_backend_ext .= $this->model->html_backend_section("start");
             $html_backend_ext .= $ret["inhalt"];
+            $html_backend_ext .= $this->model->html_backend_section("stop");
             $errorstring = $ret["error"];
 
           } // telegram_id und use_2fa in POST
@@ -882,7 +902,9 @@ class Controller {
             }
 
             $ret = $model_home->postHome($ba_home_array_replaced);	// daten für home in das model
+            $html_backend_ext .= $this->model->html_backend_section("start");
             $html_backend_ext .= $ret["inhalt"];
+            $html_backend_ext .= $this->model->html_backend_section("stop");
             $errorstring = $ret["error"];
 
           } // ba_home[ba_id]
@@ -914,7 +936,9 @@ class Controller {
             }
 
             $ret = $model_profil->postProfil($ba_profile_array_replaced);	// daten für profile in das model
+            $html_backend_ext .= $this->model->html_backend_section("start");
             $html_backend_ext .= $ret["inhalt"];
+            $html_backend_ext .= $this->model->html_backend_section("stop");
             $errorstring = $ret["error"];
 
           } // ba_profile[ba_id][ba_tag, ba_text]
@@ -953,7 +977,9 @@ class Controller {
             }
 
             $ret = $model_fotos->postGalleryNew($ba_alias, $ba_text, $ba_order);	// daten für galerie (neu) in das model
+            $html_backend_ext .= $this->model->html_backend_section("start");
             $html_backend_ext .= $ret["inhalt"];
+            $html_backend_ext .= $this->model->html_backend_section("stop");
             $errorstring = $ret["error"];
 
           } // ba_gallery_new[ba_text]
@@ -1001,7 +1027,9 @@ class Controller {
             }
 
             $ret = $model_fotos->postGallery($ba_gallery_array_replaced);	// daten für galerie in das model
+            $html_backend_ext .= $this->model->html_backend_section("start");
             $html_backend_ext .= $ret["inhalt"];
+            $html_backend_ext .= $this->model->html_backend_section("stop");
             $errorstring = $ret["error"];
 
           } // ba_gallery[ba_id][ba_text]
@@ -1043,7 +1071,9 @@ class Controller {
             }
 
             $ret = $model_fotos->postFotosNew($ba_galleryid, $ba_fotoid, $ba_text, $ba_sperrlist, $ba_hide);	// daten für fotos (neu) in das model
+            $html_backend_ext .= $this->model->html_backend_section("start");
             $html_backend_ext .= $ret["inhalt"];
+            $html_backend_ext .= $this->model->html_backend_section("stop");
             $errorstring = $ret["error"];
 
           } // ba_fotos_new[ba_text]
@@ -1094,7 +1124,9 @@ class Controller {
             }
 
             $ret = $model_fotos->postFotos($ba_fotos_array_replaced);	// daten für fotos in das model
+            $html_backend_ext .= $this->model->html_backend_section("start");
             $html_backend_ext .= $ret["inhalt"];
+            $html_backend_ext .= $this->model->html_backend_section("stop");
             $errorstring = $ret["error"];
 
           } // ba_fotos[ba_id][ba_text]
@@ -1150,7 +1182,9 @@ class Controller {
             $ba_delete = in_array("delete", $ba_blog_array);	// in array nach string suchen
 
             $ret = $model_blog->postBlog($ba_id, $ba_userid, $ba_date, $ba_text, $ba_videoid, $ba_fotoid, $ba_tag, $ba_state, $ba_delete);	// daten für blog in das model
+            $html_backend_ext .= $this->model->html_backend_section("start");
             $html_backend_ext .= $ret["inhalt"];
+            $html_backend_ext .= $this->model->html_backend_section("stop");
             $errorstring = $ret["error"];
 
           } // ba_blog[]
@@ -1174,7 +1208,9 @@ class Controller {
             }
 
             $ret = $model_blog->postBlogrollNew($feed);	// daten für blogroll (neu) in das model
+            $html_backend_ext .= $this->model->html_backend_section("start");
             $html_backend_ext .= $ret["inhalt"];
+            $html_backend_ext .= $this->model->html_backend_section("stop");
             $errorstring = $ret["error"];
 
           } // ba_blogroll_new[]
@@ -1189,7 +1225,9 @@ class Controller {
             $model_blog = new Blog();	// model erstellen
             $ba_blogroll_array = $this->request["ba_blogroll"];
             $ret = $model_blog->postBlogroll($ba_blogroll_array);	// daten für blogroll in das model
+            $html_backend_ext .= $this->model->html_backend_section("start");
             $html_backend_ext .= $ret["inhalt"];
+            $html_backend_ext .= $this->model->html_backend_section("stop");
             $errorstring = $ret["error"];
 
           } // ba_blogroll[]
@@ -1247,7 +1285,9 @@ class Controller {
             $ba_delete = in_array("delete", $ba_comment_array);	// in array nach string suchen
 
             $ret = $model_comment->postComment($ba_id, $ba_date, $ba_ip, $ba_name, $ba_mail, $ba_text, $ba_comment, $ba_blogid, $ba_state, $ba_delete);	// daten für comment in das model
+            $html_backend_ext .= $this->model->html_backend_section("start");
             $html_backend_ext .= $ret["inhalt"];
+            $html_backend_ext .= $this->model->html_backend_section("stop");
             $errorstring = $ret["error"];
 
           } // ba_comment[]
@@ -1261,7 +1301,9 @@ class Controller {
 
             $model_upload = new Upload();	// model erstellen
             $ret = $model_upload->postUpload($_FILES["upfile"]["tmp_name"], $_FILES["upfile"]["name"]);	// daten für upload in das model
+            $html_backend_ext .= $this->model->html_backend_section("start");
             $html_backend_ext .= $ret["inhalt"];
+            $html_backend_ext .= $this->model->html_backend_section("stop");
             $errorstring = $ret["error"];
 
           }
@@ -1300,7 +1342,9 @@ class Controller {
             $tmp_password = $this->gen_password();
 
             $ret = $model_admin->postAdminNew($user, $email, $role, $tmp_password);	// daten für admin (neu) in das model
+            $html_backend_ext .= $this->model->html_backend_section("start");
             $html_backend_ext .= $ret["inhalt"];
+            $html_backend_ext .= $this->model->html_backend_section("stop");
             $errorstring = $ret["error"];
 
           } // ba_admin_new[]
@@ -1331,7 +1375,9 @@ class Controller {
             }
 
             $ret = $model_admin->postAdmin($ba_admin_array_replaced);	// daten für admin in das model
+            $html_backend_ext .= $this->model->html_backend_section("start");
             $html_backend_ext .= $ret["inhalt"];
+            $html_backend_ext .= $this->model->html_backend_section("stop");
             $errorstring = $ret["error"];
 
           } // ba_admin[id][]

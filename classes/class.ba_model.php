@@ -162,8 +162,7 @@ class Model {
 
   // echo $html_backend individuell mit user_name und links nach user_role
   public function html_backend($user_role, $user_name) {
-    $ret = "<nav>\n\n".
-           "[".stripslashes($this->html5specialchars($user_name))."]\n".
+    $ret = "<nav>\n".
            "<a href=\"backend.php\">backend:</a>\n";
     if ($user_role >= ROLE_EDITOR) {
       $ret .= "<a href=\"backend.php?action=home\">home</a>\n";
@@ -187,9 +186,33 @@ class Model {
       $ret .= "<a href=\"backend.php?action=admin\">admin</a>\n";
     }
     $ret .= "<a href=\"backend.php?action=password\">password</a>\n".
-            "<a href=\"backend.php?action=logout\">logout</a>\n\n".
+            "<a href=\"backend.php?action=logout\">logout</a>\n".
             "</nav>\n\n";
 
+    $roles = array(ROLE_NONE => "none", ROLE_EDITOR => "editor", ROLE_MASTER => "master", ROLE_ADMIN => "admin");
+    $ret .= "<aside>\n".
+            "<p>user login:</p>\n".
+            "<p>".stripslashes($this->html5specialchars($user_name))." (".$roles[$user_role].")</p>\n".
+            "</aside>\n\n";
+
+    return $ret;
+  }
+
+  // wrapper für inhalte aus den backend modulen, notwendig für css float left
+  public function html_backend_section($start_stop) {
+    switch($start_stop) {
+      case "start": {
+        $ret = "<section>\n";
+        break;
+      }
+      case "stop": {
+        $ret = "</section>\n\n";
+        break;
+      }
+      default: {
+        $ret = "";
+      }
+    }
     return $ret;
   }
 
