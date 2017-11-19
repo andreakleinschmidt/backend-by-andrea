@@ -30,7 +30,7 @@ class Blog extends Model {
       $brace   = mb_strpos($text_str, "{", $start, $encoding);
       $stop    = mb_strpos($text_str, "}", $start, $encoding);
 
-      if ($brace AND $stop) {
+      if ($brace and $stop) {
         // nur ausführen wenn {} gefunden
         $cmd     = mb_substr($text_str, $start+1, $brace-$start-1, $encoding);
         $content = mb_substr($text_str, $brace+1, $stop-$brace-1 , $encoding);
@@ -39,7 +39,7 @@ class Blog extends Model {
 
           case "link":
 
-            if (mb_strlen($content, $encoding) > 0 AND $tag_flag) {
+            if (mb_strlen($content, $encoding) > 0 and $tag_flag) {
               $link = explode("|", $content);
               if (count($link) == 2) {
                 $tag_str = "<a href=\"".$link[0]."\">".$link[1]."</a>";
@@ -48,7 +48,7 @@ class Blog extends Model {
                 $tag_str = "<a href=\"".$link[0]."\">".$link[0]."</a>";
               }
             }
-            elseif (mb_strlen($content, $encoding) > 0 AND !$tag_flag) {
+            elseif (mb_strlen($content, $encoding) > 0 and !$tag_flag) {
               $link = explode("|", $content);
               if (count($link) == 2) {
                 $tag_str = $link[1];
@@ -64,10 +64,10 @@ class Blog extends Model {
 
           case "bold":
 
-            if (mb_strlen($content, $encoding) > 0 AND $tag_flag) {
+            if (mb_strlen($content, $encoding) > 0 and $tag_flag) {
               $tag_str = "<b>".$content."</b>";
             }
-            elseif (mb_strlen($content, $encoding) > 0 AND !$tag_flag) {
+            elseif (mb_strlen($content, $encoding) > 0 and !$tag_flag) {
               $tag_str = $content;
             }
             else {
@@ -77,10 +77,10 @@ class Blog extends Model {
 
           case "italic":
 
-            if (mb_strlen($content, $encoding) > 0 AND $tag_flag) {
+            if (mb_strlen($content, $encoding) > 0 and $tag_flag) {
               $tag_str = "<i>".$content."</i>";
             }
-            elseif (mb_strlen($content, $encoding) > 0 AND !$tag_flag) {
+            elseif (mb_strlen($content, $encoding) > 0 and !$tag_flag) {
               $tag_str = $content;
             }
             else {
@@ -148,12 +148,10 @@ class Blog extends Model {
       $fotoid_array = explode(",",$datensatz["ba_fotoid"]);
       foreach ($fotoid_array as $fotoid) {
         $imagename = "jpeg/".$fotoid.".jpg";
-        $imagenamea = "jpeg/".$fotoid."a.jpg";
-        if (is_readable($imagename) and is_readable($imagenamea)) {
+        if (is_readable($imagename) and $image_str = exif_thumbnail($imagename, $width, $height, $type)) {
           $imagesize = getimagesize($imagename);
-          $imagesizea = getimagesize($imagenamea);
           $ersetzen .= "<div id=\"blogfoto\">\n";
-          $ersetzen .= "<a href=\"".$imagename."\"><img class=\"kantefarbig\" src=\"".$imagenamea."\" ".$imagesizea[3]."></a>\n";
+          $ersetzen .= "<a href=\"".$imagename."\"><img class=\"kantefarbig\" src=\"thumbnail.php?image=".$imagename."\" width=\"".$width."\" height=\"".$height."\"></a>\n";
           $ersetzen .= "<div><img src=\"".$imagename."\" ".$imagesize[3]."></div>\n";
           $ersetzen .= "</div>\n";
         }

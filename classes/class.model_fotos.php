@@ -171,11 +171,10 @@ class Fotos extends Model {
                    "<div id=\"fotoleiste\">\n";
 
       foreach ($fotos as $fotoid => $fototext) {
-        $imagename = "jpeg/".$fotoid."a.jpg";
+        $imagename = "jpeg/".$fotoid.".jpg";
         $query_data = array("action" => "fotos", "gallery" => $alias, "id" => $fotoid);
-        if (is_readable($imagename)) {
-          $imagesize = getimagesize($imagename);
-          $ersetzen .= "<p><a href=\"index.php?".$this->html_build_query($query_data)."\"><img class=\"kantefarbig\" src=\"".$imagename."\" ".$imagesize[3]." title=\"".stripslashes($this->html5specialchars($fototext))."\"></a></p>\n";
+        if (is_readable($imagename) AND $image_str = exif_thumbnail($imagename, $width, $height, $type)) {
+          $ersetzen .= "<p><a href=\"index.php?".$this->html_build_query($query_data)."\"><img class=\"kantefarbig\" src=\"thumbnail.php?image=".$imagename."\" width=\"".$width."\" height=\"".$height."\" title=\"".stripslashes($this->html5specialchars($fototext))."\"></a></p>\n";
         }
         else {
           $ersetzen .= "<p><a href=\"index.php?".$this->html_build_query($query_data)."\">Foto</a></p>\n";
@@ -244,14 +243,11 @@ class Fotos extends Model {
         $galleries_in_the_row = array_slice($galleries, $row*$columns, $columns, true);	// (array, offset, length, preserve_keys)
         foreach ($galleries_in_the_row as $galleryid => $alias_text_order) {
           $alias = rawurlencode($alias_text_order["alias"]);
-          $imagename = "jpeg/".$galleries_count[$galleryid]["fotoid"]."a.jpg";
-          if (is_readable($imagename)) {
-            $imagesize = getimagesize($imagename);
-          }
+          $imagename = "jpeg/".$galleries_count[$galleryid]["fotoid"].".jpg";
           $ersetzen .= "<td class=\"td_fotos\">\n";
-          if (is_readable($imagename)) {
-            // alt       "<a href=\"index.php?action=fotos&gallery=".$alias."\"><img class=\"kantefarbig\" src=\"".$imagename."\" ".$imagesize[3]."></a>\n";
-            $ersetzen .= "<a href=\"fotos/".$alias."/\"><img class=\"kantefarbig\" src=\"".$imagename."\" ".$imagesize[3]."></a>\n";
+          if (is_readable($imagename) AND $image_str = exif_thumbnail($imagename, $width, $height, $type)) {
+            // alt       "<a href=\"index.php?action=fotos&gallery=".$alias."\"><img class=\"kantefarbig\" src=\"thumbnail.php?image=".$imagename."\" width=\"".$width."\" height=\"".$height."\"></a>\n";
+            $ersetzen .= "<a href=\"fotos/".$alias."/\"><img class=\"kantefarbig\" src=\"thumbnail.php?image=".$imagename."\" width=\"".$width."\" height=\"".$height."\"></a>\n";
           }
           else {
             // alt       "<a href=\"index.php?action=fotos&gallery=".$alias."\">Galerie</a>\n";
