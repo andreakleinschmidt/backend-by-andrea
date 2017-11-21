@@ -70,11 +70,13 @@ class Admin extends Model {
 // *****************************************************************************
 
   public function getAdmin() {
-    $html_backend_ext = "<p><b>admin</b></p>\n\n";
+    $html_backend_ext = "";
     $errorstring = "";
 
     if (!$this->datenbank->connect_errno) {
       // wenn kein fehler
+
+      $html_backend_ext .= "<section>\n\n";
 
       // TABLE backend (id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
       //                role TINYINT UNSIGNED NOT NULL,
@@ -85,6 +87,8 @@ class Admin extends Model {
       //                telegram_id INT UNSIGNED NOT NULL,
       //                use_2fa TINYINT UNSIGNED NOT NULL,
       //                last_code INT UNSIGNED NOT NULL);
+
+      $html_backend_ext .= "<p><b>admin</b></p>\n\n";
 
       // zugriff auf mysql datenbank
       $sql = "SELECT id, role, user, email, last_login FROM backend";
@@ -109,7 +113,7 @@ class Admin extends Model {
                                stripslashes($this->html5specialchars($datensatz["last_login"])).
                                "</td>\n<td>\n".
                                "<select name=\"ba_admin[".$datensatz["id"]."][0]\" size=\"1\"";
-          if (($datensatz["id"] == $_SESSION["user_id"]) && ($_SESSION["user_role"] >= ROLE_ADMIN)) {
+          if (($datensatz["id"] == $_SESSION["user_id"]) and ($_SESSION["user_role"] >= ROLE_ADMIN)) {
             // admin kann sich nicht selbst die adminrolle entziehen
             $html_backend_ext .= " disabled=\"disabled\"";
           }
@@ -137,7 +141,7 @@ class Admin extends Model {
                                "</select>\n".
                                "</td>\n<td>\n".
                                "<input type=\"checkbox\" name=\"ba_admin[".$datensatz["id"]."][1]\" value=\"delete\"";
-          if (($datensatz["id"] == $_SESSION["user_id"]) && ($_SESSION["user_role"] >= ROLE_ADMIN)) {
+          if (($datensatz["id"] == $_SESSION["user_id"]) and ($_SESSION["user_role"] >= ROLE_ADMIN)) {
             $html_backend_ext .= " disabled=\"disabled\"";	// admin kann sich nicht selbst löschen
           }
           $html_backend_ext .= "/>\n".
@@ -158,6 +162,8 @@ class Admin extends Model {
         $errorstring .= "<p>db error 3j</p>\n\n";
       }
 
+      $html_backend_ext .= "</section>\n\n";
+
     } // datenbank
     else {
       $errorstring .= "<br>db error 1\n";
@@ -175,6 +181,8 @@ class Admin extends Model {
 
     if (!$this->datenbank->connect_errno) {
       // wenn kein fehler
+
+      $html_backend_ext .= "<section>\n\n";
 
       // einfügen in datenbank , mit prepare() - sql injections verhindern
       $sql = "INSERT INTO backend (role,user,password,email) VALUES (?, ?, ?, ?)";
@@ -203,6 +211,8 @@ class Admin extends Model {
         $errorstring .= "<p>db error 4g</p>\n\n";
       }
 
+      $html_backend_ext .= "</section>\n\n";
+
     } // datenbank
     else {
       $errorstring .= "<br>db error 1\n";
@@ -217,6 +227,8 @@ class Admin extends Model {
 
     if (!$this->datenbank->connect_errno) {
       // wenn kein fehler
+
+      $html_backend_ext .= "<section>\n\n";
 
       $count = 0;
 
@@ -255,6 +267,8 @@ class Admin extends Model {
       }
 
       $html_backend_ext .= "<p>".$count." rows changed</p>\n\n";
+
+      $html_backend_ext .= "</section>\n\n";
 
     } // datenbank
     else {

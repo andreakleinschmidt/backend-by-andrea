@@ -140,7 +140,7 @@ class RSA {
       $rsa_debug_str .= $br."rsa file error";
     }
 
-    if (isset($prime_tab) AND count($prime_tab) > 1) {
+    if (isset($prime_tab) and count($prime_tab) > 1) {
 
       // finde zwei zufällige (große) primzahlen p und q (ungleich)
 
@@ -151,7 +151,7 @@ class RSA {
       //
       // do {
       //   $q = mt_rand(self::MINPRIME,self::MAXPRIME);
-      // } while (($p == $q) OR $this->primetest($q));
+      // } while (($p == $q) or $this->primetest($q));
 
       // *** neue version ***
       $line = mt_rand(1,count($prime_tab));	// prime_tab zufaellige zeile auswaehlen

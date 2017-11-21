@@ -24,14 +24,18 @@ define("MAXLEN_HOMETEXT",256);	// aus TABLE VARCHAR(xx) , für zeichen limit
 class Home extends Model {
 
   public function getHome() {
-    $html_backend_ext = "<p><b>home</b></p>\n\n";
+    $html_backend_ext = "";
     $errorstring = "";
 
     if (!$this->datenbank->connect_errno) {
       // wenn kein fehler
 
+      $html_backend_ext .= "<section>\n\n";
+
       // TABLE ba_home (ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
       //                ba_text VARCHAR(256) NOT NULL);
+
+      $html_backend_ext .= "<p><b>home</b></p>\n\n";
 
       // zugriff auf mysql datenbank (1)
       $sql = "SELECT ba_id, ba_text FROM ba_home";
@@ -61,6 +65,8 @@ class Home extends Model {
         $errorstring .= "<p>db error 3a</p>\n\n";
       }
 
+      $html_backend_ext .= "</section>\n\n";
+
     } // datenbank
     else {
       $errorstring .= "<br>db error 1\n";
@@ -75,6 +81,8 @@ class Home extends Model {
 
     if (!$this->datenbank->connect_errno) {
       // wenn kein fehler
+
+      $html_backend_ext .= "<section>\n\n";
 
       $count = 0;
 
@@ -101,6 +109,8 @@ class Home extends Model {
       }
 
       $html_backend_ext .= "<p>".$count." rows changed</p>\n\n";
+
+      $html_backend_ext .= "</section>\n\n";
 
     } // datenbank
     else {

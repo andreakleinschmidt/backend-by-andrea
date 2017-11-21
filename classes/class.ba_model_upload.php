@@ -54,14 +54,16 @@ class Upload extends Model {
   }
 
   public function getUpload() {
+    $html_backend_ext = "<section>\n\n";
+
     // fileupload formular
-    $html_backend_ext = "<p><b>upload</b></p>\n\n".
-                        "<form action=\"backend.php\" method=\"post\" enctype=\"multipart/form-data\">\n".
-                        "<input type=\"hidden\" name=\"max_file_size\" value=\"".MAXSIZE_FILEUPLOAD."\">\n".
-                        "<input type=\"file\" name=\"upfile\">\n".
-                        "<input type=\"submit\" value=\"upload\">\n".
-                        "(Limit: ".$this->getMaxsizeUpload().")\n".
-                        "</form>\n\n";
+    $html_backend_ext .= "<p><b>upload</b></p>\n\n".
+                         "<form action=\"backend.php\" method=\"post\" enctype=\"multipart/form-data\">\n".
+                         "<input type=\"hidden\" name=\"max_file_size\" value=\"".MAXSIZE_FILEUPLOAD."\">\n".
+                         "<input type=\"file\" name=\"upfile\">\n".
+                         "<input type=\"submit\" value=\"upload\">\n".
+                         "(Limit: ".$this->getMaxsizeUpload().")\n".
+                         "</form>\n\n";
 
     // liste dateien in "jpeg/" (nur *.jpg) und "video/" (nur *.mp4)
     $html_backend_ext .= "<table class=\"backend\">\n<tr>\n<td class=\"td_backend\">jpeg/</td>\n<td class=\"td_backend\">video/</td>\n</tr>\n<tr>\n<td class=\"td_backend\">\n".
@@ -70,11 +72,13 @@ class Upload extends Model {
                          $this->listFiles("video/", "mp4").
                          "</td>\n</tr>\n</table>\n\n";
 
+    $html_backend_ext .= "</section>\n\n";
+
     return array("inhalt" => $html_backend_ext);
   }
 
   public function postUpload($tmp_name, $name) {
-    $html_backend_ext = "";
+    $html_backend_ext = "<section>\n\n";
     $errorstring = "";
 
     if (function_exists("finfo_open")) {
@@ -116,6 +120,8 @@ class Upload extends Model {
     else {
       $errorstring .= "<p>error fileupload - module fileinfo doesn't exist</p>\n\n";
     }
+
+    $html_backend_ext .= "</section>\n\n";
 
     return array("inhalt" => $html_backend_ext, "error" => $errorstring);
   }

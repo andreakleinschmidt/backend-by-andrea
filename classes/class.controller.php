@@ -82,12 +82,12 @@ class Controller {
       // GET
 
       // action überprüfen
-      if ($this->action != "home" AND $this->action != "profil" AND $this->action != "fotos" AND $this->action != "blog") {
+      if ($this->action != "home" and $this->action != "profil" and $this->action != "fotos" and $this->action != "blog") {
         $this->action = "home";
       }
 
       // language überprüfen
-      if ($this->language != "de" AND $this->language != "en") {
+      if ($this->language != "de" and $this->language != "en") {
         $this->language = "de";
       }
 

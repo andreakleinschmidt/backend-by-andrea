@@ -30,13 +30,13 @@ class Fotos extends Model {
         }
 
         // GET alias auslesen
-        if (isset($alias) AND $this->check_alias($galleries, $alias)) {
+        if (isset($alias) and $this->check_alias($galleries, $alias)) {
           // alias vorhanden und nicht NULL
           $galleryid = $this->translate_alias($galleries, $alias);
         }
 
         // GET gallery auslesen
-        if (isset($galleryid) AND is_numeric($galleryid) AND isset($galleries[$galleryid])) {
+        if (isset($galleryid) and is_numeric($galleryid) and isset($galleries[$galleryid])) {
           // gallery als zahl vorhanden und nicht NULL
           // nur die gewählte galerie anzeigen
 
@@ -126,14 +126,14 @@ class Fotos extends Model {
                   "<div id=\"fotos\">\n";
 
       // GET id auslesen
-      if (isset($id) AND isset($fotos[$id])) {
+      if (isset($id) and isset($fotos[$id])) {
         // id vorhanden und nicht NULL
 
         $hour = intval(date("G"));	// aktuelle stunde
 
         $hd_title_str .= " - ".$id;
 
-        if (in_array($id, $fotos_sperrlist) AND $hour >= $fotos_sperr_start AND $hour < $fotos_sperr_end) {
+        if (in_array($id, $fotos_sperrlist) and $hour >= $fotos_sperr_start and $hour < $fotos_sperr_end) {
           $ersetzen_f = "";
           $ersetzen_t = "<i>".$fotos_sperrtext."</i>";
         }
@@ -173,7 +173,7 @@ class Fotos extends Model {
       foreach ($fotos as $fotoid => $fototext) {
         $imagename = "jpeg/".$fotoid.".jpg";
         $query_data = array("action" => "fotos", "gallery" => $alias, "id" => $fotoid);
-        if (is_readable($imagename) AND $image_str = exif_thumbnail($imagename, $width, $height, $type)) {
+        if (is_readable($imagename) and $image_str = exif_thumbnail($imagename, $width, $height, $type)) {
           $ersetzen .= "<p><a href=\"index.php?".$this->html_build_query($query_data)."\"><img class=\"kantefarbig\" src=\"thumbnail.php?image=".$imagename."\" width=\"".$width."\" height=\"".$height."\" title=\"".stripslashes($this->html5specialchars($fototext))."\"></a></p>\n";
         }
         else {
@@ -245,7 +245,7 @@ class Fotos extends Model {
           $alias = rawurlencode($alias_text_order["alias"]);
           $imagename = "jpeg/".$galleries_count[$galleryid]["fotoid"].".jpg";
           $ersetzen .= "<td class=\"td_fotos\">\n";
-          if (is_readable($imagename) AND $image_str = exif_thumbnail($imagename, $width, $height, $type)) {
+          if (is_readable($imagename) and $image_str = exif_thumbnail($imagename, $width, $height, $type)) {
             // alt       "<a href=\"index.php?action=fotos&gallery=".$alias."\"><img class=\"kantefarbig\" src=\"thumbnail.php?image=".$imagename."\" width=\"".$width."\" height=\"".$height."\"></a>\n";
             $ersetzen .= "<a href=\"fotos/".$alias."/\"><img class=\"kantefarbig\" src=\"thumbnail.php?image=".$imagename."\" width=\"".$width."\" height=\"".$height."\"></a>\n";
           }

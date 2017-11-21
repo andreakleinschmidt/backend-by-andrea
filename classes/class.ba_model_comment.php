@@ -206,6 +206,8 @@ class Comment extends Model {
     if (!$this->datenbank->connect_errno) {
       // wenn kein fehler
 
+      $html_backend_ext .= "<section>\n\n";
+
       // TABLE ba_comment (ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
       //                   ba_date DATETIME NOT NULL,
       //                   ba_ip VARCHAR(48) NOT NULL,
@@ -228,7 +230,7 @@ class Comment extends Model {
       $ba_state = STATE_CREATED;
 
       // GET id auslesen
-      if (isset($id) AND is_numeric($id)) {
+      if (isset($id) and is_numeric($id)) {
         // id als zahl vorhanden und nicht NULL
 
         $html_backend_ext .= "<p><b>comment</b></p>\n\n";
@@ -351,15 +353,17 @@ class Comment extends Model {
                            "</table>\n".
                            "</form>\n\n";
 
+      // liste mit älteren kommentar-einträgen
+      $commentlist = $this->getCommentlist($page);
+      $html_backend_ext .= $commentlist["inhalt"];
+      $errorstring .= $commentlist["error"];
+
+      $html_backend_ext .= "</section>\n\n";
+
     } // datenbank
     else {
       $errorstring .= "<br>db error 1\n";
     }
-
-    // liste mit älteren kommentar-einträgen
-    $commentlist = $this->getCommentlist($page);
-    $html_backend_ext .= $commentlist["inhalt"];
-    $errorstring .= $commentlist["error"];
 
     return array("inhalt" => $html_backend_ext, "error" => $errorstring);
   }
@@ -370,6 +374,8 @@ class Comment extends Model {
 
     if (!$this->datenbank->connect_errno) {
       // wenn kein fehler
+
+      $html_backend_ext .= "<section>\n\n";
 
       if ($ba_id != 0xffff) {
 
@@ -424,6 +430,8 @@ class Comment extends Model {
       else {
         $errorstring .= "<p>no id!</p>\n\n";
       }
+
+      $html_backend_ext .= "</section>\n\n";
 
     } // datenbank
     else {

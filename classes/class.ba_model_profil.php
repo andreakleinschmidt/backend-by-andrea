@@ -25,11 +25,15 @@ define("MAXLEN_PROFILETEXT",256);
 class Profil extends Model {
 
   public function getProfil() {
-    $html_backend_ext = "<p><b>profile</b></p>\n\n";
+    $html_backend_ext = "";
     $errorstring = "";
 
     if (!$this->datenbank->connect_errno) {
       // wenn kein fehler
+
+      $html_backend_ext .= "<section>\n\n";
+
+      $html_backend_ext .= "<p><b>profile</b></p>\n\n";
 
       $size1 = "size_16";
       $size2 = "size_32";
@@ -71,6 +75,8 @@ class Profil extends Model {
 
       } // for
 
+      $html_backend_ext .= "</section>\n\n";
+
     } // datenbank
     else {
       $errorstring .= "<br>db error 1\n";
@@ -85,6 +91,8 @@ class Profil extends Model {
 
     if (!$this->datenbank->connect_errno) {
       // wenn kein fehler
+
+      $html_backend_ext .= "<section>\n\n";
 
       $count = 0;
 
@@ -113,6 +121,8 @@ class Profil extends Model {
       }
 
       $html_backend_ext .= "<p>".$count." rows changed</p>\n\n";
+
+      $html_backend_ext .= "</section>\n\n";
 
     } // datenbank
     else {

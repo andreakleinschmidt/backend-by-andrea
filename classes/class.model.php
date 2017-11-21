@@ -244,7 +244,7 @@ atom:
         $filename = $local_file_path.$local_file_name.$ba_id.$local_file_suffix;
         $filename_gz = $filename.".gz";
 
-        if (@file_exists($filename_gz) && (@filemtime($filename_gz) > time()-$seconds_last_modification)) {
+        if (@file_exists($filename_gz) and (@filemtime($filename_gz) > time()-$seconds_last_modification)) {
           // feed als kopie im cache und noch aktuell
 
           $file_gz = @file_get_contents($filename_gz);	// feed ist komprimiert

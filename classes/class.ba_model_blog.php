@@ -63,7 +63,7 @@ class Blog extends Model {
       //  FOR EACH ROW INSERT INTO ba_blog_history (history_datetime, history_info, ba_blogid, ba_userid) VALUES(NOW(), "deleted", OLD.ba_id, OLD.ba_userid);
 
       // GET id auslesen
-      if (isset($id) AND is_numeric($id)) {
+      if (isset($id) and is_numeric($id)) {
         // id als zahl vorhanden und nicht NULL
 
         // zugriff auf mysql datenbank (1) , select mit prepare() , ($id aus GET)
@@ -130,7 +130,6 @@ class Blog extends Model {
     $errorstring = "";
 
     if (!$this->datenbank->connect_errno) {
-
       // wenn kein fehler
 
       // TABLE ba_blog (ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -301,7 +300,6 @@ class Blog extends Model {
     $errorstring = "";
 
     if (!$this->datenbank->connect_errno) {
-
       // wenn kein fehler
 
       // TABLE ba_blogroll (ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -368,6 +366,8 @@ class Blog extends Model {
     if (!$this->datenbank->connect_errno) {
       // wenn kein fehler
 
+      $html_backend_ext .= "<section>\n\n";
+
       // TABLE ba_blog (ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
       //                ba_userid INT UNSIGNED NOT NULL,
       //                ba_datetime DATETIME NOT NULL,
@@ -390,7 +390,7 @@ class Blog extends Model {
       $ba_state = STATE_CREATED;
 
       // GET id auslesen
-      if (isset($id) AND is_numeric($id)) {
+      if (isset($id) and is_numeric($id)) {
         // id als zahl vorhanden und nicht NULL
 
         $html_backend_ext .= "<p><b>blog</b></p>\n\n";
@@ -512,25 +512,27 @@ class Blog extends Model {
                            "</table>\n".
                            "</form>\n\n";
 
+      // blog entry history
+      $history = $this->getHistory($id);
+      $html_backend_ext .= $history["inhalt"];
+      $errorstring .= $history["error"];
+
+      // liste mit älteren blog-einträgen
+      $bloglist = $this->getBloglist($page);
+      $html_backend_ext .= $bloglist["inhalt"];
+      $errorstring .= $bloglist["error"];
+
+      // blogroll
+      $blogroll = $this->getBlogroll();
+      $html_backend_ext .= $blogroll["inhalt"];
+      $errorstring .= $blogroll["error"];
+
+      $html_backend_ext .= "</section>\n\n";
+
     } // datenbank
     else {
       $errorstring .= "<br>db error 1\n";
     }
-
-    // blog entry history
-    $history = $this->getHistory($id);
-    $html_backend_ext .= $history["inhalt"];
-    $errorstring .= $history["error"];
-
-    // liste mit älteren blog-einträgen
-    $bloglist = $this->getBloglist($page);
-    $html_backend_ext .= $bloglist["inhalt"];
-    $errorstring .= $bloglist["error"];
-
-    // blogroll
-    $blogroll = $this->getBlogroll();
-    $html_backend_ext .= $blogroll["inhalt"];
-    $errorstring .= $blogroll["error"];
 
     return array("inhalt" => $html_backend_ext, "error" => $errorstring);
   }
@@ -541,6 +543,8 @@ class Blog extends Model {
 
     if (!$this->datenbank->connect_errno) {
       // wenn kein fehler
+
+      $html_backend_ext .= "<section>\n\n";
 
       if ($ba_id != 0xffff) {
 
@@ -603,6 +607,8 @@ class Blog extends Model {
         $errorstring .= "<p>no id!</p>\n\n";
       }
 
+      $html_backend_ext .= "</section>\n\n";
+
     } // datenbank
     else {
       $errorstring .= "<br>db error 1\n";
@@ -617,6 +623,8 @@ class Blog extends Model {
 
     if (!$this->datenbank->connect_errno) {
       // wenn kein fehler
+
+      $html_backend_ext .= "<section>\n\n";
 
       // einfügen in datenbank , mit prepare() - sql injections verhindern
       $sql = "INSERT INTO ba_blogroll (ba_feed) VALUES (?)";
@@ -643,6 +651,8 @@ class Blog extends Model {
         $errorstring .= "<p>db error 4k</p>\n\n";
       }
 
+      $html_backend_ext .= "</section>\n\n";
+
     } // datenbank
     else {
       $errorstring .= "<br>db error 1\n";
@@ -657,6 +667,8 @@ class Blog extends Model {
 
     if (!$this->datenbank->connect_errno) {
       // wenn kein fehler
+
+      $html_backend_ext .= "<section>\n\n";
 
       $count = 0;
 
@@ -682,6 +694,8 @@ class Blog extends Model {
       }
 
       $html_backend_ext .= "<p>".$count." rows deleted</p>\n\n";
+
+      $html_backend_ext .= "</section>\n\n";
 
     } // datenbank
     else {

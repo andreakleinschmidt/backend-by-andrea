@@ -39,6 +39,8 @@ class Fotos extends Model {
     if (!$this->datenbank->connect_errno) {
       // wenn kein fehler
 
+      $html_backend_ext .= "<section>\n\n";
+
       // TABLE ba_gallery (ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
       //                   ba_alias VARCHAR(16) NOT NULL,
       //                   ba_text VARCHAR(64) NOT NULL,
@@ -127,7 +129,7 @@ class Fotos extends Model {
       //                 ba_hide TINYINT UNSIGNED NOT NULL);
 
       // GET gallery auslesen
-      if (isset($galleryid) AND is_numeric($galleryid) AND (isset($galleries[$galleryid]) OR $galleryid == 0)) {
+      if (isset($galleryid) and is_numeric($galleryid) and (isset($galleries[$galleryid]) or $galleryid == 0)) {
         // gallery als zahl vorhanden und nicht NULL
         // nur die gewählte galerie anzeigen
 
@@ -214,6 +216,8 @@ class Fotos extends Model {
         $html_backend_ext .= "<p>keine galerie gewählt</p>\n\n";
       }
 
+      $html_backend_ext .= "</section>\n\n";
+
     } // datenbank
     else {
       $errorstring .= "<br>db error 1\n";
@@ -228,6 +232,8 @@ class Fotos extends Model {
 
     if (!$this->datenbank->connect_errno) {
       // wenn kein fehler
+
+      $html_backend_ext .= "<section>\n\n";
 
       // einfügen in datenbank , mit prepare() - sql injections verhindern
       $sql = "INSERT INTO ba_gallery (ba_alias, ba_text, ba_order) VALUES (?, ?, ?)";
@@ -254,6 +260,8 @@ class Fotos extends Model {
         $errorstring .= "<p>db error 4c</p>\n\n";
       }
 
+      $html_backend_ext .= "</section>\n\n";
+
     } // datenbank
     else {
       $errorstring .= "<br>db error 1\n";
@@ -268,6 +276,8 @@ class Fotos extends Model {
 
     if (!$this->datenbank->connect_errno) {
       // wenn kein fehler
+
+      $html_backend_ext .= "<section>\n\n";
 
       $count = 0;
 
@@ -309,6 +319,8 @@ class Fotos extends Model {
 
       $html_backend_ext .= "<p>".$count." rows changed</p>\n\n";
 
+      $html_backend_ext .= "</section>\n\n";
+
     } // datenbank
     else {
       $errorstring .= "<br>db error 1\n";
@@ -323,6 +335,8 @@ class Fotos extends Model {
 
     if (!$this->datenbank->connect_errno) {
       // wenn kein fehler
+
+      $html_backend_ext .= "<section>\n\n";
 
       // einfügen in datenbank , mit prepare() - sql injections verhindern
       $sql = "INSERT INTO ba_fotos (ba_galleryid, ba_fotoid, ba_text, ba_sperrlist, ba_hide) VALUES (?, ?, ?, ?, ?)";
@@ -349,6 +363,8 @@ class Fotos extends Model {
         $errorstring .= "<p>db error 4c</p>\n\n";
       }
 
+      $html_backend_ext .= "</section>\n\n";
+
     } // datenbank
     else {
       $errorstring .= "<br>db error 1\n";
@@ -363,6 +379,8 @@ class Fotos extends Model {
 
     if (!$this->datenbank->connect_errno) {
       // wenn kein fehler
+
+      $html_backend_ext .= "<section>\n\n";
 
       $count = 0;
 
@@ -405,6 +423,8 @@ class Fotos extends Model {
       }
 
       $html_backend_ext .= "<p>".$count." rows changed</p>\n\n";
+
+      $html_backend_ext .= "</section>\n\n";
 
     } // datenbank
     else {

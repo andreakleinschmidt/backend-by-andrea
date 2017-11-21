@@ -20,7 +20,7 @@ function html_tags($text_str, $tag_flag, $encoding="UTF-8") {
     $brace   = mb_strpos($text_str, "{", $start, $encoding);
     $stop    = mb_strpos($text_str, "}", $start, $encoding);
 
-    if ($brace AND $stop) {
+    if ($brace and $stop) {
       // nur ausführen wenn {} gefunden
       $cmd     = mb_substr($text_str, $start+1, $brace-$start-1, $encoding);
       $content = mb_substr($text_str, $brace+1, $stop-$brace-1 , $encoding);
@@ -29,7 +29,7 @@ function html_tags($text_str, $tag_flag, $encoding="UTF-8") {
 
         case "link":
 
-          if (mb_strlen($content, $encoding) > 0 AND $tag_flag) {
+          if (mb_strlen($content, $encoding) > 0 and $tag_flag) {
             $link = explode("|", $content);
             if (count($link) == 2) {
               $tag_str = "<a href=\"".$link[0]."\">".$link[1]."</a>";
@@ -38,7 +38,7 @@ function html_tags($text_str, $tag_flag, $encoding="UTF-8") {
               $tag_str = "<a href=\"".$link[0]."\">".$link[0]."</a>";
             }
           }
-          elseif (mb_strlen($content, $encoding) > 0 AND !$tag_flag) {
+          elseif (mb_strlen($content, $encoding) > 0 and !$tag_flag) {
             $link = explode("|", $content);
             if (count($link) == 2) {
               $tag_str = $link[1];
@@ -54,10 +54,10 @@ function html_tags($text_str, $tag_flag, $encoding="UTF-8") {
 
         case "bold":
 
-          if (mb_strlen($content, $encoding) > 0 AND $tag_flag) {
+          if (mb_strlen($content, $encoding) > 0 and $tag_flag) {
             $tag_str = "<b>".$content."</b>";
           }
-          elseif (mb_strlen($content, $encoding) > 0 AND !$tag_flag) {
+          elseif (mb_strlen($content, $encoding) > 0 and !$tag_flag) {
             $tag_str = $content;
           }
           else {
@@ -67,10 +67,10 @@ function html_tags($text_str, $tag_flag, $encoding="UTF-8") {
 
         case "italic":
 
-          if (mb_strlen($content, $encoding) > 0 AND $tag_flag) {
+          if (mb_strlen($content, $encoding) > 0 and $tag_flag) {
             $tag_str = "<i>".$content."</i>";
           }
-          elseif (mb_strlen($content, $encoding) > 0 AND !$tag_flag) {
+          elseif (mb_strlen($content, $encoding) > 0 and !$tag_flag) {
             $tag_str = $content;
           }
           else {

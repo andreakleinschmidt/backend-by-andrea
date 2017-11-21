@@ -92,8 +92,11 @@ class Model {
   // - alt (zur überprüfung)
   // - neu
   // - neu2
-  public function password_form() {
-    $password_form = "<p><b>password</b></p>\n".
+  public function password_form($section_start=false, $section_end=false) {
+    $section_start_str = $section_start ? "<section>\n\n" : "";
+    $section_end_str = $section_end ? "</section>\n\n" : "";
+    $password_form = $section_start_str.
+                     "<p><b>password</b></p>\n".
                      "<form name=\"pwd_form\" action=\"backend.php\" method=\"post\">\n".
                      "<table class=\"backend\">\n".
                      "<tr>\n<td class=\"td_backend\">\n".
@@ -113,15 +116,19 @@ class Model {
                      "<input type=\"submit\" value=\"send\" onclick=\"encrypt2()\" />\n".
                      "</td>\n</tr>\n".
                      "</table>\n".
-                     "</form>\n\n";
+                     "</form>\n\n".
+                     $section_end_str;
     return $password_form;
   }
 
   // zwei-faktor-authentifizierung formular
   // - telegram_id
   // - use_2fa (an/aus)
-  public function twofa_form($telegram_id, $use_2fa) {
-    $twofa_form = "<p><b>two factor authentication</b></p>\n".
+  public function twofa_form($telegram_id, $use_2fa, $section_start=false, $section_end=false) {
+    $section_start_str = $section_start ? "<section>\n\n" : "";
+    $section_end_str = $section_end ? "</section>\n\n" : "";
+    $twofa_form = $section_start_str.
+                  "<p><b>two factor authentication</b></p>\n".
                   "<form name=\"twofa_form\" action=\"backend.php\" method=\"post\">\n".
                   "<table class=\"backend\">\n".
                   "<tr>\n<td class=\"td_backend\">\n".
@@ -141,7 +148,8 @@ class Model {
                    "<input type=\"submit\" value=\"send\" />\n".
                    "</td>\n</tr>\n".
                    "</table>\n".
-                   "</form>\n\n";
+                   "</form>\n\n".
+                   $section_end_str;
     return $twofa_form;
   }
 
@@ -195,24 +203,6 @@ class Model {
             "<p>".stripslashes($this->html5specialchars($user_name))." (".$roles[$user_role].")</p>\n".
             "</aside>\n\n";
 
-    return $ret;
-  }
-
-  // wrapper für inhalte aus den backend modulen, notwendig für css float left
-  public function html_backend_section($start_stop) {
-    switch($start_stop) {
-      case "start": {
-        $ret = "<section>\n";
-        break;
-      }
-      case "stop": {
-        $ret = "</section>\n\n";
-        break;
-      }
-      default: {
-        $ret = "";
-      }
-    }
     return $ret;
   }
 
@@ -358,6 +348,8 @@ class Model {
     if (!$this->datenbank->connect_errno) {
       // wenn kein fehler
 
+      $html_backend_ext .= "<section>\n\n";
+
       // mit prepare() - sql injections verhindern
       $sql_update = "UPDATE backend SET password = ? WHERE id = ?";
       $stmt_update = $this->datenbank->prepare($sql_update);	// liefert mysqli-statement-objekt
@@ -382,6 +374,8 @@ class Model {
       else {
         $errorstring .= "<p>db error 2b2</p>\n\n";
       }
+
+      $html_backend_ext .= "</section>\n\n";
 
     } // datenbank
     else {
@@ -450,6 +444,8 @@ class Model {
     if (!$this->datenbank->connect_errno) {
       // wenn kein fehler
 
+      $html_backend_ext .= "<section>\n\n";
+
       // mit prepare() - sql injections verhindern
       $sql_update = "UPDATE backend SET telegram_id = ?, use_2fa = ? WHERE id = ?";
       $stmt_update = $this->datenbank->prepare($sql_update);	// liefert mysqli-statement-objekt
@@ -474,6 +470,8 @@ class Model {
       else {
         $errorstring .= "<p>db error 2b4</p>\n\n";
       }
+
+      $html_backend_ext .= "</section>\n\n";
 
     } // datenbank
     else {
