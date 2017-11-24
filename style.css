@@ -4,7 +4,7 @@ body {
   background-repeat:no-repeat;
   background-position:center 85px;
   background-attachment:fixed;
-  font-family:Arial;
+  font-family:Arial,sans-serif;
   color:#993366;
   font-size:14px;
   line-height:1.25;
@@ -21,6 +21,13 @@ body {
 .body_backend {
   background-image:url();
 }
+
+h1 {
+  font-size:medium;
+  color:#993366;
+  font-weight:bold;
+}
+h1::first-letter { font-size:200%; }
 
 b { font-size:14px; color:#FFFFFF; font-weight:bold; } /* default bold */
 i { font-size:14px; color:#993366; font-style:italic; } /* default italic */
@@ -257,7 +264,7 @@ div#blogleiste {
 
 div#blogleiste p, details { margin-left:25px; }
 
-div#blog p {
+div#blog p, h1 {
   clear:both; /* vorher left, blogtag */
 }
 

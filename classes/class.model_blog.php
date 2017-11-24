@@ -104,11 +104,17 @@ class Blog extends Model {
   }
 
   // ausgabe komplette blogzeile
-  private function blog_line($datensatz, &$option_array, &$blog_comment_id_array, $query_data) {
+  private function blog_line($datensatz, &$option_array, &$blog_comment_id_array, $query_data, $header_flag) {
+    $ersetzen = "";
 
     $datum = stripslashes($this->html5specialchars($datensatz["ba_date"]));
     $blogtext = stripslashes($this->html_tags(nl2br($this->html5specialchars($datensatz["ba_text"])), true));
     $blogtext40 = stripslashes($this->html_tags($this->html5specialchars(mb_substr($datensatz["ba_text"], 0, 40, MB_ENCODING)), false));	// substr problem bei trennung umlaute
+
+    if ($header_flag) {
+      $blogheader = stripslashes($this->html_tags(nl2br($this->html5specialchars(preg_split("/(?<=\!\s|\.\s|\?\s)/", $datensatz["ba_text"], 0, PREG_SPLIT_NO_EMPTY)[0])), false));	// satzendzeichen als trennzeichen, nur erster satz
+      $ersetzen .= "<h1>".$blogheader."</h1>\n";
+    }
 
     // blog id für anker
     $jahr   = substr($datum, 6, 2);
@@ -118,7 +124,7 @@ class Blog extends Model {
     $minute = substr($datum, 14, 2);
     $jmtsm = "20".$jahr.$monat.$tag.$stunde.$minute."00";
 
-    $ersetzen = "<p><a name=\"".$jmtsm."\"></a><b>[".$datum."]</b> ".$blogtext."</p>\n";
+    $ersetzen .= "<p><a name=\"".$jmtsm."\"></a><b>[".$datum."]</b> ".$blogtext."</p>\n";
 
     // optional videos in blog
     if (function_exists("finfo_open")) {
@@ -634,12 +640,7 @@ class Blog extends Model {
           }
           else {
             // tag
-            $sql = "";	// blog eintrag nr.1 nur auf erster seite, danach alle absteigend 100..99...2 (ohne 1)
-            if ($page == 1) {
-              $sql .= "SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id = 1".
-                      "\nUNION\n";
-            }
-            $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_tag RLIKE ?) ORDER BY ba_id DESC LIMIT ".$lmt_start.",".self::$anzahl_eps.")";	// (2) mit LIMIT
+            $sql = "SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_tag RLIKE ?) ORDER BY ba_id DESC LIMIT ".$lmt_start.",".self::$anzahl_eps;		// (2) mit LIMIT
           }
           $stmt = $this->datenbank->prepare($sql);	// liefert mysqli-statement-objekt
           if ($stmt) {
@@ -668,7 +669,7 @@ class Blog extends Model {
             else {
               // tag
               $parameter_array["tag"] = $blog_query_or_tag;	// für kommentar weiter unten
-              $query_data["q"] = $blog_query_or_tag;
+              $query_data["tag"] = $blog_query_or_tag;
             }
             if (isset($page)) {
               $parameter_array["page"] = $page;	// für kommentar weiter unten
@@ -676,8 +677,10 @@ class Blog extends Model {
             }
 
             // blog schreiben , ausgabeschleife
+            $header_flag = true;
             while ($stmt->fetch()) {	// $datensatz = $stmt->fetch_assoc(), fetch_assoc() liefert array, solange nicht NULL (letzter datensatz), hier jetzt nur fetch()
-              $ersetzen .= $this->blog_line($datensatz, $option_array, $blog_comment_id_array, $query_data);
+              $ersetzen .= $this->blog_line($datensatz, $option_array, $blog_comment_id_array, $query_data, $header_flag);
+              $header_flag = false;	// nur erster schleifenaufruf
             }
 
             // seitenauswahl mit links und vor/zurück, mehrere suchergebnisse
@@ -856,8 +859,10 @@ class Blog extends Model {
         }
 
         // blog schreiben , ausgabeschleife
+        $header_flag = true;
         while ($datensatz = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
-          $ersetzen .= $this->blog_line($datensatz, $option_array, $blog_comment_id_array, $query_data);
+          $ersetzen .= $this->blog_line($datensatz, $option_array, $blog_comment_id_array, $query_data, $header_flag);
+          $header_flag = false;	// nur erster schleifenaufruf
         }
 
         $ret->close();	// db-ojekt schließen
@@ -893,7 +898,7 @@ class Blog extends Model {
     $min_blogid = 0;
     $max_blogid = 0;
     $keys = array_keys($option_array);
-    if (array_key_exists("query", $parameter_array)) {
+    if (array_key_exists("query", $parameter_array) or array_key_exists("tag", $parameter_array)) {
       // WHERE ba_blogid IN
       $sql_part = "ba_blogid IN (".implode(",", $keys).")";
     }
@@ -987,6 +992,12 @@ class Blog extends Model {
           $query_data["page"] = $parameter_array["page"];
         }
       }
+      elseif (array_key_exists("tag", $parameter_array)) {
+        $query_data["tag"] = $parameter_array["tag"];
+        if (array_key_exists("page", $parameter_array)) {
+          $query_data["page"] = $parameter_array["page"];
+        }
+      }
       elseif (array_key_exists("page", $parameter_array)) {
         $query_data["page"] = $parameter_array["page"];
       }
@@ -999,7 +1010,7 @@ class Blog extends Model {
 
       // seitenauswahl mit links und vor/zurück
       $query_data["compage"] = 0;
-      $ersetzen .= $this->seitenauswahl($anzahl_s, $page, true, true, $query_data, "#comment");
+      $ersetzen .= $this->seitenauswahl($anzahl_s, $compage, true, true, $query_data, "#comment");
 
     }
     else {
