@@ -98,6 +98,11 @@ class Blog extends Model {
 
       } // if
 
+      elseif ($brace) {
+        // ohne stop
+        $text_str = mb_substr($text_str, 0, $start, $encoding).mb_substr($text_str, $brace+1, NULL, $encoding);
+      }
+
     } // for
 
     return $text_str;
@@ -112,7 +117,7 @@ class Blog extends Model {
     $blogtext40 = stripslashes($this->html_tags($this->html5specialchars(mb_substr($datensatz["ba_text"], 0, 40, MB_ENCODING)), false));	// substr problem bei trennung umlaute
 
     if ($header_flag) {
-      $blogheader = stripslashes($this->html_tags(nl2br($this->html5specialchars(preg_split("/(?<=\!\s|\.\s|\?\s)/", $datensatz["ba_text"], 0, PREG_SPLIT_NO_EMPTY)[0])), false));	// satzendzeichen als trennzeichen, nur erster satz
+      $blogheader = stripslashes($this->html_tags(nl2br($this->html5specialchars(preg_split("/(?<=\!\s|\.\s|\:\s|\?\s)/", $datensatz["ba_text"], 0, PREG_SPLIT_NO_EMPTY)[0])), false));	// satzendzeichen als trennzeichen, nur erster satz
       $ersetzen .= "<h1>".$blogheader."</h1>\n";
     }
 
