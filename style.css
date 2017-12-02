@@ -203,13 +203,7 @@ div#home {
   overflow:auto;
 }
 
-div#profil {
-  text-align:center;
-  width:1080px;
-  overflow:auto;
-}
-
-div#gallery {
+div#profil, div#gallery {
   text-align:center;
   width:1080px;
   overflow:auto;
@@ -241,14 +235,7 @@ div#fotoleistescroll {
   overflow:hidden;
 }
 
-div#blog {
-  float:left;
-  text-align:justify;
-  width:880px;
-  overflow:auto;
-}
-
-div#blogcommentform {
+div#blog, div#blogcommentform {
   float:left;
   text-align:justify;
   width:880px;
@@ -398,6 +385,7 @@ div#blogfoto div {
 }
 
 div#blogfoto:hover div {
+  background-color:#000000; /* noscript */
   display:block;
   position:fixed;
   top:100px;

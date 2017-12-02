@@ -160,10 +160,9 @@ class Blog extends Model {
       foreach ($fotoid_array as $fotoid) {
         $imagename = "jpeg/".$fotoid.".jpg";
         if (is_readable($imagename) and $image_str = exif_thumbnail($imagename, $width, $height, $type)) {
-          $imagesize = getimagesize($imagename);
           $ersetzen .= "<div id=\"blogfoto\">\n";
-          $ersetzen .= "<a href=\"".$imagename."\"><img class=\"kantefarbig\" src=\"thumbnail.php?image=".$imagename."\" width=\"".$width."\" height=\"".$height."\"></a>\n";
-          $ersetzen .= "<div><img src=\"".$imagename."\" ".$imagesize[3]."></div>\n";
+          $ersetzen .= "<a href=\"".$imagename."\" onMouseOver=\"ajax('blogfoto','".$fotoid."');\"><img class=\"kantefarbig\" src=\"thumbnail.php?image=".$imagename."\" width=\"".$width."\" height=\"".$height."\"></a>\n";
+          $ersetzen .= "<div id=\"".$fotoid."\"><noscript>no javascript</noscript></div>\n";
           $ersetzen .= "</div>\n";
         }
       }
@@ -426,7 +425,7 @@ class Blog extends Model {
       $ersetzen .= "<div id=\"blogquery\">\n";
       $ersetzen .= "<form action=\"index.php\" method=\"get\">\n";
       $ersetzen .= "<input type=\"hidden\" name=\"action\" value=\"blog\" />\n";
-      $ersetzen .= "<input type=\"text\" name=\"q\" placeholder=\"Suche\" class=\"size_20\" maxlength=\"64\" onkeyup=\"suggest(this.value);\" />\n";
+      $ersetzen .= "<input type=\"text\" name=\"q\" placeholder=\"Suche\" class=\"size_20\" maxlength=\"64\" onkeyup=\"ajax('suggest',this.value);\" />\n";
       $ersetzen .= "<input type=\"submit\" value=\"Suche\" style=\"display:none;\" />\n";
       $ersetzen .= "<div id=\"suggestion\"></div>";
       $ersetzen .= "</form>\n";
