@@ -161,8 +161,8 @@ class Blog extends Model {
         $imagename = "jpeg/".$fotoid.".jpg";
         if (is_readable($imagename) and $image_str = exif_thumbnail($imagename, $width, $height, $type)) {
           $ersetzen .= "<div id=\"blogfoto\">\n";
-          $ersetzen .= "<a href=\"".$imagename."\" onMouseOver=\"ajax('blogfoto','".$fotoid."');\"><img class=\"kantefarbig\" src=\"thumbnail.php?image=".$imagename."\" width=\"".$width."\" height=\"".$height."\"></a>\n";
-          $ersetzen .= "<div id=\"".$fotoid."\"><noscript>no javascript</noscript></div>\n";
+          $ersetzen .= "<a href=\"".$imagename."\" onMouseOver=\"ajax('blogfoto','".$fotoid."');\"><img class=\"kantefarbig\" src=\"thumbnail.php?".$this->html_build_query(array("image" => $imagename))."\" width=\"".$width."\" height=\"".$height."\"></a>\n";
+          $ersetzen .= "<div id=\"foto_".$fotoid."\"><noscript>no javascript</noscript></div>\n";
           $ersetzen .= "</div>\n";
         }
       }

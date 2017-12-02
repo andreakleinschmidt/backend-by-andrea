@@ -6,7 +6,6 @@ session_start();
  * parameter falls id=suggest: q (query)
  * parameter falls id=blogfoto: fotoid (fotoid)
  * weiterer parameter: request (zufallszahl 1...1000)
- * ausgabe für suggest in <div id="suggestion"></div>
  */
 
 define("FILENAME","suggest.txt");
@@ -65,7 +64,7 @@ function suggest($query) {
   return $ret;
 }
 
-// ausgabe für blogfoto in <div id="fotoid"></div>
+// ausgabe für blogfoto in <div id="foto_$fotoid"></div>
 function blogfoto($fotoid) {
   $imagename = "jpeg/".$fotoid.".jpg";
   if (is_readable($imagename)) {

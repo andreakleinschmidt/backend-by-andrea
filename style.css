@@ -181,6 +181,13 @@ nav {
   height:20px;
   overflow:hidden;
 }
+.fixed {
+  background-color:#000000;
+  position:fixed;
+  top:0px;
+  z-index:102;
+}
+.fixed + .content { padding-top:20px; } /* "sprung" nach oben verhindern */
 
 aside {
   float:left;

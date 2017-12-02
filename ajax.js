@@ -16,7 +16,7 @@ function ajax(id,content) {
           break;
         case "blogfoto":
           var url = "ajax.php?id="+id+"&fotoid="+content+"&request="+randnum;
-          var elementid = content;
+          var elementid = "foto_"+content;
           break;
         default:
           var url = "";
