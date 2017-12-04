@@ -181,13 +181,12 @@ nav {
   height:20px;
   overflow:hidden;
 }
-.fixed {
+.sticky {
   background-color:#000000;
-  position:fixed;
+  position:sticky;
   top:0px;
   z-index:102;
 }
-.fixed + .content { padding-top:20px; } /* "sprung" nach oben verhindern */
 
 aside {
   float:left;
@@ -196,7 +195,7 @@ aside {
 }
 
 section {
-  float:left;
+/*float:left;*/
   width:1080px;
   overflow:hidden;
 }
