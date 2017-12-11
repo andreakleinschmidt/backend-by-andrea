@@ -46,7 +46,7 @@ class Fotos extends Model {
       //                   ba_text VARCHAR(64) NOT NULL,
       //                   ba_order VARCHAR(4) NOT NULL);
 
-      $html_backend_ext .= "<p><b>galerie</b></p>\n\n".
+      $html_backend_ext .= "<p id=\"galerie\"><b>galerie</b></p>\n\n".
                            "<form action=\"backend.php\" method=\"post\">\n".
                            "<table class=\"backend\">\n".
                            "<tr>\n<td class=\"td_backend\">ID</td>\n<td>ALIAS</td>\n<td>TEXT</td>\n<td>ORDER</td>\n</tr>\n".
@@ -133,7 +133,7 @@ class Fotos extends Model {
         // gallery als zahl vorhanden und nicht NULL
         // nur die gewählte galerie anzeigen
 
-        $html_backend_ext .= "<p><b>fotos (galerie ".$galleryid.")</b></p>\n\n".
+        $html_backend_ext .= "<p id=\"fotos\"><b>fotos (galerie ".$galleryid.")</b></p>\n\n".
                              "<form action=\"backend.php\" method=\"post\">\n".
                              "<table class=\"backend\">\n".
                              "<tr>\n<td class=\"td_backend\">ID</td>\n<td>FOTOID</td>\n<td>TEXT</td>\n<td>TEMP/HIDE</td>\n</tr>\n".

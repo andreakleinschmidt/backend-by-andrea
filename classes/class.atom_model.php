@@ -41,8 +41,13 @@ class Model {
     if (!$this->datenbank->connect_errno) {
       // wenn kein fehler 1
 
+      // options
+      $num_entries = intval(Blog::getOption_by_name("feed_num_entries"));	// = 20
+      $summary_or_content = intval(Blog::getOption_by_name("feed_summary_or_content"));	// = 2
+      $num_sentences = intval(Blog::getOption_by_name("feed_num_sentences_summary"));	// = 3
+
       // zugriff auf mysql datenbank
-      $sql = "SELECT ba_date, ba_text FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." ORDER BY ba_id DESC LIMIT 0,20";
+      $sql = "SELECT ba_date, ba_text FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." ORDER BY ba_id DESC LIMIT 0,".$num_entries;
       $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
       if ($ret) {
         // wenn kein fehler 2
@@ -59,6 +64,8 @@ class Model {
           $utf8_text = $datensatz["ba_text"];	// aus db als utf-8 (für xml)
           $blogtext = stripslashes(Blog::html_tags($this->xmlspecialchars(nl2br($utf8_text)), false));	// <br /> hier als xmlspecialchars()
           $blogtext80 = stripslashes(Blog::html_tags($this->xmlspecialchars(mb_substr($utf8_text, 0, 80, MB_ENCODING)), false));	// substr problem bei trennung umlaute
+          $split_array = array_slice(preg_split("/(?<=\!\s|\.\s|\:\s|\?\s)/", $utf8_text, $num_sentences+1, PREG_SPLIT_NO_EMPTY), 0, $num_sentences);
+          $blogtextshort = stripslashes(Blog::html_tags($this->xmlspecialchars(nl2br(implode($split_array))), false));	// satzendzeichen als trennzeichen, anzahl sätze optional
 
           $jahr   = substr($datum, 6, 2);
           $monat  = substr($datum, 3, 2);
@@ -72,8 +79,16 @@ class Model {
           $atomid = ATOMID."-".$jmtsm;
           $swzeit = date(I) + 1;	// 1 bei sommerzeit, sonst 0
           $atomupdated = "20".$jahr."-".$monat."-".$tag."T".$stunde.":".$minute.":00+0".$swzeit.":00";
-          $atomsummary = $blogtext;
-          $atomcontent = $blogtext;
+          if ($summary_or_content == 1) {
+            // use summary
+            $atomsummary = $blogtextshort;
+            $atomcontent = "";
+          }
+          else {
+            // use content
+            $atomsummary = "";
+            $atomcontent = $blogtext;
+          }
 
           if ($first) {
             $feed["updated"] = $atomupdated;

@@ -56,9 +56,11 @@ class Comment extends Model {
       //                   ba_blogid INT UNSIGNED NOT NULL,
       //                   ba_state TINYINT UNSIGNED NOT NULL);
 
-      // liste mit älteren kommentar-einträgen
+      // options
+      $anzahl_eps = intval(Blog::getOption_by_name("blog_comments_per_page"));	// anzahl einträge pro seite = 20
 
-      $anzahl_eps = 20;	// anzahl einträge pro seite
+      // liste mit älteren kommentar-einträgen
+      $html_backend_ext .= "<p id=\"commentliste\"><b>comment (liste)</b></p>\n\n";
 
       // zugriff auf mysql datenbank (2)
       $sql = "SELECT ba_id FROM ba_comment";
@@ -233,7 +235,7 @@ class Comment extends Model {
       if (isset($id) and is_numeric($id)) {
         // id als zahl vorhanden und nicht NULL
 
-        $html_backend_ext .= "<p><b>comment</b></p>\n\n";
+        $html_backend_ext .= "<p id=\"comment\"><b>comment</b></p>\n\n";
 
         // zugriff auf mysql datenbank (1) , select mit prepare() , ($id aus GET)
         $sql = "SELECT ba_id, ba_date, ba_ip, ba_name, ba_mail, ba_text, ba_comment, ba_blogid, ba_state FROM ba_comment WHERE ba_id = ?";
@@ -280,7 +282,7 @@ class Comment extends Model {
       else {
         // keine id , neuer kommentar-eintrag
 
-        $html_backend_ext .= "<p><b>kommentar (neu)</b></p>\n\n";
+        $html_backend_ext .= "<p id=\"comment\"><b>comment (neu)</b></p>\n\n";
 
         // preset teilweise überschreiben
         $ba_id = 0;

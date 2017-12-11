@@ -75,12 +75,16 @@ class View {
           $this->addTag($xml_tree, $entry_node, "updated", $entry["updated"]);
 
           // <summary type="text"></summary>
-          $node = $this->addTag($xml_tree, $entry_node, "summary", $entry["summary"]);
-          $node->setAttribute("type", "html");
+          if (strlen($entry["summary"]) > 0) {
+            $node = $this->addTag($xml_tree, $entry_node, "summary", $entry["summary"]);
+            $node->setAttribute("type", "html");
+          }
 
           // <content type="text"></content>
-          $node = $this->addTag($xml_tree, $entry_node, "content", $entry["content"]);
-          $node->setAttribute("type", "html");
+          if (strlen($entry["content"]) > 0) {
+            $node = $this->addTag($xml_tree, $entry_node, "content", $entry["content"]);
+            $node->setAttribute("type", "html");
+          }
 
         } // foreach entry
 

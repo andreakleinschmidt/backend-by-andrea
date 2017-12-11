@@ -40,12 +40,13 @@ class Upload extends Model {
 
   // liste der dateien im verzeichnis mit dateierweiterung 
   private function listFiles($dir, $filename_extension) {
-    $html_backend_ext = "<ul class=\"ul_backend\">\n";
+    $html_backend_ext = "<ul class=\"ul_backend_".$filename_extension."\">\n";
     $i = 0;	// count
     $listfiles = scandir($dir);
     foreach ($listfiles as $file) {
       if (substr($file, -3, 3) == $filename_extension) {
-        $html_backend_ext .= "<li class=\"li_backend\">".$file."</li>\n";
+        $filename = $dir.$file;
+        $html_backend_ext .= "<li class=\"li_backend\" onclick=\"ajax('details','".rawurlencode($filename)."')\">".$file."</li>\n";
         $i++;
       }
     }
@@ -57,20 +58,32 @@ class Upload extends Model {
     $html_backend_ext = "<section>\n\n";
 
     // fileupload formular
-    $html_backend_ext .= "<p><b>upload</b></p>\n\n".
+    $html_backend_ext .= "<p id=\"upload\"><b>upload</b></p>\n\n".
                          "<form action=\"backend.php\" method=\"post\" enctype=\"multipart/form-data\">\n".
+                         "<table class=\"backend\">\n".
+                         "<tr>\n<td class=\"td_backend\">\n".
                          "<input type=\"hidden\" name=\"max_file_size\" value=\"".MAXSIZE_FILEUPLOAD."\">\n".
                          "<input type=\"file\" name=\"upfile\">\n".
                          "<input type=\"submit\" value=\"upload\">\n".
                          "(Limit: ".$this->getMaxsizeUpload().")\n".
+                         "</td>\n</tr>\n".
+                         "</table>\n".
                          "</form>\n\n";
 
     // liste dateien in "jpeg/" (nur *.jpg) und "video/" (nur *.mp4)
-    $html_backend_ext .= "<table class=\"backend\">\n<tr>\n<td class=\"td_backend\">jpeg/</td>\n<td class=\"td_backend\">video/</td>\n</tr>\n<tr>\n<td class=\"td_backend\">\n".
+    $html_backend_ext .= "<p id=\"media\"><b>media</b></p>\n\n".
+                         "<div id=\"details\"><noscript>no javascript</noscript></div>\n".
+                         "<table class=\"backend\">\n".
+                         "<tr>\n<td class=\"td_media\">\n".
+                         "jpeg/\n".
+                         "</td>\n<td class=\"td_media\">\n".
+                         "video/\n".
+                         "</td>\n</tr>\n<tr>\n<td class=\"td_media\">\n".
                          $this->listFiles("jpeg/", "jpg").
-                         "</td>\n<td class=\"td_backend\">\n".
+                         "</td>\n<td class=\"td_media\">\n".
                          $this->listFiles("video/", "mp4").
-                         "</td>\n</tr>\n</table>\n\n";
+                         "</td>\n</tr>\n".
+                         "</table>\n\n";
 
     $html_backend_ext .= "</section>\n\n";
 

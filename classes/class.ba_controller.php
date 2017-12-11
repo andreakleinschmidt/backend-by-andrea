@@ -13,7 +13,7 @@
 // *****************************************************************************
 
 define("AUTHORIZATION_CODE","andreas-alpha-0815");
-define("LOGIN_TIME",300);	// zeit in s login uid cookie
+define("LOGIN_TIME",600);	// zeit in s login uid cookie
 define("MAXLEN_USER",32);	// login form
 define("MAXLEN_PASSWORDNONCRYPT",32);
 define("MAXLEN_CHARCRYPT",8);	// ffffffff
@@ -32,7 +32,8 @@ define("MAXLEN_BLOGDATE",32);
 define("MAXLEN_BLOGTEXT",8192);
 define("MAXLEN_BLOGVIDEOID",32);
 define("MAXLEN_BLOGFOTOID",128);
-define("MAXLEN_BLOGTAG",128);
+define("MAXLEN_BLOGTAGS",128);
+define("MAXLEN_BLOGCATEGORY",32);
 define("MAXLEN_FEED",128);	// blogroll
 define("MAXLEN_COMMENTDATE",20);
 define("MAXLEN_COMMENTIP",48);
@@ -701,7 +702,12 @@ class Controller {
             }
 
             default: {
-              // nichts
+              // version
+
+              $ret = $this->model->getVersion();	// daten für version aus dem model
+              $html_backend_ext .= $ret["inhalt"];
+              $errorstring = $ret["error"];
+
             }
 
           } // switch
@@ -1104,7 +1110,7 @@ class Controller {
 // *****************************************************************************
 
           elseif (isset($this->request["ba_blog"]) and ($_SESSION["user_role"] >= ROLE_EDITOR)) {
-            // ba_blog[ba_id, ba_userid, ba_date, ba_text, ba_videoid, ba_fotoid, ba_tag, ba_state, "delete"]
+            // ba_blog[ba_id, ba_userid, ba_date, ba_text, ba_videoid, ba_fotoid, ba_catid, ba_tags, ba_state, "delete"]
             // ba_id == 0 -> neuer blog eintrag
             // ba_id == 0xffff -> error
 
@@ -1119,9 +1125,10 @@ class Controller {
             $ba_text = trim($ba_blog_array["ba_text"]);
             $ba_videoid = trim($ba_blog_array["ba_videoid"]);
             $ba_fotoid = trim($ba_blog_array["ba_fotoid"]);
-            $ba_tag = trim($ba_blog_array["ba_tag"]);
+            $ba_tags = trim($ba_blog_array["ba_tags"]);
 
             // str zu int
+            $ba_catid = intval($ba_blog_array["ba_catid"]);
             $ba_state = intval($ba_blog_array["ba_state"]);
 
             // zeichen limit
@@ -1137,8 +1144,8 @@ class Controller {
             if (strlen($ba_fotoid) > MAXLEN_BLOGFOTOID) {
               $ba_fotoid = substr($ba_fotoid, 0, MAXLEN_BLOGFOTOID);
             }
-            if (mb_strlen($ba_tag, MB_ENCODING) > MAXLEN_BLOGTAG) {
-              $ba_tag = mb_substr($ba_tag, 0, MAXLEN_BLOGTAG, MB_ENCODING);
+            if (mb_strlen($ba_tags, MB_ENCODING) > MAXLEN_BLOGTAGS) {
+              $ba_tags = mb_substr($ba_tags, 0, MAXLEN_BLOGTAGS, MB_ENCODING);
             }
 
             // nur definierte states, sonst 0 (STATE_CREATED)
@@ -1149,7 +1156,7 @@ class Controller {
 
             $ba_delete = in_array("delete", $ba_blog_array);	// in array nach string suchen
 
-            $ret = $model_blog->postBlog($ba_id, $ba_userid, $ba_date, $ba_text, $ba_videoid, $ba_fotoid, $ba_tag, $ba_state, $ba_delete);	// daten für blog in das model
+            $ret = $model_blog->postBlog($ba_id, $ba_userid, $ba_date, $ba_text, $ba_videoid, $ba_fotoid, $ba_catid, $ba_tags, $ba_state, $ba_delete);	// daten für blog in das model
             $html_backend_ext .= $ret["inhalt"];
             $errorstring = $ret["error"];
 
@@ -1193,6 +1200,71 @@ class Controller {
             $errorstring = $ret["error"];
 
           } // ba_blogroll[]
+
+// *****************************************************************************
+// *** backend POST blogcategory (neu) ***
+// *****************************************************************************
+
+          elseif (isset($this->request["ba_blogcategory_new"]) and ($_SESSION["user_role"] >= ROLE_EDITOR)) {
+            // ba_blogcategory_new[category]
+
+            $model_blog = new Blog();	// model erstellen
+            $ba_blogcategory_new_array = $this->request["ba_blogcategory_new"];
+
+            // überflüssige leerzeichen entfernen
+            $category = trim($ba_blogcategory_new_array["category"]);
+
+            // zeichen limit
+            if (strlen($category) > MAXLEN_BLOGCATEGORY) {
+              $category = substr($category, 0, MAXLEN_BLOGCATEGORY);
+            }
+
+            $ret = $model_blog->postBlogcategoryNew($category);	// daten für blogcategory (neu) in das model
+            $html_backend_ext .= $ret["inhalt"];
+            $errorstring = $ret["error"];
+
+          } // ba_blogcategory_new[]
+
+// *****************************************************************************
+// *** backend POST blogcategory ***
+// *****************************************************************************
+
+          elseif (isset($this->request["ba_blogcategory"]) and ($_SESSION["user_role"] >= ROLE_EDITOR)) {
+            // ba_blogcategory[id]
+
+            $model_blog = new Blog();	// model erstellen
+            $ba_blogcategory_array = $this->request["ba_blogcategory"];
+            $ret = $model_blog->postBlogcategory($ba_blogcategory_array);	// daten für blogcategory in das model
+            $html_backend_ext .= $ret["inhalt"];
+            $errorstring = $ret["error"];
+
+          } // ba_blogcategory[]
+
+// *****************************************************************************
+// *** backend POST options ***
+// *****************************************************************************
+
+          elseif (isset($this->request["ba_options"]) and ($_SESSION["user_role"] >= ROLE_EDITOR)) {
+            // ba_options[ba_name][ba_value]
+
+            $model_blog = new Blog();	// model erstellen
+            $ba_options_array = $this->request["ba_options"];
+            $ba_options_array_replaced = array();
+
+            foreach ($ba_options_array as $ba_name => $ba_value) {
+
+              // überflüssige leerzeichen entfernen, str zu int
+              $ba_name = trim($ba_name);
+              $ba_value = intval($ba_value);
+
+              $ba_options_array_replaced[$ba_name] = $ba_value;
+            }
+
+            $ret = $model_blog->postOptions($ba_options_array_replaced);	// daten für options in das model
+            $html_backend_ext .= $ret["inhalt"];
+            $errorstring = $ret["error"];
+
+          } // ba_options[ba_name][ba_value]
 
 // *****************************************************************************
 // *** backend POST comment ***

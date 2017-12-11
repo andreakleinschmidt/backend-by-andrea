@@ -37,7 +37,7 @@ class Admin extends Model {
 
   // user anlegen (name, email, rolle)
   private function new_user_form() {
-    $new_user_form = "<p><b>new user</b></p>\n".
+    $new_user_form = "<p id=\"new_user\"><b>new user</b></p>\n".
                      "<form action=\"backend.php\" method=\"post\">\n".
                      "<table class=\"backend\">\n".
                      "<tr>\n<td class=\"td_backend\">\n".
@@ -88,7 +88,7 @@ class Admin extends Model {
       //                use_2fa TINYINT UNSIGNED NOT NULL,
       //                last_code INT UNSIGNED NOT NULL);
 
-      $html_backend_ext .= "<p><b>admin</b></p>\n\n";
+      $html_backend_ext .= "<p id=\"admin\"><b>admin</b></p>\n\n";
 
       // zugriff auf mysql datenbank
       $sql = "SELECT id, role, user, email, last_login FROM backend";
@@ -162,15 +162,15 @@ class Admin extends Model {
         $errorstring .= "<p>db error 3j</p>\n\n";
       }
 
+      // user anlegen (name, email, rolle)
+      $html_backend_ext .= $this->new_user_form();
+
       $html_backend_ext .= "</section>\n\n";
 
     } // datenbank
     else {
       $errorstring .= "<br>db error 1\n";
     }
-
-    // user anlegen (name, email, rolle)
-    $html_backend_ext .= $this->new_user_form();
 
     return array("inhalt" => $html_backend_ext, "error" => $errorstring);
   }

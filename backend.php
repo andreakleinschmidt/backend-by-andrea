@@ -9,6 +9,7 @@ session_start();
 // *****************************************************************************
 
 // (require wie include, aber abbruch/fatal error  bei nicht-einbinden)
+require_once("version.php");
 require_once("classes/class.rsa.php");	// rsa-klasse einbinden
 require_once("classes/class.ba_controller.php");
 require_once("classes/class.database.php");

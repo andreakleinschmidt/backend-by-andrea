@@ -18,6 +18,10 @@ function ajax(id,content) {
           var url = "ajax.php?id="+id+"&fotoid="+content+"&request="+randnum;
           var elementid = "foto_"+content;
           break;
+        case "details":
+          var url = "ajax.php?id="+id+"&filename="+content+"&request="+randnum;
+          var elementid = "details";
+          break;
         default:
           var url = "";
           var elementid = "";

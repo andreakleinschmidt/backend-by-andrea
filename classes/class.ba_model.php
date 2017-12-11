@@ -170,38 +170,76 @@ class Model {
 
   // echo $html_backend individuell mit user_name und links nach user_role
   public function html_backend($user_role, $user_name) {
-    $ret = "<nav>\n".
-           "<a href=\"backend.php\">backend:</a>\n";
+    $roles = array(ROLE_NONE => "none", ROLE_EDITOR => "editor", ROLE_MASTER => "master", ROLE_ADMIN => "admin");
+    $ret = "<nav class=\"sticky\">\n".
+           stripslashes($this->html5specialchars($user_name))." (".$roles[$user_role]."),\n".
+           "<a href=\"backend.php?action=password\">password</a>\n".
+           "<a href=\"backend.php?action=logout\">logout</a>\n".
+           "</nav>\n\n";
+
+    $ret .= "<aside class=\"sticky\">\n".
+            "<details class=\"details_backend\">\n".
+            "<summary><a href=\"backend.php\">backend</a></summary>\n".
+            "</details>\n";
     if ($user_role >= ROLE_EDITOR) {
-      $ret .= "<a href=\"backend.php?action=home\">home</a>\n";
+      $ret .= "<details class=\"details_backend\">\n".
+              "<summary><a href=\"backend.php?action=home\">home</a></summary>\n".
+              "</details>\n";
     }
     if ($user_role >= ROLE_EDITOR) {
-      $ret .= "<a href=\"backend.php?action=profil\">profil</a>\n";
+      $ret .= "<details class=\"details_backend\">\n".
+              "<summary><a href=\"backend.php?action=profil\">profil</a></summary>\n".
+              "</details>\n";
     }
     if ($user_role >= ROLE_EDITOR) {
-      $ret .= "<a href=\"backend.php?action=fotos\">fotos</a>\n";
+      $ret .= "<details class=\"details_backend\">\n".
+              "<summary><a href=\"backend.php?action=fotos\">fotos</a></summary>\n".
+              "<ul>\n".
+              "<li><a href=\"backend.php?action=fotos#galerie\">galerie</a></li>\n".
+              "<li><a href=\"backend.php?action=fotos#fotos\">fotos</a></li>\n".
+              "</ul>\n".
+              "</details>\n";
     }
     if ($user_role >= ROLE_EDITOR) {
-      $ret .= "<a href=\"backend.php?action=blog\">blog</a>\n";
+      $ret .= "<details class=\"details_backend\">\n".
+              "<summary><a href=\"backend.php?action=blog\">blog</a></summary>\n".
+              "<ul>\n".
+              "<li><a href=\"backend.php?action=blog#blog\">blog (neu)</a></li>\n".
+              "<li><a href=\"backend.php?action=blog#blogliste\">blog (liste)</a></li>\n".
+              "<li><a href=\"backend.php?action=blog#blogroll\">blogroll</a></li>\n".
+              "<li><a href=\"backend.php?action=blog#rubriken\">rubriken</a></li>\n".
+              "<li><a href=\"backend.php?action=blog#options\">options</a></li>\n".
+              "</ul>\n".
+              "</details>\n";
     }
     if ($user_role >= ROLE_MASTER) {
-      $ret .= "<a href=\"backend.php?action=comment\">comment</a>\n";
+      $ret .= "<details class=\"details_backend\">\n".
+              "<summary><a href=\"backend.php?action=comment\">comment</a></summary>\n".
+              "<ul>\n".
+              "<li><a href=\"backend.php?action=comment#comment\">comment (neu)</a></li>\n".
+              "<li><a href=\"backend.php?action=comment#commentliste\">comment (liste)</a></li>\n".
+              "</ul>\n".
+              "</details>\n";
     }
     if ($user_role >= ROLE_MASTER) {
-      $ret .= "<a href=\"backend.php?action=upload\">upload</a>\n";
+      $ret .= "<details class=\"details_backend\">\n".
+              "<summary><a href=\"backend.php?action=upload\">upload</a></summary>\n".
+              "<ul>\n".
+              "<li><a href=\"backend.php?action=upload#upload\">upload</a></li>\n".
+              "<li><a href=\"backend.php?action=upload#media\">media</a></li>\n".
+              "</ul>\n".
+              "</details>\n";
     }
     if ($user_role >= ROLE_ADMIN) {
-      $ret .= "<a href=\"backend.php?action=admin\">admin</a>\n";
+      $ret .= "<details class=\"details_backend\">\n".
+              "<summary><a href=\"backend.php?action=admin\">admin</a></summary>\n".
+              "<ul>\n".
+              "<li><a href=\"backend.php?action=admin#admin\">admin</a></li>\n".
+              "<li><a href=\"backend.php?action=admin#new_user\">new user</a></li>\n".
+              "</ul>\n".
+              "</details>\n";
     }
-    $ret .= "<a href=\"backend.php?action=password\">password</a>\n".
-            "<a href=\"backend.php?action=logout\">logout</a>\n".
-            "</nav>\n\n";
-
-    $roles = array(ROLE_NONE => "none", ROLE_EDITOR => "editor", ROLE_MASTER => "master", ROLE_ADMIN => "admin");
-    $ret .= "<aside>\n".
-            "<p>user login:</p>\n".
-            "<p>".stripslashes($this->html5specialchars($user_name))." (".$roles[$user_role].")</p>\n".
-            "</aside>\n\n";
+    $ret .= "</aside>\n\n";
 
     return $ret;
   }
@@ -476,6 +514,24 @@ class Model {
     } // datenbank
     else {
       $errorstring .= "<br>db error 1\n";
+    }
+
+    return array("inhalt" => $html_backend_ext, "error" => $errorstring);
+  }
+
+  // get defined VERSION from version.php
+  public function getVersion() {
+    $html_backend_ext = "";
+    $errorstring = "";
+
+    if (!empty(VERSION)) {
+      $html_backend_ext .= "<section>\n\n".
+                           "<p><b>backend</b></p>\n\n".
+                           "<p>".stripslashes($this->html5specialchars(VERSION))."</p>\n\n".
+                           "</section>\n\n";
+    }
+    else {
+      $errorstring .= "<p>no version defined</p>\n\n";
     }
 
     return array("inhalt" => $html_backend_ext, "error" => $errorstring);

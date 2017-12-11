@@ -11,14 +11,45 @@ define("MB_ENCODING","UTF-8");
 class Blog extends Model {
 
   // variablen
-  private static $anzahl_eps = 20;	// anzahl einträge pro seite
-  private static $anzahl_cps = 20;	// anzahl kommentare pro seite
-
   private static $month_min = 1;
   private static $month_max = 12;
   private static $year_min = 2009;
   private function year_max() {
     return intval(date("Y"));
+  }
+
+  // (doppelt in frontend und backend model blog)
+  public function getOption_by_name($ba_name) {
+    $value = 1;
+
+    if (!$this->datenbank->connect_errno) {
+      // wenn kein fehler
+
+      $sql = "SELECT ba_value FROM ba_options WHERE ba_name = ?";
+      $stmt = $this->datenbank->prepare($sql);	// liefert mysqli-statement-objekt
+      if ($stmt) {
+        // wenn kein fehler
+
+        // austauschen ? durch string
+        $stmt->bind_param("s", $ba_name);
+        $stmt->execute();	// ausführen geänderte zeile
+
+        $stmt->bind_result($datensatz["ba_value"]);
+        // mysqli-statement-objekt kennt kein fetch_assoc(), nur fetch(), kein assoc-array als rückgabe
+
+        if ($stmt->fetch()) {
+          // wenn kein fehler (name nicht vorhanden, datensatz leer)
+          $value = intval($datensatz["ba_value"]);
+        }
+
+        $stmt->close();
+        unset($stmt);	// referenz löschen
+
+      } // stmt
+
+    } // datenbank
+
+    return $value;
   }
 
   // ersetze tag kommandos im blogtext ~cmd{content} mit html tags <a>, <b>, <i>
@@ -109,7 +140,7 @@ class Blog extends Model {
   }
 
   // ausgabe komplette blogzeile
-  private function blog_line($datensatz, &$option_array, &$blog_comment_id_array, $query_data, $header_flag) {
+  private function blog_line($datensatz, &$option_array, &$blog_comment_id_array, $query_data, $header_flag, $num_sentences) {
     $ersetzen = "";
 
     $datum = stripslashes($this->html5specialchars($datensatz["ba_date"]));
@@ -117,7 +148,8 @@ class Blog extends Model {
     $blogtext40 = stripslashes($this->html_tags($this->html5specialchars(mb_substr($datensatz["ba_text"], 0, 40, MB_ENCODING)), false));	// substr problem bei trennung umlaute
 
     if ($header_flag) {
-      $blogheader = stripslashes($this->html_tags(nl2br($this->html5specialchars(preg_split("/(?<=\!\s|\.\s|\:\s|\?\s)/", $datensatz["ba_text"], 0, PREG_SPLIT_NO_EMPTY)[0])), false));	// satzendzeichen als trennzeichen, nur erster satz
+      $split_array = array_slice(preg_split("/(?<=\!\s|\.\s|\:\s|\?\s)/", $datensatz["ba_text"], $num_sentences+1, PREG_SPLIT_NO_EMPTY), 0, $num_sentences);
+      $blogheader = stripslashes($this->html_tags(nl2br($this->html5specialchars(implode($split_array))), false));	// satzendzeichen als trennzeichen, anzahl sätze optional
       $ersetzen .= "<h1>".$blogheader."</h1>\n";
     }
 
@@ -249,16 +281,23 @@ class Blog extends Model {
     // array für tags
     $tags = array();
 
-    foreach ($tags_from_db as $tag_data) {
-      // tags trennen
-      $split_array = preg_split("/\s*[:,;]+\s*|^\s+|\s+$/", $tag_data, 0, PREG_SPLIT_NO_EMPTY);	// preg split liefert 1 array mit allen tags aus der tag_data zeile
-      foreach ($split_array as $tag_str) {
-        $tags[] = $tag_str;
+    // array mit category als key und zweites array mit allen tag_data zeilen
+    foreach ($tags_from_db as $key => $tag_data_arr) {
+      foreach ($tag_data_arr as $tag_data) {
+        // tags trennen
+        $split_array = preg_split("/\s*,+\s*|^\s+|\s+$/", $tag_data, 0, PREG_SPLIT_NO_EMPTY);	// preg split liefert 1 array mit allen tags aus der tag_data zeile
+        foreach ($split_array as $tag_str) {
+          $tags[] = $tag_str;
+        }
+        if ($key != "none") {
+          $tags[] = $key;	// category als tag
+        }
       }
     }
 
     // tags zählen und als array mit tag => anzahl zurückgeben
     $tag_arr = array_count_values($tags);
+    ksort($tag_arr);	// nach tag sortieren
 
     // links tag (einträge)
     $tagliste_arr = array();
@@ -365,12 +404,17 @@ class Blog extends Model {
     if (!$this->datenbank->connect_errno) {
       // wenn kein fehler
 
-      $sql = "SELECT ba_tag FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND ba_tag != ''";
+      $sql = "SELECT ba_category, ba_tags FROM ba_blog INNER JOIN ba_blogcategory ON ba_blog.ba_catid = ba_blogcategory.ba_id WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_category != '' OR ba_tags != '')";
       $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
       if ($ret) {
         // ausgabeschleife
         while ($datensatz = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
-          $tags_from_db[] = $datensatz["ba_tag"];	// array mit allen tag_data zeilen
+          $ba_category = trim($datensatz["ba_category"]);
+          $ba_tags = trim($datensatz["ba_tags"]);
+          if ($ba_category == "") {
+            $ba_category = "none";
+          }
+          $tags_from_db[$ba_category][] = $ba_tags;	// array mit category als key und zweites array mit allen tag_data zeilen
         }
         $ret->close();
         unset($ret);
@@ -432,28 +476,14 @@ class Blog extends Model {
       $ersetzen .= "</div>\n";
 
       // tags
-      $tags_from_db = $this->get_tags_from_db();	// weiterverwendung weiter unten
-
-      $gruppen = array();
-      foreach ($tags_from_db as $tag_data) {
-        $explode_array = explode(";", $tag_data);
-        foreach ($explode_array as $tag_data) {
-          $gruppen[] = $tag_data;
-        }
-      }
+      $tags_from_db = $this->get_tags_from_db();	// array mit category als key und zweites array mit allen tag_data zeilen, weiterverwendung weiter unten
 
       $rubriken = array();
-      foreach ($gruppen as $tag_data) {
-        $explode_array = explode(":", $tag_data);
-        if (count($explode_array) > 1) {
+      foreach ($tags_from_db as $key => $tag_data_arr) {
+        if ($key != "none") {
           // keine leeren rubriken, keine einzelnen tags
-          $key = trim($explode_array[0]);
-          if (isset($rubriken[$key])) {
-            $rubriken[$key] .= ", ".$explode_array[1];	// tag string erweitern
-          }
-          else {
-            $rubriken[$key] = $explode_array[1];	// rubrik mit tag string neu anlegen
-          }
+          $tag_data_arr_unique = array_unique(array_filter($tag_data_arr));	// unique und keine leeren elemente
+          $rubriken[$key] = implode(", ", $tag_data_arr_unique);	// rubrik mit tag string
         }
       }
 
@@ -578,6 +608,10 @@ class Blog extends Model {
       $hd_title_str = " query";
     }
 
+    // options
+    $anzahl_eps = intval($this->getOption_by_name("blog_entries_per_page"));	// anzahl einträge pro seite = 20
+    $num_sentences = intval($this->getOption_by_name("blog_num_sentences_header"));	// anzahl sätze header = 1
+
     // auf leer überprüfen
     if (mb_strlen($blog_query_or_tag, MB_ENCODING) > 0) {
       // wenn kein fehler
@@ -591,7 +625,7 @@ class Blog extends Model {
       }
       else {
         // tag
-        $sql = "SELECT ba_id FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_tag RLIKE ?)";	// (1) ohne LIMIT
+        $sql = "SELECT ba_blog.ba_id FROM ba_blog INNER JOIN ba_blogcategory ON ba_blog.ba_catid = ba_blogcategory.ba_id WHERE ba_state >= ".STATE_PUBLISHED." AND (CONCAT(ba_category, ', ', ba_tags) RLIKE ?)";	// (1) ohne LIMIT
       }
       $stmt = $this->datenbank->prepare($sql);	// liefert mysqli-statement-objekt
       if ($stmt) {
@@ -624,7 +658,7 @@ class Blog extends Model {
 
         if ($anzahl_e > 0) {
 
-          $anzahl_s = ceil($anzahl_e/self::$anzahl_eps);	// anzahl seiten, ceil() rundet auf
+          $anzahl_s = ceil($anzahl_e/$anzahl_eps);	// anzahl seiten, ceil() rundet auf
 
           // GET page auslesen
           if ($this->getPage($page, $anzahl_s)) {
@@ -635,16 +669,16 @@ class Blog extends Model {
           }
 
           // LIMIT für sql berechnen
-          $lmt_start = ($page-1) * self::$anzahl_eps;
+          $lmt_start = ($page-1) * $anzahl_eps;
 
           // zugriff auf mysql datenbank (6), in mysql select mit prepare() - sql injections verhindern
           if (!$tagflag) {
             // query
-            $sql = "SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_text RLIKE ?) ORDER BY ba_id DESC LIMIT ".$lmt_start.",".self::$anzahl_eps;	// (2) mit LIMIT
+            $sql = "SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_text RLIKE ?) ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;	// (2) mit LIMIT
           }
           else {
             // tag
-            $sql = "SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_tag RLIKE ?) ORDER BY ba_id DESC LIMIT ".$lmt_start.",".self::$anzahl_eps;		// (2) mit LIMIT
+            $sql = "SELECT ba_blog.ba_id, ba_date, ba_text, ba_videoid, ba_fotoid FROM ba_blog INNER JOIN ba_blogcategory ON ba_blog.ba_catid = ba_blogcategory.ba_id WHERE ba_state >= ".STATE_PUBLISHED." AND (CONCAT(ba_category, ', ', ba_tags) RLIKE ?) ORDER BY ba_blog.ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;		// (2) mit LIMIT
           }
           $stmt = $this->datenbank->prepare($sql);	// liefert mysqli-statement-objekt
           if ($stmt) {
@@ -683,7 +717,7 @@ class Blog extends Model {
             // blog schreiben , ausgabeschleife
             $header_flag = true;
             while ($stmt->fetch()) {	// $datensatz = $stmt->fetch_assoc(), fetch_assoc() liefert array, solange nicht NULL (letzter datensatz), hier jetzt nur fetch()
-              $ersetzen .= $this->blog_line($datensatz, $option_array, $blog_comment_id_array, $query_data, $header_flag);
+              $ersetzen .= $this->blog_line($datensatz, $option_array, $blog_comment_id_array, $query_data, $header_flag, $num_sentences);
               $header_flag = false;	// nur erster schleifenaufruf
             }
 
@@ -738,6 +772,10 @@ class Blog extends Model {
     $tagliste = "";
     $errorstring = "";
 
+    // options
+    $anzahl_eps = intval($this->getOption_by_name("blog_entries_per_page"));	// anzahl einträge pro seite = 20
+    $num_sentences = intval($this->getOption_by_name("blog_num_sentences_header"));	// anzahl sätze header = 1
+
     // zugriff auf mysql datenbank (5)
     $sql = "SELECT ba_id FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id != 1";
     $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
@@ -745,7 +783,7 @@ class Blog extends Model {
       // wenn kein fehler 5b
 
       $anzahl_e = $ret->num_rows;	// anzahl einträge in ba_blog
-      $anzahl_s = ceil($anzahl_e/self::$anzahl_eps);	// anzahl seiten in blog, ceil() rundet auf
+      $anzahl_s = ceil($anzahl_e/$anzahl_eps);	// anzahl seiten in blog, ceil() rundet auf
 
       $ret->close();	// db-ojekt schließen
       unset($ret);	// referenz löschen
@@ -822,7 +860,7 @@ class Blog extends Model {
       }
 
       // LIMIT für sql berechnen
-      $lmt_start = ($page-1) * self::$anzahl_eps;
+      $lmt_start = ($page-1) * $anzahl_eps;
 
       // zugriff auf mysql datenbank (6)
       $sql = "";	// blog eintrag nr.1 nur auf erster seite, danach alle absteigend 100..99...2 (ohne 1)
@@ -831,7 +869,7 @@ class Blog extends Model {
                 "\nUNION\n";
       }
       if ($show_page == true) {
-        $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id != 1 ORDER BY ba_id DESC LIMIT ".$lmt_start.",".self::$anzahl_eps.")";
+        $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id != 1 ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps.")";
       }
       elseif ($show_year == true and $show_month == false) {
         $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$year." ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
@@ -865,7 +903,7 @@ class Blog extends Model {
         // blog schreiben , ausgabeschleife
         $header_flag = true;
         while ($datensatz = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
-          $ersetzen .= $this->blog_line($datensatz, $option_array, $blog_comment_id_array, $query_data, $header_flag);
+          $ersetzen .= $this->blog_line($datensatz, $option_array, $blog_comment_id_array, $query_data, $header_flag, $num_sentences);
           $header_flag = false;	// nur erster schleifenaufruf
         }
 
@@ -895,6 +933,9 @@ class Blog extends Model {
   private function getComment(&$parameter_array, &$option_array, $compage) {
     $ersetzen = "";
     $errorstring = "";
+
+    // options
+    $anzahl_cps = intval($this->getOption_by_name("blog_comments_per_page"));	// anzahl kommentare pro seite = 20
 
     $ersetzen .= "<p><a name=\"comment\"></a><b>Kommentar:</b></p>\n";
 
@@ -934,7 +975,7 @@ class Blog extends Model {
       // wenn kein fehler 7
 
       $anzahl_c = $ret->num_rows;	// anzahl kommentare in ba_comment
-      $anzahl_s = ceil($anzahl_c/self::$anzahl_cps);	// anzahl seiten für kommentar, ceil() rundet auf
+      $anzahl_s = ceil($anzahl_c/$anzahl_cps);	// anzahl seiten für kommentar, ceil() rundet auf
 
       $ret->close();	// db-ojekt schließen
       unset($ret);	// referenz löschen
@@ -945,10 +986,10 @@ class Blog extends Model {
       }
 
       // LIMIT für sql berechnen
-      $lmt_start = ($compage-1) * self::$anzahl_cps;
+      $lmt_start = ($compage-1) * $anzahl_cps;
 
       // zugriff auf mysql datenbank (8)
-      $sql = "SELECT ba_id, ba_date, ba_name, ba_mail, ba_text, ba_comment, ba_blogid FROM ba_comment WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_blogid = 1 OR ".$sql_part.") ORDER BY ba_id DESC LIMIT ".$lmt_start.",".self::$anzahl_cps;
+      $sql = "SELECT ba_id, ba_date, ba_name, ba_mail, ba_text, ba_comment, ba_blogid FROM ba_comment WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_blogid = 1 OR ".$sql_part.") ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_cps;
       $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
       if ($ret) {
         // wenn kein fehler 8

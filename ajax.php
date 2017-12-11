@@ -77,6 +77,63 @@ function blogfoto($fotoid) {
   return $ret;
 }
 
+// ausgabe für backend upload media in <div id="details"></div>
+function details($filename) {
+  if (is_readable($filename)) {
+    $details_arr = array();
+    $ret = "<table class=\"backend\">\n<tr>\n<td class=\"td_backend\">\n";
+
+    // dateiname
+    $details_arr[] = stripslashes(xhtmlspecialchars($filename));
+
+    // mime type
+    $mime_type = mime_content_type($filename);
+    $details_arr[] = stripslashes(xhtmlspecialchars($mime_type));
+
+    // width x height
+    if ($mime_type == "image/jpeg" or $mime_type == "image/png") {
+      $imagesize = getimagesize($filename);
+      $details_arr[] = $imagesize[0]." x ".$imagesize[1];
+    }
+
+    // size (Bytes)
+    $Bytes = filesize($filename);
+    $kBytes = round(floatval($Bytes)/pow(1024, 1), 2);
+    $MBytes = round(floatval($Bytes)/pow(1024, 2), 2);
+    if ($MBytes >= 0.9) {
+      $details_arr[] = strval($MBytes)." MB (".$Bytes." Bytes)";
+    }
+    elseif ($kBytes >= 0.9) {
+      $details_arr[] = strval($kBytes)." kB (".$Bytes." Bytes)";
+    }
+    else {
+      $details_arr[] = $Bytes." Bytes";
+    }
+
+    // datum (rfc2822)
+    $details_arr[] = date("r", filemtime($filename));
+
+    // vorschaubild
+    if ($mime_type == "image/jpeg" or $mime_type == "image/png") {
+      if ($thumbnail = exif_thumbnail($filename, $width, $height, $type)) {
+        $ret .= "<img class=\"kantefarbig\" src=\"thumbnail.php?image=".rawurlencode($filename)."\" width=\"".$width."\" height=\"".$height."\">\n";
+      }
+      else {
+        $ret .= "<p>(no thumbnail)</p>\n";
+      }
+    }
+    else {
+      $ret .= "<p>(no image)</p>\n";
+    }
+
+    $ret .= "</td>\n<td>\n<p>".implode("\n<br>", $details_arr)."</p>\n</td>\n</tr>\n</table>\n";
+  }
+  else {
+    $ret = "filename file error";
+  }
+  return $ret;
+}
+
 if ($_SERVER["REQUEST_METHOD"] == "GET") {
   // GET auslesen
   if (isset($_GET["id"]) and isset($_GET["request"])) {
@@ -120,6 +177,22 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
           $ret = "fotoid not set";
         }
       } // if blogfoto
+
+      elseif ($id == "details") {
+        if (isset($_GET["filename"])) {
+          $filename = trim($_GET["filename"]);
+          if (strlen($filename) > 0) {
+            // $filename nicht leer
+            $ret = details($filename);
+          }
+          else {
+            $ret = "filename error";
+          }
+        } // if GET filename
+        else {
+          $ret = "filename not set";
+        }
+      } // if details
 
       else {
         $ret = "default";
