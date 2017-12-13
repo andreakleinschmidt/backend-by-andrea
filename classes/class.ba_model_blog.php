@@ -977,30 +977,38 @@ class Blog extends Model {
 
       $html_backend_ext .= "<section>\n\n";
 
-      $count = 0;
+      $count = array("delete" => 0, "update" => 0);
 
       foreach ($ba_blogcategory_array as $id) {
 
-        $sql = "DELETE FROM ba_blogcategory WHERE ba_id = ?";
-        $stmt = $this->datenbank->prepare($sql);	// liefert mysqli-statement-objekt
-        if ($stmt) {
-          // wenn kein fehler 4n
+        $sql_pt1 = "DELETE FROM ba_blogcategory WHERE ba_id = ?";
+        $sql_pt2 = "UPDATE ba_blog SET ba_catid = 0 WHERE ba_catid = ?";
+        $sql_array = array("delete" => $sql_pt1, "update" => $sql_pt2);
 
-          // austauschen ? durch int
-          $stmt->bind_param("i", $id);
-          $stmt->execute();	// ausführen geänderte zeile
-          $count += $stmt->affected_rows;
-          $stmt->close();
+        foreach ($sql_array as $key => $sql) {
 
-        } // stmt
+          $stmt = $this->datenbank->prepare($sql);	// liefert mysqli-statement-objekt
+          if ($stmt) {
+            // wenn kein fehler 4n
 
-        else {
-          $errorstring .= "<p>db error 4n</p>\n\n";
-        }
+            // austauschen ? durch int
+            $stmt->bind_param("i", $id);
+            $stmt->execute();	// ausführen geänderte zeile
+            $count[$key] += $stmt->affected_rows;
+            $stmt->close();
 
-      }
+          } // stmt
 
-      $html_backend_ext .= "<p>".$count." rows deleted</p>\n\n";
+          else {
+            $errorstring .= "<p>db error 4n</p>\n\n";
+          }
+
+        } // sql part
+
+      } // id
+
+      $html_backend_ext .= "<p>".$count["delete"]." rows deleted</p>\n\n";
+      $html_backend_ext .= "<p>".$count["update"]." rows changed</p>\n\n";
 
       $html_backend_ext .= "</section>\n\n";
 

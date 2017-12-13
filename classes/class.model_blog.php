@@ -7,6 +7,7 @@
 define("STATE_APPROVAL",2);
 define("STATE_PUBLISHED",3);
 define("MB_ENCODING","UTF-8");
+define("MAILADDR","morgana@oscilloworld.de");
 
 class Blog extends Model {
 
@@ -1143,23 +1144,42 @@ class Blog extends Model {
               $comment_text = mb_substr($comment_text, 0, 2048, MB_ENCODING);
             }
 
-            // in mysql einfügen mit prepare() - sql injections verhindern
-            $sql = "INSERT INTO ba_comment(ba_date, ba_ip, ba_name, ba_mail, ba_text, ba_blogid, ba_state) VALUES (NOW(), ?, ?, ?, ?, ?, ?)";
-            $stmt = $this->datenbank->prepare($sql);	// liefert mysqli-statement-objekt
-            if ($stmt) {
-              // wenn kein fehler 9
+            // spamfilter
+            $spam = false;
+            $keywords = array("<a href", "</a>");
+            foreach ($keywords as $keyword) {
+              if (strpos($keyword, $comment_text) !== false) {
+                // found keyword
+                $spam = true;
+                break;
+              }
+            }
 
-              // austauschen ?????? durch string und int 
-              $stmt->bind_param("ssssii", $comment_ip, $comment_name, $comment_mail, $comment_text, $comment_blogid, $comment_state);
-              $stmt->execute();	// ausführen geänderte zeile
+            if (!$spam) {
+              // if not spam
 
-              $ersetzen .= "<p>Dein Kommentar wird in Kürze freigegeben, zensiert oder gelöscht - <a href=\"index.php?action=blog#comment\">Zurück zum Blog</a> (automatisch in 10 Sekunden)</p>\n";
+              // in mysql einfügen mit prepare() - sql injections verhindern
+              $sql = "INSERT INTO ba_comment(ba_date, ba_ip, ba_name, ba_mail, ba_text, ba_blogid, ba_state) VALUES (NOW(), ?, ?, ?, ?, ?, ?)";
+              $stmt = $this->datenbank->prepare($sql);	// liefert mysqli-statement-objekt
+              if ($stmt) {
+                // wenn kein fehler 9
 
-              mail("morgana@oscilloworld.de", "neuer blog kommentar", $comment_name." (".$comment_mail."): ".$comment_text." (".$comment_blogid.")", "from:morgana@oscilloworld.de");
+                // austauschen ?????? durch string und int 
+                $stmt->bind_param("ssssii", $comment_ip, $comment_name, $comment_mail, $comment_text, $comment_blogid, $comment_state);
+                $stmt->execute();	// ausführen geänderte zeile
+
+                $ersetzen .= "<p>Dein Kommentar wird in Kürze freigegeben, zensiert oder gelöscht - <a href=\"index.php?action=blog#comment\">Zurück zum Blog</a> (automatisch in 10 Sekunden)</p>\n";
+
+                mail(MAILADDR, "neuer blog kommentar", $comment_name." (".$comment_mail."): ".$comment_text." (".$comment_blogid.")", "from:".MAILADDR);
+
+              }
+              else {
+                $errorstring .= "<br>db error 9\n";
+              }
 
             }
             else {
-              $errorstring .= "<br>db error 9\n";
+              $ersetzen .= "<p>spamfilter</p>\n";
             }
 
           }
