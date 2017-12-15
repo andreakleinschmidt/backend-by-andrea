@@ -13,7 +13,7 @@
 // *****************************************************************************
 
 define("MAXLEN_USER",32);	// login form
-define("MAXLEN_PASSWORD",287);	// 32 x "ffffffff" + 31 x "-"
+define("MAXLEN_PASSWORD",32);	// login form
 define("MAXLEN_CODE",8);	// login form
 define("MAXLEN_TELEGRAM_ID",10);	// "4294967295" 32 bit unsigned integer
 define("ROLE_NONE",0);
@@ -61,7 +61,7 @@ class Model {
                  "<input type=\"password\" name=\"password\" class=\"size_16\" maxlength=\"".MAXLEN_PASSWORD."\" />\n".
                  "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">\n".
                  "</td>\n<td>\n".
-                 "<input type=\"submit\" value=\"send\" onclick=\"encrypt()\" />\n".
+                 "<input type=\"submit\" value=\"send\" />\n".
                  "</td>\n</tr>\n".
                  "</table>\n".
                  "</form>\n\n";
@@ -113,7 +113,7 @@ class Model {
                      "<input type=\"password\" name=\"password_new2\" class=\"size_16\" maxlength=\"".MAXLEN_PASSWORD."\" />\n".
                      "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">\n".
                      "</td>\n<td>\n".
-                     "<input type=\"submit\" value=\"send\" onclick=\"encrypt2()\" />\n".
+                     "<input type=\"submit\" value=\"send\" />\n".
                      "</td>\n</tr>\n".
                      "</table>\n".
                      "</form>\n\n".
@@ -178,6 +178,7 @@ class Model {
            "</nav>\n\n";
 
     $ret .= "<aside class=\"sticky\">\n".
+            "<pre>backend\n    by andrea</pre>\n".
             "<details class=\"details_backend\">\n".
             "<summary><a href=\"backend.php\">backend</a></summary>\n".
             "</details>\n";

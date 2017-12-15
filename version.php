@@ -1,3 +1,3 @@
 <?php
-define("VERSION","v2017-18-g1437deb");
+define("VERSION","v2017-19-g0ec52ee");
 ?>

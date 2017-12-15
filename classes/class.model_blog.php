@@ -1148,7 +1148,7 @@ class Blog extends Model {
             $spam = false;
             $keywords = array("<a href", "</a>");
             foreach ($keywords as $keyword) {
-              if (strpos($keyword, $comment_text) !== false) {
+              if (strpos($comment_text, $keyword) !== false) {
                 // found keyword
                 $spam = true;
                 break;

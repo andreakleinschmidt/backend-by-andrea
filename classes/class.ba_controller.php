@@ -15,9 +15,7 @@
 define("AUTHORIZATION_CODE","andreas-alpha-0815");
 define("LOGIN_TIME",600);	// zeit in s login uid cookie
 define("MAXLEN_USER",32);	// login form
-define("MAXLEN_PASSWORDNONCRYPT",32);
-define("MAXLEN_CHARCRYPT",8);	// ffffffff
-define("MAXLEN_PASSWORD",287);	// 32 x "ffffffff" + 31 x "-"
+define("MAXLEN_PASSWORD",32);	// login form
 define("MAXLEN_CODE",8);	// login form
 define("MAXLEN_TELEGRAM_ID",10);	// "4294967295" 32 bit unsigned integer
 define("MAXLEN_EMAIL",64);	// admin form
@@ -53,7 +51,7 @@ define("STATE_APPROVAL",2);
 define("STATE_PUBLISHED",3);
 define("MB_ENCODING","UTF-8");
 define("DEBUG",false);
-define("DEBUG_STR","<p>debug:\n");
+define("DEBUG_STR","<section>\n<p>debug:\n");
 
 // *****************************************************************************
 // *** error list ***
@@ -66,8 +64,6 @@ define("DEBUG_STR","<p>debug:\n");
 //
 // POST error - bei login ($_POST["unbekannt"])
 // POST error - bei backend POST ($_POST["unbekannt"])
-//
-// fatal error - primtab.txt in RSA()
 
 class Controller {
 
@@ -99,11 +95,7 @@ class Controller {
   // cookies löschen (auf 0 setzen, leerer string und datum in vergangenheit)
   public function del_cookies() {
     setcookie("uid", "", time()-60*60*24);	// auf client seite löschen
-    setcookie("rsa", "", time()-60*60*24);
-    setcookie("puk", "", time()-60*60*24);
     unset($_COOKIE["uid"]);	// auf server seite löschen
-    unset($_COOKIE["rsa"]);
-    unset($_COOKIE["puk"]);
   }
 
   // setze login variablen in session und client cookie
@@ -147,20 +139,6 @@ class Controller {
     $ret = "<br />unset user_id/_role/_name\n";
   }
 
-  // public key - verschlüsseln/verifizieren - für java-client
-  // private key - entschlüsseln/signieren - php-server - geheim
-  public function set_rsa($rsa, $public_key, $private_key) {
-    // rsa modul und public key in client cookie
-    setcookie("rsa",$rsa);	// auf client seite
-    setcookie("puk",$public_key);
-    $_COOKIE["rsa"] = $rsa;	// auf server seite
-    $_COOKIE["puk"] = $public_key;
-
-    // rsa modul und private key in server session (für nächsten POST aufruf)
-    $_SESSION["rsa"] = $rsa;
-    $_SESSION["prk"] = $private_key;
-  }
-
   // generate random password
   public function gen_password($len = 8) {
     $char_pool = "abcdefghijklmnopqrstuvwxyz".
@@ -170,8 +148,8 @@ class Controller {
     // htmlspecialchars: "&'<>
     // nicht verwendet: /()[]\'`@|,;
 
-    if ($len > MAXLEN_PASSWORDNONCRYPT) {
-      $len = MAXLEN_PASSWORDNONCRYPT;
+    if ($len > MAXLEN_PASSWORD) {
+      $len = MAXLEN_PASSWORD;
     }
 
     return substr(str_shuffle($char_pool), 0, $len);	// nur ascii
@@ -255,45 +233,23 @@ class Controller {
 
       }
 
-      $RSA_obj = @new RSA();	// php stellt alle rsa komponenten
-
       if (!$login) {
 
         // POST mit verschlüsseltem password?
         if ($this->method != "POST") {
           // nein
 
-          // php stellt alle rsa komponenten
-          $rsa_debug_str = "";
-          $rsa = 0;
-          $public_key = 0;
-          $private_key = 0;
-          if (!$RSA_obj->RSA_init($rsa_debug_str, $rsa, $public_key, $private_key)) {
-            $this->set_rsa($rsa, $public_key, $private_key);
-
 // *****************************************************************************
 // *** login ***
 // *****************************************************************************
 
-            // login form
-            // rsa modul und public key in client cookie (document.cookie)
-            // in client javascript, string in einzelne asciizeichen auseinandernehmen
-            // wert einzeln verschlüsseln mit public key , C = K^e mod N
-            // komplette code kette in post formular feld , 7f-7f-7f...
-
-            $html_backend_ext = $this->model->html_form();
-
-          }
-          else {
-            $errorstring = "<p>fatal error</p>\n\n";
-          }
-
-          if (DEBUG) { $debug_str .= $rsa_debug_str; }
+          // login form
+          $html_backend_ext = $this->model->html_form();
 
         } // kein POST
 
         else {
-          // verschlüsseltes password oder (optional) code in POST?
+          // password oder (optional) code in POST?
 
           $login_1 = false;
           $login_2 = false;
@@ -301,37 +257,13 @@ class Controller {
           $code = 0;
 
           // POST überprüfen
-          if (isset($this->user_login, $this->password, $_SESSION["rsa"], $_SESSION["prk"])) {
-
-            // rsa modul und private key aus server session (letzter aufruf login form)
-            $rsa = $_SESSION["rsa"];
-            $private_key = $_SESSION["prk"];
-            unset($_SESSION["rsa"]);
-            unset($_SESSION["prk"]);
-
-            if (DEBUG) { $debug_str .= "<br>006 rsa = ".$rsa."\n"; }
-            if (DEBUG) { $debug_str .= "<br>007 prk = ".$private_key."\n"; }
+          if (isset($this->user_login, $this->password)) {
 
             if (DEBUG) { $debug_str .= "<br>008 user_login = ".$this->user_login."\n"; }
-            if (DEBUG) { $debug_str .= "<br>008 pwd-c = ".$this->password."\n"; }
+            if (DEBUG) { $debug_str .= "<br>008 pwd = ".$this->password."\n"; }
 
-            if ($this->user_login != "" and mb_strlen($this->user_login, MB_ENCODING) <= MAXLEN_USER and $this->password != "" and $this->password != "error" and strlen($this->password) <= MAXLEN_PASSWORD and $private_key > 0 and $rsa > 0) {
-              // test auf leere felder , private key und rsa vorhanden , vermeidung % 0
-
-              // komplette code kette in post formular feld , 7f-7f-7f... , auseinandernehmen
-              $pwd_array = explode("-", $this->password, MAXLEN_PASSWORDNONCRYPT);
-
-              // passwort-teile entschlüsseln mit private key , K = C^d mod N
-              foreach ($pwd_array as &$c) {
-                $c = $RSA_obj->RSA_crypt(intval(substr($c,0,MAXLEN_CHARCRYPT),16), $private_key, $rsa);	// zu groß: pow($c,$private_key) % $rsa;
-                $c &= 0x7f;	// "chaos bit" entfernen (ff -> 7f)
-                $c = chr($c);	// ascii zeichen
-              }
-              unset($c);	// break reference (call by reference &$c)
-
-              // passwort zusammensetzen
-              $password = trim(implode("",$pwd_array));
-              if (DEBUG) { $debug_str .= "<br>009 pwd = ".$password."\n"; }
+            if ($this->user_login != "" and mb_strlen($this->user_login, MB_ENCODING) <= MAXLEN_USER and $this->password != "" and mb_strlen($this->password, MB_ENCODING) <= MAXLEN_PASSWORD) {
+              // test auf leere felder
 
               // vergleich mit datenbank (passwort in datenbank ist md5 mit salt)
               $ret = $this->model->check_user($this->user_login);
@@ -347,7 +279,7 @@ class Controller {
                 $last_code = $ret["last_code"];
 
                 if (DEBUG) { $debug_str .= "<br>010 pwd-hash = ".$password_hash."\n"; }
-                if (crypt($password, $password_hash) == $password_hash) {
+                if (crypt($this->password, $password_hash) == $password_hash) {
                   // passwort stimmt
 
                   $login_1 = true;
@@ -661,19 +593,6 @@ class Controller {
               // - neu2
               $html_backend_ext .= $this->model->password_form(true, false);	// section_start=true
 
-              // php stellt alle rsa komponenten
-              $rsa_debug_str = "";
-              $rsa = 0;
-              $public_key = 0;
-              $private_key = 0;
-              if ($RSA_obj->RSA_init($rsa_debug_str, $rsa, $public_key, $private_key)) {
-                $errorstring = "<p>fatal error</p>\n\n";
-              }
-              else {
-                $this->set_rsa($rsa, $public_key, $private_key);
-              }
-              if (DEBUG) { $debug_str .= $rsa_debug_str; }
-
               $ret = $this->model->getTwofa();	// daten für twofa aus dem model
 
               // zwei-faktor-authentifizierung formular
@@ -726,64 +645,21 @@ class Controller {
 // *****************************************************************************
 
           // POST überprüfen
-          if (isset($this->request["password"], $this->request["password_new1"], $this->request["password_new2"], $_SESSION["rsa"], $_SESSION["prk"])) {
+          if (isset($this->request["password"], $this->request["password_new1"], $this->request["password_new2"])) {
             // password in POST
-
-            // rsa modul und private key aus server session (letzter aufruf backend password form)
-            $rsa = $_SESSION["rsa"];
-            $private_key = $_SESSION["prk"];
-            unset($_SESSION["rsa"]);
-            unset($_SESSION["prk"]);
-
-            if (DEBUG) { $debug_str .= "<br>012 rsa = ".$rsa."\n"; }
-            if (DEBUG) { $debug_str .= "<br>013 prk = ".$private_key."\n"; }
 
             // password überprüfen
             $password = trim($this->request["password"]);	// überflüssige leerzeichen entfernen
             $password_new1 = trim($this->request["password_new1"]);
             $password_new2 = trim($this->request["password_new2"]);
-            if (DEBUG) { $debug_str .= "<br>014 pwd-c = ".$password."\n"; }
-            if (DEBUG) { $debug_str .= "<br>015 pwd-c-n1 = ".$password_new1."\n"; }
-            if (DEBUG) { $debug_str .= "<br>016 pwd-c-n2 = ".$password_new2."\n"; }
+            if (DEBUG) { $debug_str .= "<br>014 pwd = ".$password."\n"; }
+            if (DEBUG) { $debug_str .= "<br>015 pwd-n1 = ".$password_new1."\n"; }
+            if (DEBUG) { $debug_str .= "<br>016 pwd-n2 = ".$password_new2."\n"; }
 
-            if ($password != "" and $password != "error" and (strlen($password) <= MAXLEN_PASSWORD)
-                and $password_new1 != "" and $password_new1 != "error" and strlen($password_new1) <= MAXLEN_PASSWORD
-                and $password_new2 != "" and $password_new2 != "error" and strlen($password_new2) <= MAXLEN_PASSWORD
-                and $private_key > 0 and $rsa > 0) {
-              // test auf leeres passwort , private key und rsa vorhanden , vermeidung % 0
-
-              // komplette code kette in post formular feld , 7f-7f-7f... , auseinandernehmen
-              $pwd_array = explode("-", $password, MAXLEN_PASSWORDNONCRYPT);
-              $pwd_array_new1 = explode("-", $password_new1, MAXLEN_PASSWORDNONCRYPT);
-              $pwd_array_new2 = explode("-", $password_new2, MAXLEN_PASSWORDNONCRYPT);
-
-              // passwort-teile entschlüsseln mit private key , K = C^d mod N
-              foreach ($pwd_array as &$c) {
-                $c = $RSA_obj->RSA_crypt(intval(substr($c,0,MAXLEN_CHARCRYPT),16), $private_key, $rsa);	// zu groß: pow($c,$private_key) % $rsa;
-                $c &= 0x7f;	// "chaos bit" entfernen (ff -> 7f)
-                $c = chr($c);	// ascii zeichen
-              }
-              unset($c);	// break reference (call by reference &$c)
-              foreach ($pwd_array_new1 as &$c) {
-                $c = $RSA_obj->RSA_crypt(intval(substr($c,0,MAXLEN_CHARCRYPT),16), $private_key, $rsa);	// zu groß: pow($c,$private_key) % $rsa;
-                $c &= 0x7f;	// "chaos bit" entfernen (ff -> 7f)
-                $c = chr($c);	// ascii zeichen
-              }
-              unset($c);	// break reference (call by reference &$c)
-              foreach ($pwd_array_new2 as &$c) {
-                $c = $RSA_obj->RSA_crypt(intval(substr($c,0,MAXLEN_CHARCRYPT),16), $private_key, $rsa);	// zu groß: pow($c,$private_key) % $rsa;
-                $c &= 0x7f;	// "chaos bit" entfernen (ff -> 7f)
-                $c = chr($c);	// ascii zeichen
-              }
-              unset($c);	// break reference (call by reference &$c)
-
-              // passwort zusammensetzen
-              $password = trim(implode("",$pwd_array));
-              $password_new1 = trim(implode("",$pwd_array_new1));
-              $password_new2 = trim(implode("",$pwd_array_new2));
-              if (DEBUG) { $debug_str .= "<br>017 pwd = ".$password."\n"; }
-              if (DEBUG) { $debug_str .= "<br>018 pwd-n1 = ".$password_new1."\n"; }
-              if (DEBUG) { $debug_str .= "<br>019 pwd-n2 = ".$password_new2."\n"; }
+            if ($password != "" and (mb_strlen($password, MB_ENCODING) <= MAXLEN_PASSWORD)
+                and $password_new1 != "" and mb_strlen($password_new1, MB_ENCODING) <= MAXLEN_PASSWORD
+                and $password_new2 != "" and mb_strlen($password_new2, MB_ENCODING) <= MAXLEN_PASSWORD) {
+              // test auf leeres passwort
 
               // passwort neu 1 und 2 gleich?
               if ($password_new1 == $password_new2) {
@@ -1418,7 +1294,7 @@ class Controller {
 
     } // no panic
 
-    if (DEBUG) { $debug_str .= "</p>\n"; }
+    if (DEBUG) { $debug_str .= "</p>\n</section>\n"; }
 
     // setze inhalt, falls string vorhanden, sonst leer
     $view->setContent("inhalt", isset($html_backend_ext) ? $html_backend_ext : "");
