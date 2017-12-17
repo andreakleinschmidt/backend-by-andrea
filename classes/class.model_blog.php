@@ -1066,13 +1066,13 @@ class Blog extends Model {
     // kommentar formular
     $ersetzen .= "<form action=\"index.php\" method=\"post\">\n".
                  "<div id=\"input_name\">Name:\n".
-                 "<br><input type=\"text\" name=\"comment[name]\" class=\"size_20\" maxlength=\"64\" />\n".
+                 "<br><input type=\"text\" name=\"comment[name]\" class=\"size_20\" maxlength=\"".MAXLEN_COMMENTNAME."\" />\n".
                  "</div>\n".
                  "<div id=\"input_mail\">Mail:\n".
-                 "<br><input type=\"text\" name=\"comment[mail]\" class=\"size_20\" maxlength=\"64\" />\n".
+                 "<br><input type=\"text\" name=\"comment[mail]\" class=\"size_20\" maxlength=\"".MAXLEN_COMMENTMAIL."\" />\n".
                  "</div>\n".
                  "<div id=\"input_website\">Website:\n".
-                 "<br><input type=\"text\" name=\"comment[website]\" class=\"size_20\" maxlength=\"128\" value=\"http://\" />\n".
+                 "<br><input type=\"text\" name=\"comment[website]\" class=\"size_20\" maxlength=\"".MAXLEN_COMMENTURL."\" value=\"http://\" />\n".
                  "</div>\n".
                  "<p>Der Blog-Eintrag auf dem sich dein Kommentar bezieht:\n".
                  "<br><select name=\"comment[blogid]\" size=\"1\">\n".
@@ -1093,7 +1093,7 @@ class Blog extends Model {
   }
 
   // comment_array[name, mail, website, blogid, text]
-  public function postComment($comment_array) {
+  public function postComment($comment_name, $comment_mail, $comment_website, $comment_blogid, $comment_text) {
     $ersetzen = "";
     $errorstring = "";
 
@@ -1115,14 +1115,6 @@ class Blog extends Model {
       if ($comment_ip != $datensatz["ba_ip"] or $datensatz["zeitdifferenz"] > 1) {
         // wenn kein zeit-limit
 
-        // überflüssige leerzeichen entfernen, str zu int
-        $comment_name = trim($comment_array["name"]);
-        $comment_mail = trim($comment_array["mail"]);
-        $comment_website = trim($comment_array["website"]);
-        $comment_text = trim($comment_array["text"]);
-        $comment_blogid = intval($comment_array["blogid"]);
-        $comment_state = STATE_APPROVAL;	// kommentare werden erst im backend freigegeben
-
         if ($comment_website == "http://") {
           $comment_website = "";
         }
@@ -1132,17 +1124,6 @@ class Blog extends Model {
 
           // auf leer überprüfen
           if ($comment_name != "" or $comment_mail != "" or $comment_text != "") {
-
-            // zeichen limit
-            if (mb_strlen($comment_name, MB_ENCODING) > 64) {
-              $comment_name = mb_substr($comment_name, 0, 64, MB_ENCODING);
-            }
-            if (strlen($comment_mail) > 64) {
-              $comment_mail = substr($comment_mail, 0, 64);
-            }
-            if (mb_strlen($comment_text, MB_ENCODING) > 2048) {
-              $comment_text = mb_substr($comment_text, 0, 2048, MB_ENCODING);
-            }
 
             // spamfilter
             $spam = false;
