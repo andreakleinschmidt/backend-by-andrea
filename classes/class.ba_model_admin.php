@@ -11,6 +11,7 @@
 
 define("MAXLEN_USER",32);	// admin form
 define("MAXLEN_EMAIL",64);	// admin form
+define("MAXLEN_FULLNAME",64);	// admin form
 define("ROLE_NONE",0);
 define("ROLE_EDITOR",1);
 define("ROLE_MASTER",2);
@@ -35,7 +36,7 @@ class Admin extends Model {
 // *** html ***
 // *****************************************************************************
 
-  // user anlegen (name, email, rolle)
+  // user anlegen (user, email, full_name, rolle)
   private function new_user_form() {
     $new_user_form = "<p id=\"new_user\"><b>new user</b></p>\n".
                      "<form action=\"backend.php\" method=\"post\">\n".
@@ -48,6 +49,10 @@ class Admin extends Model {
                      "email:\n".
                      "</td>\n<td>\n".
                      "<input type=\"text\" name=\"ba_admin_new[email]\" class=\"size_32\" maxlength=\"".MAXLEN_EMAIL."\" />\n".
+                     "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">\n".
+                     "full name:\n".
+                     "</td>\n<td>\n".
+                     "<input type=\"text\" name=\"ba_admin_new[full_name]\" class=\"size_32\" maxlength=\"".MAXLEN_FULLNAME."\" />\n".
                      "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">\n".
                      "role:\n".
                      "</td>\n<td>\n".
@@ -83,6 +88,7 @@ class Admin extends Model {
       //                user VARCHAR(32) NOT NULL,
       //                password VARCHAR(32) NOT NULL,
       //                email VARCHAR(64) NOT NULL,
+      //                full_name VARCHAR(64) NOT NULL,
       //                last_login DATETIME NOT NULL,
       //                telegram_id INT UNSIGNED NOT NULL,
       //                use_2fa TINYINT UNSIGNED NOT NULL,
@@ -91,17 +97,17 @@ class Admin extends Model {
       $html_backend_ext .= "<p id=\"admin\"><b>admin</b></p>\n\n";
 
       // zugriff auf mysql datenbank
-      $sql = "SELECT id, role, user, email, last_login FROM backend";
+      $sql = "SELECT id, role, user, email, full_name, last_login FROM backend";
       $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
       if ($ret) {
 
-        // anzeigen: user, email, letzter login, rolle
+        // anzeigen: user, email, full_name, letzter login, rolle
         // rolle durch auswahlliste änderbar
         // admin auswahlliste für admin ausgegraut
         // user löschen
         $html_backend_ext .= "<form action=\"backend.php\" method=\"post\">\n".
                              "<table class=\"backend\">\n".
-                             "<tr>\n<th>id</th>\n<th>user</th>\n<th>email</th>\n<th>last login</th>\n<th>role</th>\n<th>del</th>\n</tr>\n";
+                             "<tr>\n<th>id</th>\n<th>user</th>\n<th>email</th>\n<th>full name</th>\n<th>last login</th>\n<th>role</th>\n<th>del</th>\n</tr>\n";
         while ($datensatz = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
           $html_backend_ext .= "<tr>\n<td class=\"td_backend\">\n".
                                $datensatz["id"].
@@ -109,6 +115,8 @@ class Admin extends Model {
                                stripslashes($this->html5specialchars($datensatz["user"])).
                                "</td>\n<td>\n".
                                stripslashes($this->html5specialchars($datensatz["email"])).
+                               "</td>\n<td>\n".
+                               stripslashes($this->html5specialchars($datensatz["full_name"])).
                                "</td>\n<td>\n".
                                stripslashes($this->html5specialchars($datensatz["last_login"])).
                                "</td>\n<td>\n".
@@ -162,7 +170,7 @@ class Admin extends Model {
         $errorstring .= "<p>db error 3j</p>\n\n";
       }
 
-      // user anlegen (name, email, rolle)
+      // user anlegen (user, email, full_name, rolle)
       $html_backend_ext .= $this->new_user_form();
 
       $html_backend_ext .= "</section>\n\n";
@@ -175,7 +183,7 @@ class Admin extends Model {
     return array("inhalt" => $html_backend_ext, "error" => $errorstring);
   }
 
-  public function postAdminNew($user, $email, $role, $tmp_password) {
+  public function postAdminNew($user, $email, $full_name, $role, $tmp_password) {
     $html_backend_ext = "";
     $errorstring = "";
 
@@ -185,14 +193,14 @@ class Admin extends Model {
       $html_backend_ext .= "<section>\n\n";
 
       // einfügen in datenbank , mit prepare() - sql injections verhindern
-      $sql = "INSERT INTO backend (role,user,password,email) VALUES (?, ?, ?, ?)";
+      $sql = "INSERT INTO backend (role,user,password,email,full_name) VALUES (?, ?, ?, ?, ?)";
       $stmt = $this->datenbank->prepare($sql);	// liefert mysqli-statement-objekt
       if ($stmt) {
         // wenn kein fehler 4g
 
-        // austauschen ???? durch strings und int
+        // austauschen ????? durch strings und int
         $password_hash = crypt($tmp_password);
-        $stmt->bind_param("isss", $role, $user, $password_hash, $email);
+        $stmt->bind_param("issss", $role, $user, $password_hash, $email, $full_name);
         $stmt->execute();	// ausführen geänderte zeile
 
         if ($stmt->affected_rows == 1) {

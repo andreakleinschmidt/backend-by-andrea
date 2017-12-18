@@ -11,6 +11,7 @@ define("MAXLEN_PASSWORD",32);	// login form
 define("MAXLEN_CODE",8);	// login form
 define("MAXLEN_TELEGRAM_ID",10);	// "4294967295" 32 bit unsigned integer
 define("MAXLEN_EMAIL",64);	// admin form
+define("MAXLEN_FULLNAME",64);	// admin form
 define("MAXLEN_HOMETEXT",256);	// aus TABLE VARCHAR(xx) , für zeichen limit
 define("MAXLEN_PROFILETAG",64);
 define("MAXLEN_PROFILETEXT",256);

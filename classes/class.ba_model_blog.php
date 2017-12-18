@@ -107,7 +107,7 @@ class Blog extends Model {
         // id als zahl vorhanden und nicht NULL
 
         // zugriff auf mysql datenbank (1) , select mit prepare() , ($id aus GET)
-        $sql = "SELECT history_id, history_datetime, history_info, ba_userid, user FROM ba_blog_history, backend WHERE ba_blogid = ? AND id = ba_userid ORDER BY history_id DESC";
+        $sql = "SELECT history_id, history_datetime, history_info, user FROM ba_blog_history INNER JOIN backend ON backend.id = ba_blog_history.ba_userid WHERE ba_blogid = ? ORDER BY history_id DESC";
         $stmt = $this->datenbank->prepare($sql);	// liefert mysqli-statement-objekt
         if ($stmt) {
           // wenn kein fehler 3d2
@@ -118,7 +118,7 @@ class Blog extends Model {
 
           $stmt->store_result();
 
-          $stmt->bind_result($datensatz["history_id"],$datensatz["history_datetime"],$datensatz["history_info"],$datensatz["ba_userid"],$datensatz["user"]);
+          $stmt->bind_result($datensatz["history_id"],$datensatz["history_datetime"],$datensatz["history_info"],$datensatz["user"]);
           // mysqli-statement-objekt kennt kein fetch_assoc(), nur fetch(), kein assoc-array als rückgabe
 
           if ($stmt->num_rows > 0) {

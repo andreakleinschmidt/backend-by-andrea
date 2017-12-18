@@ -145,6 +145,7 @@ class Blog extends Model {
     $ersetzen = "";
 
     $datum = stripslashes($this->html5specialchars($datensatz["ba_date"]));
+    $full_name = stripslashes($this->html5specialchars($datensatz["full_name"]));
     $blogtext = stripslashes($this->html_tags(nl2br($this->html5specialchars($datensatz["ba_text"])), true));
     $blogtext40 = stripslashes($this->html_tags($this->html5specialchars(mb_substr($datensatz["ba_text"], 0, 40, MB_ENCODING)), false));	// substr problem bei trennung umlaute
 
@@ -162,7 +163,7 @@ class Blog extends Model {
     $minute = substr($datum, 14, 2);
     $jmtsm = "20".$jahr.$monat.$tag.$stunde.$minute."00";
 
-    $ersetzen .= "<p><a name=\"".$jmtsm."\"></a><b>[".$datum."]</b> ".$blogtext."</p>\n";
+    $ersetzen .= "<p><a name=\"".$jmtsm."\"></a><b>[".$datum."]</b> <span id=\"white\" title=\"".$full_name."\">&#9998;</span> ".$blogtext."</p>\n";
 
     // optional videos in blog
     if (function_exists("finfo_open")) {
@@ -675,11 +676,11 @@ class Blog extends Model {
           // zugriff auf mysql datenbank (6), in mysql select mit prepare() - sql injections verhindern
           if (!$tagflag) {
             // query
-            $sql = "SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_text RLIKE ?) ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;	// (2) mit LIMIT
+            $sql = "SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_text RLIKE ?) ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;	// (2) mit LIMIT
           }
           else {
             // tag
-            $sql = "SELECT ba_blog.ba_id, ba_date, ba_text, ba_videoid, ba_fotoid FROM ba_blog INNER JOIN ba_blogcategory ON ba_blog.ba_catid = ba_blogcategory.ba_id WHERE ba_state >= ".STATE_PUBLISHED." AND (CONCAT(ba_category, ', ', ba_tags) RLIKE ?) ORDER BY ba_blog.ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;		// (2) mit LIMIT
+            $sql = "SELECT ba_blog.ba_id, ba_date, ba_text, ba_videoid, ba_fotoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid INNER JOIN ba_blogcategory ON ba_blog.ba_catid = ba_blogcategory.ba_id WHERE ba_state >= ".STATE_PUBLISHED." AND (CONCAT(ba_category, ', ', ba_tags) RLIKE ?) ORDER BY ba_blog.ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;		// (2) mit LIMIT
           }
           $stmt = $this->datenbank->prepare($sql);	// liefert mysqli-statement-objekt
           if ($stmt) {
@@ -691,8 +692,8 @@ class Blog extends Model {
 
             $stmt->store_result();
 
-            $stmt->bind_result($datensatz["ba_id"],$datensatz["ba_date"],$datensatz["ba_text"],$datensatz["ba_videoid"],$datensatz["ba_fotoid"]);
-            // oder ohne array datensatz: $stmt->bind_result($ba_id, $ba_date, $ba_text, $ba_videoid, $ba_fotoid);
+            $stmt->bind_result($datensatz["ba_id"],$datensatz["ba_date"],$datensatz["ba_text"],$datensatz["ba_videoid"],$datensatz["ba_fotoid"],$datensatz["full_name"]);
+            // oder ohne array datensatz: $stmt->bind_result($ba_id, $ba_date, $ba_text, $ba_videoid, $ba_fotoid, $full_name);
             // mysqli-statement-objekt kennt kein fetch_assoc(), nur fetch(), kein array als rückgabe
 
             // suche ausgeben (2), bei mehreren ergebnissen auf mehreren seiten
@@ -866,20 +867,20 @@ class Blog extends Model {
       // zugriff auf mysql datenbank (6)
       $sql = "";	// blog eintrag nr.1 nur auf erster seite, danach alle absteigend 100..99...2 (ohne 1)
       if ($page == 1 or $show_year == true) {
-        $sql .= "SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id = 1".
+        $sql .= "SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id = 1".
                 "\nUNION\n";
       }
       if ($show_page == true) {
-        $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id != 1 ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps.")";
+        $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id != 1 ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps.")";
       }
       elseif ($show_year == true and $show_month == false) {
-        $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$year." ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
+        $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$year." ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
       }
       elseif ($show_year == true and $show_month == true) {
-        $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$year." AND MONTH(ba_datetime) = ".$month." ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
+        $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$year." AND MONTH(ba_datetime) = ".$month." ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
       }
       else {
-        $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id = 1)";
+        $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id = 1)";
       }
       $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
       if ($ret) {

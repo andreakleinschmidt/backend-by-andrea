@@ -127,7 +127,7 @@ atom:
 // * funktionen für speichern, ändern,löschen in db
 // *****************************************************************************
 
-  public function getLogin($extension_array) {
+  public function getLogin($extension_array=array()) {
     $login = "login";
     $errorstring = "";
 
@@ -135,15 +135,17 @@ atom:
       // wenn kein fehler
 
       // zugriff auf mysql datenbank (1)
-      $sql = "SELECT ba_date FROM ba_blog ORDER BY ba_id DESC LIMIT 1";
+      $sql = "SELECT user, ba_date FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid ORDER BY ba_id DESC LIMIT 1";
       $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
       if ($ret) {
         // wenn kein fehler 1
 
-        // {login} ersetzen mit ersten datum-eintrag in blog
+        // {login} ersetzen mit user und letzten datum-eintrag in blog
         $datensatz = $ret->fetch_assoc();	// fetch_assoc() liefert array
+        $user = stripslashes($this->html5specialchars($datensatz["user"]));
         $datum = stripslashes($this->html5specialchars($datensatz["ba_date"]));
-        $login = "<p>letzter login:\n".
+        $login = "<p>letzter login:</p>\n".
+                 "<p>".$user."\n".
                  "<br>".substr($datum, 0, 8)."</p>";	// nur datum
 
         $ret->close();	// db-ojekt schließen
@@ -155,8 +157,10 @@ atom:
       }
 
       // {login} erweitern mit blogroll oder blogbox
-      $login .= $extension_array["login"];
-      $errorstring .= $extension_array["error"];
+      if(!empty($extension_array)) {
+        $login .= $extension_array["login"];
+        $errorstring .= $extension_array["error"];
+      }
 
     } // datenbank
     else {

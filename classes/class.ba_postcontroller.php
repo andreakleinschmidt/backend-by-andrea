@@ -880,6 +880,7 @@ class PostController {
         elseif (isset($_POST["ba_admin_new"]) and ($_SESSION["user_role"] >= ROLE_ADMIN)) {
           // ba_admin_new[user]
           // ba_admin_new[email]
+          // ba_admin_new[full_name]
           // ba_admin_new[role]
 
           $model_admin = new Admin();	// model erstellen
@@ -888,6 +889,7 @@ class PostController {
           // überflüssige leerzeichen entfernen, str zu int
           $user = trim($ba_admin_new_array["user"]);
           $email = trim($ba_admin_new_array["email"]);
+          $full_name = trim($ba_admin_new_array["full_name"]);
           $role = intval($ba_admin_new_array["role"]);
 
           // zeichen limit
@@ -896,6 +898,9 @@ class PostController {
           }
           if (strlen($email) > MAXLEN_EMAIL) {
             $email = substr($email, 0, MAXLEN_EMAIL);
+          }
+          if (strlen($full_name) > MAXLEN_FULLNAME) {
+            $full_name = substr($full_name, 0, MAXLEN_FULLNAME);
           }
 
           // größe limit
@@ -906,7 +911,7 @@ class PostController {
           // automatisches passwort für email benachrichtigung
           $tmp_password = $this->gen_password();
 
-          $ret = $model_admin->postAdminNew($user, $email, $role, $tmp_password);	// daten für admin (neu) in das model
+          $ret = $model_admin->postAdminNew($user, $email, $full_name, $role, $tmp_password);	// daten für admin (neu) in das model
           $html_backend_ext .= $ret["inhalt"];
           $errorstring = $ret["error"];
 
