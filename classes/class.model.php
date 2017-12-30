@@ -12,15 +12,64 @@ define("MB_ENCODING","UTF-8");
 
 class Model {
 
-  //private $datenbank;
+  public $database;
+  public $language;
 
   // konstruktor
   public function __construct() {
-    $this->datenbank = @new Database();	// @ unterdrückt fehlermeldung
-    if (!$this->datenbank->connect_errno) {
+    // datenbank:
+    $this->database = @new Database();	// @ unterdrückt fehlermeldung
+    if (!$this->database->connect_errno) {
       // wenn kein fehler
-      $this->datenbank->set_charset("utf8");	// change character set to utf8
+      $this->database->set_charset("utf8");	// change character set to utf8
     }
+    // language:
+    if (!isset($_SESSION["language"])) {
+      // falls session variable noch nicht existiert
+      $this->language = $this->readLanguage();
+      $_SESSION["language"] = $this->language;	// in SESSION speichern
+    } // neue session variable
+    else {
+      // alte session variable
+      $this->language = $_SESSION["language"];	// aus SESSION lesen
+    }
+  }
+
+  // mit simplexml language.xml laden als array key->value
+  private function readLanguage() {
+    $language = array();
+
+    // locale für frontend
+    $ret = $this->getLocale();
+    if (!empty($ret["locale"])) {
+      $locale = $ret["locale"];
+    }
+    else {
+      $locale = DEFAULT_LOCALE;
+    }
+
+    $path = "languages/";
+    $filename = $path."language_".$locale.".xml";
+    if (file_exists($filename)) {
+      $xml_content = file_get_contents($filename);
+    }
+    else {
+      $xml_content = "";
+    }
+
+    if ($xml = @simplexml_load_string($xml_content)) {
+      if ($xml->getName() == "language" and $xml->attributes()->tag == $locale) {
+        // xml language file
+        $language["locale"] = $locale;
+        foreach ($xml->children() as $child) {
+          $key = $child->getName();
+          $value = (string)$child->attributes()->text;
+          $language[$key] = $value;
+        } // foreach child
+      } // xml language file
+    } // if xml
+
+    return $language;
   }
 
   // wrapper htmlspecialchars()
@@ -131,20 +180,20 @@ atom:
     $login = "login";
     $errorstring = "";
 
-    if (!$this->datenbank->connect_errno) {
+    if (!$this->database->connect_errno) {
       // wenn kein fehler
 
       // zugriff auf mysql datenbank (1)
       $sql = "SELECT user, ba_date FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid ORDER BY ba_id DESC LIMIT 1";
-      $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
+      $ret = $this->database->query($sql);	// liefert in return db-objekt
       if ($ret) {
         // wenn kein fehler 1
 
         // {login} ersetzen mit user und letzten datum-eintrag in blog
-        $datensatz = $ret->fetch_assoc();	// fetch_assoc() liefert array
-        $user = stripslashes($this->html5specialchars($datensatz["user"]));
-        $datum = stripslashes($this->html5specialchars($datensatz["ba_date"]));
-        $login = "<p>letzter login:</p>\n".
+        $dataset = $ret->fetch_assoc();	// fetch_assoc() liefert array
+        $user = stripslashes($this->html5specialchars($dataset["user"]));
+        $datum = stripslashes($this->html5specialchars($dataset["ba_date"]));
+        $login = "<p>".$this->language["FRONTEND_LAST_LOGIN"]."</p>\n".
                  "<p>".$user."\n".
                  "<br>".substr($datum, 0, 8)."</p>";	// nur datum
 
@@ -177,20 +226,20 @@ atom:
 
     // zugriff auf mysql datenbank (1a)
     $sql = "SELECT ba_date, ba_text FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." ORDER BY ba_id DESC LIMIT 0,3";
-    $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
+    $ret = $this->database->query($sql);	// liefert in return db-objekt
     if ($ret) {
       // wenn kein fehler 1a
 
       // {login} erweitern mit blogbox (ersten 3 einträge aus blog)
       $login .= "\n<!-- blogbox -->\n".
                 "<div id=\"blogbox\">\n".
-                "letzte Blogeinträge:\n";
+                $this->language["FRONTEND_RECENT_BLOGENTRIES"]."\n";
 
       // ausgabeschleife
-      while ($datensatz = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
+      while ($dataset = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
 
-        $datum = stripslashes($this->html5specialchars($datensatz["ba_date"]));
-        $blogtext80 = stripslashes(Blog::html_tags($this->html5specialchars(mb_substr($datensatz["ba_text"], 0, 80, MB_ENCODING)), false));	// substr problem bei trennung umlaute
+        $datum = stripslashes($this->html5specialchars($dataset["ba_date"]));
+        $blogtext80 = stripslashes(Blog::html_tags($this->html5specialchars(mb_substr($dataset["ba_text"], 0, 80, MB_ENCODING)), false));	// substr problem bei trennung umlaute
 
         // blog id für anker
         $jahr   = substr($datum, 6, 2);
@@ -224,14 +273,14 @@ atom:
 
     // zugriff auf mysql datenbank (1b)
     $sql = "SELECT ba_id, ba_feed FROM ba_blogroll ORDER BY ba_id ASC LIMIT 5";
-    $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
+    $ret = $this->database->query($sql);	// liefert in return db-objekt
     if ($ret) {
       // wenn kein fehler 1b
 
       // {login} erweitern mit blogroll (nur 5 einträge)
       $login .= "\n<!-- blogroll -->\n".
                 "<div id=\"blogbox\">\n".
-                "Blogroll:\n";
+                $this->language["FRONTEND_BLOGROLL"]."\n";
 
       // parameter
       $local_file_path = "cache/";
@@ -240,9 +289,9 @@ atom:
       $seconds_last_modification = 4*7*24*3600;	// 4 wochen
 
       // ausgabeschleife
-      while ($datensatz = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
-        $ba_id = $datensatz["ba_id"];
-        $ba_feed = $datensatz["ba_feed"];
+      while ($dataset = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
+        $ba_id = $dataset["ba_id"];
+        $ba_feed = $dataset["ba_feed"];
 
         // filename
         $filename = $local_file_path.$local_file_name.$ba_id.$local_file_suffix;
@@ -301,6 +350,39 @@ atom:
     }
 
     return array("login" => $login, "error" => $errorstring);
+  }
+
+  // locale für frontend
+  public function getLocale() {
+    $locale = "";
+    $errorstring = "";
+
+    if (!$this->database->connect_errno) {
+      // wenn kein fehler
+
+      // zugriff auf mysql datenbank (1c)
+      $sql = "SELECT ba_locale FROM ba_languages WHERE ba_selected = 1 LIMIT 1";
+      $ret = $this->database->query($sql);	// liefert in return db-objekt
+      if ($ret) {
+        // wenn kein fehler
+
+        $dataset = $ret->fetch_assoc();	// fetch_assoc() liefert array
+        $locale = trim($dataset["locale"]);
+
+        $ret->close();	// db-ojekt schließen
+        unset($ret);	// referenz löschen
+
+      }
+      else {
+        $errorstring .= "<br>db error 1c\n";
+      }
+
+    } // datenbank
+    else {
+      $errorstring .= "<br>db error\n";
+    }
+
+    return array("locale" => $locale, "error" => $errorstring);
   }
 
 }

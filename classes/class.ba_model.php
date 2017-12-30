@@ -15,7 +15,7 @@
 define("MAXLEN_USER",32);	// login form
 define("MAXLEN_PASSWORD",32);	// login form
 define("MAXLEN_CODE",8);	// login form
-define("MAXLEN_TELEGRAM_ID",10);	// "4294967295" 32 bit unsigned integer
+define("MAXLEN_SHAREDSECRET",64);
 define("ROLE_NONE",0);
 define("ROLE_EDITOR",1);
 define("ROLE_MASTER",2);
@@ -33,15 +33,127 @@ define("ROLE_ADMIN",3);
 
 class Model {
 
-  //private $datenbank;
+  public $database;
+  public $language;
+
+  private static $AES_SALT = "6c788f893313da8bfe78ef85f76caee3";	// shell: openssl rand -hex 16
 
   // konstruktor
   public function __construct() {
-    $this->datenbank = @new Database();	// @ unterdrückt fehlermeldung
-    if (!$this->datenbank->connect_errno) {
+    // datenbank:
+    $this->database = @new Database();	// @ unterdrückt fehlermeldung
+    if (!$this->database->connect_errno) {
       // wenn kein fehler
-      $this->datenbank->set_charset("utf8");	// change character set to utf8
+      $this->database->set_charset("utf8");	// change character set to utf8
     }
+    // language:
+    if (!isset($_SESSION["language"])) {
+      // falls session variable noch nicht existiert
+      $this->language = $this->readLanguage();
+      $_SESSION["language"] = $this->language;	// in SESSION speichern
+    } // neue session variable
+    elseif ($_SESSION["language"]["locale"] != $_SESSION["user_locale"]) {
+      // session variable abweichend zur locale vom benutzer
+      $this->language = $this->readLanguage();
+      $_SESSION["language"] = $this->language;	// SESSION überschreiben
+    }
+    else {
+      // alte session variable
+      $this->language = $_SESSION["language"];	// aus SESSION lesen
+    }
+  }
+
+  // mit simplexml language.xml laden als array key->value
+  private function readLanguage() {
+    $language = array();
+
+    // locale für backend
+    if (isset($_SESSION["user_locale"])) {
+      $locale = $_SESSION["user_locale"];
+    }
+    else {
+      $locale = DEFAULT_LOCALE;
+    }
+
+    $path = "languages/";
+    $filename = $path."language_".$locale.".xml";
+    if (file_exists($filename)) {
+      $xml_content = file_get_contents($filename);
+    }
+    else {
+      $xml_content = "";
+    }
+
+    if ($xml = @simplexml_load_string($xml_content)) {
+      if ($xml->getName() == "language" and $xml->attributes()->tag == $locale) {
+        // xml language file
+        $language["locale"] = $locale;
+        foreach ($xml->children() as $child) {
+          $key = $child->getName();
+          $value = (string)$child->attributes()->text;
+          $language[$key] = $value;
+        } // foreach child
+      } // xml language file
+    } // if xml
+
+    return $language;
+  }
+
+  // return base32 encoded string (RFC4648)
+  public function base32_encode($input_str) {
+    $ret = "";
+    // old
+    $base32_map = array("A","B","C","D","E","F","G","H",
+                        "I","J","K","L","M","N","O","P",
+                        "Q","R","S","T","U","V","W","X",
+                        "Y","Z","2","3","4","5","6","7");
+    // new (hex)
+    //$base32_map = array("0","1","2","3","4","5","6","7",
+    //                    "8","9","A","B","C","D","E","F",
+    //                    "G","H","I","J","K","L","M","N",
+    //                    "O","P","Q","R","S","T","U","V");
+
+    $bytes = unpack("C*", $input_str);
+    $five_byte_blocks = array_chunk($bytes, 5);
+    $five_bit_groups = array();
+    foreach ($five_byte_blocks as $five_byte_block) {
+      $padding = 0.0;
+      while (sizeof($five_byte_block) < 5) {
+        // block auffüllen
+        $five_byte_block[] = 0;
+        $padding += 1.6;	// 8.0/5.0
+      }
+
+      $five_bit_group = array();
+      $i = 0;
+      $marker = 8;
+      while ($i<sizeof($five_byte_block)) {
+        if ($marker > 5) {
+          $five_bit_group[] = (($five_byte_block[$i] << (8 - $marker)) & 0xff) >> 3;
+          $marker -= 5;
+        }
+        elseif ($marker == 5) {
+          $five_bit_group[] = (($five_byte_block[$i] << (8 - $marker)) & 0xff) >> 3;
+          $i++;
+        }
+        else { // $marker < 5
+          $part1 = (($five_byte_block[$i] << (8 - $marker)) & 0xff) >> 3;
+          $part2 = $five_byte_block[$i+1] >> (8 - (5 - $marker));
+          $five_bit_group[] = $part1 | $part2;
+          $marker += 3;
+          $i++;
+        }
+      }
+
+      $part_str = "";
+      foreach ($five_bit_group as $five_bit) {
+        $part_str .= $base32_map[$five_bit];	// mapping
+      }
+      $replace_str = str_repeat("=", intval($padding));
+      $ret .= substr_replace($part_str, $replace_str, -$padding, $padding);	// overriding
+    }
+
+    return $ret;
   }
 
 // *****************************************************************************
@@ -51,37 +163,33 @@ class Model {
   public function html_form() {
     $html_form = "<form name=\"pwd_form\" action=\"backend.php\" method=\"post\">\n".
                  "<table class=\"backend\">\n".
-                 "<tr>\n<td class=\"td_backend\">\n".
-                 "user:\n".
-                 "</td>\n<td>\n".
-                 "<input type=\"text\" name=\"user_login\" class=\"size_16\" maxlength=\"".MAXLEN_USER."\" />\n".
-                 "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">\n".
-                 "password:\n".
-                 "</td>\n<td>\n".
-                 "<input type=\"password\" name=\"password\" class=\"size_16\" maxlength=\"".MAXLEN_PASSWORD."\" />\n".
-                 "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">\n".
-                 "</td>\n<td>\n".
-                 "<input type=\"submit\" value=\"send\" />\n".
+                 "<tr>\n<td class=\"td_backend\">".
+                 $this->language["PROMPT_USER"].
+                 "</td>\n<td>".
+                 "<input type=\"text\" name=\"user_login\" class=\"size_16\" maxlength=\"".MAXLEN_USER."\" />".
+                 "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">".
+                 $this->language["PROMPT_PASSWORD"].
+                 "</td>\n<td>".
+                 "<input type=\"password\" name=\"password\" class=\"size_16\" maxlength=\"".MAXLEN_PASSWORD."\" />".
+                 "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">".
+                 "</td>\n<td>".
+                 "<input type=\"submit\" value=\"".$this->language["BUTTON_SEND"]."\" />".
                  "</td>\n</tr>\n".
                  "</table>\n".
                  "</form>\n\n";
     return $html_form;
   }
 
-  public function html_form_2fa($random_pwd) {
+  public function html_form_2fa() {
     $html_form = "<form name=\"pwd_form\" action=\"backend.php\" method=\"post\">\n".
                  "<table class=\"backend\">\n".
-                 "<tr>\n<td class=\"td_backend\">\n".
-                 "random:\n".
-                 "</td>\n<td>\n".
-                 "<img src=\"qrcode.php\" alt=\"".$random_pwd."\">\n".
-                 "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">\n".
-                 "code:\n".
-                 "</td>\n<td>\n".
-                 "<input type=\"text\" name=\"code\" class=\"size_16\" maxlength=\"".MAXLEN_CODE."\" />\n".
-                 "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">\n".
-                 "</td>\n<td>\n".
-                 "<input type=\"submit\" value=\"send\" />\n".
+                 "<tr>\n<td class=\"td_backend\">".
+                 $this->language["PROMPT_CODE"].
+                 "</td>\n<td>".
+                 "<input type=\"text\" name=\"code\" class=\"size_16\" maxlength=\"".MAXLEN_CODE."\" />".
+                 "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">".
+                 "</td>\n<td>".
+                 "<input type=\"submit\" value=\"".$this->language["BUTTON_SEND"]."\" />".
                  "</td>\n</tr>\n".
                  "</table>\n".
                  "</form>\n\n";
@@ -96,24 +204,24 @@ class Model {
     $section_start_str = $section_start ? "<section>\n\n" : "";
     $section_end_str = $section_end ? "</section>\n\n" : "";
     $password_form = $section_start_str.
-                     "<p><b>password</b></p>\n".
+                     "<p><b>".$this->language["HEADER_PASSWORD"]."</b></p>\n".
                      "<form name=\"pwd_form\" action=\"backend.php\" method=\"post\">\n".
                      "<table class=\"backend\">\n".
-                     "<tr>\n<td class=\"td_backend\">\n".
-                     "password:\n".
-                     "</td>\n<td>\n".
-                     "<input type=\"password\" name=\"password\" class=\"size_16\" maxlength=\"".MAXLEN_PASSWORD."\" />\n".
-                     "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">\n".
-                     "password new (1):\n".
-                     "</td>\n<td>\n".
-                     "<input type=\"password\" name=\"password_new1\" class=\"size_16\" maxlength=\"".MAXLEN_PASSWORD."\" />\n".
-                     "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">\n".
-                     "password new (2):\n".
-                     "</td>\n<td>\n".
-                     "<input type=\"password\" name=\"password_new2\" class=\"size_16\" maxlength=\"".MAXLEN_PASSWORD."\" />\n".
-                     "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">\n".
-                     "</td>\n<td>\n".
-                     "<input type=\"submit\" value=\"send\" />\n".
+                     "<tr>\n<td class=\"td_backend\">".
+                     $this->language["PROMPT_PASSWORD"].
+                     "</td>\n<td>".
+                     "<input type=\"password\" name=\"password\" class=\"size_16\" maxlength=\"".MAXLEN_PASSWORD."\" />".
+                     "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">".
+                     $this->language["PROMPT_PASSWORD_NEW_1"].
+                     "</td>\n<td>".
+                     "<input type=\"password\" name=\"password_new1\" class=\"size_16\" maxlength=\"".MAXLEN_PASSWORD."\" />".
+                     "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">".
+                     $this->language["PROMPT_PASSWORD_NEW_2"].
+                     "</td>\n<td>".
+                     "<input type=\"password\" name=\"password_new2\" class=\"size_16\" maxlength=\"".MAXLEN_PASSWORD."\" />".
+                     "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">".
+                     "</td>\n<td>".
+                     "<input type=\"submit\" value=\"".$this->language["BUTTON_SEND"]."\" />".
                      "</td>\n</tr>\n".
                      "</table>\n".
                      "</form>\n\n".
@@ -122,30 +230,41 @@ class Model {
   }
 
   // zwei-faktor-authentifizierung formular
-  // - telegram_id
+  // - shared secret
   // - use_2fa (an/aus)
-  public function twofa_form($telegram_id, $use_2fa, $section_start=false, $section_end=false) {
+  public function twofa_form($base64_secret, $use_2fa, $section_start=false, $section_end=false) {
     $section_start_str = $section_start ? "<section>\n\n" : "";
     $section_end_str = $section_end ? "</section>\n\n" : "";
+    $shared_secret = base64_decode($base64_secret);
+    $base32_secret = $this->base32_encode($shared_secret); // für qrcode
     $twofa_form = $section_start_str.
-                  "<p><b>two factor authentication</b></p>\n".
+                  "<p><b>".$this->language["HEADER_2FA"]."</b></p>\n".
                   "<form name=\"twofa_form\" action=\"backend.php\" method=\"post\">\n".
                   "<table class=\"backend\">\n".
-                  "<tr>\n<td class=\"td_backend\">\n".
-                  "telegram_id:\n".
+                  "<tr>\n<td class=\"td_backend\">".
+                  $this->language["PROMPT_SHARED_SECRET"].
                   "</td>\n<td>\n".
-                  "<input type=\"text\" name=\"telegram_id\" class=\"size_16\" maxlength=\"".MAXLEN_TELEGRAM_ID."\" value=\"".stripslashes($this->html5specialchars($telegram_id))."\"/>\n".
-                  "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">\n".
-                  "use 2fa:\n".
-                  "</td>\n<td>\n".
+                  "<input type=\"hidden\" name=\"base64_secret\" value=\"".$base64_secret."\"/>\n".
+                  "<input type=\"text\" name=\"base32_secret\" class=\"size_16\" maxlength=\"".MAXLEN_SHAREDSECRET."\" value=\"".stripslashes($this->html5specialchars($base32_secret))."\" readonly=\"readonly\" />\n".
+                  "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">".
+                  $this->language["PROMPT_QRCODE"].
+                  "</td>\n<td>".
+                  "<img src=\"qrcode.php?data=".$base32_secret."\" alt=\"".$base32_secret."\">".
+                  "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">".
+                  $this->language["PROMPT_REQUEST_NEW_SECRET"].
+                  "</td>\n<td>".
+                  "<input type=\"checkbox\" name=\"request_new_secret\" value=\"yes\" />".
+                  "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">".
+                  $this->language["PROMPT_USE_2FA"].
+                  "</td>\n<td>".
                   "<input type=\"checkbox\" name=\"use_2fa\" value=\"yes\"";
     if ($use_2fa > 0) {
       $twofa_form .= " checked=\"checked\"";
                 }
-    $twofa_form .= " />\n".
-                   "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">\n".
-                   "</td>\n<td>\n".
-                   "<input type=\"submit\" value=\"send\" />\n".
+    $twofa_form .= " />".
+                   "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">".
+                   "</td>\n<td>".
+                   "<input type=\"submit\" value=\"".$this->language["BUTTON_SEND"]."\" />".
                    "</td>\n</tr>\n".
                    "</table>\n".
                    "</form>\n\n".
@@ -170,73 +289,78 @@ class Model {
 
   // echo $html_backend individuell mit user_name und links nach user_role
   public function html_backend($user_role, $user_name) {
-    $roles = array(ROLE_NONE => "none", ROLE_EDITOR => "editor", ROLE_MASTER => "master", ROLE_ADMIN => "admin");
+    $roles = array(ROLE_NONE => $this->language["ROLE_NONE"], ROLE_EDITOR => $this->language["ROLE_EDITOR"], ROLE_MASTER => $this->language["ROLE_MASTER"], ROLE_ADMIN => $this->language["ROLE_ADMIN"]);
     $ret = "<nav class=\"sticky\">\n".
            stripslashes($this->html5specialchars($user_name))." (".$roles[$user_role]."),\n".
-           "<a href=\"backend.php?action=password\">password</a>\n".
-           "<a href=\"backend.php?action=logout\">logout</a>\n".
+           "<a href=\"backend.php?action=password\">".$this->language["HEADER_PASSWORD"]."</a>\n".
+           "<a href=\"backend.php?action=logout\">".$this->language["HEADER_LOGOUT"]."</a>\n".
            "</nav>\n\n";
 
     $ret .= "<aside class=\"sticky\">\n".
             "<pre>backend\n    by andrea</pre>\n".
             "<details class=\"details_backend\">\n".
-            "<summary><a href=\"backend.php\">backend</a></summary>\n".
+            "<summary><a href=\"backend.php\">".$this->language["HEADER_BACKEND"]."</a></summary>\n".
             "</details>\n";
     if ($user_role >= ROLE_EDITOR) {
       $ret .= "<details class=\"details_backend\">\n".
-              "<summary><a href=\"backend.php?action=home\">home</a></summary>\n".
+              "<summary><a href=\"backend.php?action=home\">".$this->language["HEADER_HOME"]."</a></summary>\n".
               "</details>\n";
     }
     if ($user_role >= ROLE_EDITOR) {
       $ret .= "<details class=\"details_backend\">\n".
-              "<summary><a href=\"backend.php?action=profil\">profil</a></summary>\n".
+              "<summary><a href=\"backend.php?action=profile\">".$this->language["HEADER_PROFILE"]."</a></summary>\n".
               "</details>\n";
     }
     if ($user_role >= ROLE_EDITOR) {
       $ret .= "<details class=\"details_backend\">\n".
-              "<summary><a href=\"backend.php?action=fotos\">fotos</a></summary>\n".
+              "<summary><a href=\"backend.php?action=photos\">".$this->language["HEADER_PHOTOS"]."</a></summary>\n".
               "<ul>\n".
-              "<li><a href=\"backend.php?action=fotos#galerie\">galerie</a></li>\n".
-              "<li><a href=\"backend.php?action=fotos#fotos\">fotos</a></li>\n".
+              "<li><a href=\"backend.php?action=photos#gallery\">".$this->language["HEADER_GALLERY"]."</a></li>\n".
+              "<li><a href=\"backend.php?action=photos#photos\">".$this->language["HEADER_PHOTOS"]."</a></li>\n".
               "</ul>\n".
               "</details>\n";
     }
     if ($user_role >= ROLE_EDITOR) {
       $ret .= "<details class=\"details_backend\">\n".
-              "<summary><a href=\"backend.php?action=blog\">blog</a></summary>\n".
+              "<summary><a href=\"backend.php?action=blog\">".$this->language["HEADER_BLOG"]."</a></summary>\n".
               "<ul>\n".
-              "<li><a href=\"backend.php?action=blog#blog\">blog (neu)</a></li>\n".
-              "<li><a href=\"backend.php?action=blog#blogliste\">blog (liste)</a></li>\n".
-              "<li><a href=\"backend.php?action=blog#blogroll\">blogroll</a></li>\n".
-              "<li><a href=\"backend.php?action=blog#rubriken\">rubriken</a></li>\n".
-              "<li><a href=\"backend.php?action=blog#options\">options</a></li>\n".
+              "<li><a href=\"backend.php?action=blog#blog\">".$this->language["HEADER_BLOG_NEW"]."</a></li>\n".
+              "<li><a href=\"backend.php?action=blog#bloglist\">".$this->language["HEADER_BLOG_LIST"]."</a></li>\n".
+              "<li><a href=\"backend.php?action=blog#blogroll\">".$this->language["HEADER_BLOGROLL"]."</a></li>\n".
+              "<li><a href=\"backend.php?action=blog#categories\">".$this->language["HEADER_CATEGORIES"]."</a></li>\n".
+              "<li><a href=\"backend.php?action=blog#options\">".$this->language["HEADER_OPTIONS"]."</a></li>\n".
               "</ul>\n".
               "</details>\n";
     }
     if ($user_role >= ROLE_MASTER) {
       $ret .= "<details class=\"details_backend\">\n".
-              "<summary><a href=\"backend.php?action=comment\">comment</a></summary>\n".
+              "<summary><a href=\"backend.php?action=comment\">".$this->language["HEADER_COMMENT"]."</a></summary>\n".
               "<ul>\n".
-              "<li><a href=\"backend.php?action=comment#comment\">comment (neu)</a></li>\n".
-              "<li><a href=\"backend.php?action=comment#commentliste\">comment (liste)</a></li>\n".
+              "<li><a href=\"backend.php?action=comment#comment\">".$this->language["HEADER_COMMENT_NEW"]."</a></li>\n".
+              "<li><a href=\"backend.php?action=comment#commentlist\">".$this->language["HEADER_COMMENT_LIST"]."</a></li>\n".
               "</ul>\n".
               "</details>\n";
     }
     if ($user_role >= ROLE_MASTER) {
       $ret .= "<details class=\"details_backend\">\n".
-              "<summary><a href=\"backend.php?action=upload\">upload</a></summary>\n".
+              "<summary><a href=\"backend.php?action=upload\">".$this->language["HEADER_UPLOAD"]."</a></summary>\n".
               "<ul>\n".
-              "<li><a href=\"backend.php?action=upload#upload\">upload</a></li>\n".
-              "<li><a href=\"backend.php?action=upload#media\">media</a></li>\n".
+              "<li><a href=\"backend.php?action=upload#upload\">".$this->language["HEADER_UPLOAD"]."</a></li>\n".
+              "<li><a href=\"backend.php?action=upload#media\">".$this->language["HEADER_MEDIA"]."</a></li>\n".
               "</ul>\n".
+              "</details>\n";
+    }
+    if ($user_role >= ROLE_MASTER) {
+      $ret .= "<details class=\"details_backend\">\n".
+              "<summary><a href=\"backend.php?action=lang\">".$this->language["HEADER_LANGUAGES"]."</a></summary>\n".
               "</details>\n";
     }
     if ($user_role >= ROLE_ADMIN) {
       $ret .= "<details class=\"details_backend\">\n".
-              "<summary><a href=\"backend.php?action=admin\">admin</a></summary>\n".
+              "<summary><a href=\"backend.php?action=admin\">".$this->language["HEADER_ADMINISTRATION"]."</a></summary>\n".
               "<ul>\n".
-              "<li><a href=\"backend.php?action=admin#admin\">admin</a></li>\n".
-              "<li><a href=\"backend.php?action=admin#new_user\">new user</a></li>\n".
+              "<li><a href=\"backend.php?action=admin#admin\">".$this->language["HEADER_ADMINISTRATION"]."</a></li>\n".
+              "<li><a href=\"backend.php?action=admin#new_user\">".$this->language["HEADER_NEW_USER"]."</a></li>\n".
               "</ul>\n".
               "</details>\n";
     }
@@ -245,68 +369,81 @@ class Model {
     return $ret;
   }
 
-  // vergleich mit datenbank (passwort in datenbank ist md5 mit salt)
+  // vergleich mit datenbank (passwort in datenbank ist blowfish hash mit random salt)
   public function check_user($user_login) {
     $check = false;
     $errorstring = "";
 
     $user_id = 0;
     $user_role = 0;
-    $password_hash = 0;
-    $telegram_id = 0;
+    $password_hash = "";
+    $locale = "";
     $use_2fa = 0;
     $last_code = 0;
+    $base64_secret = "";
 
-    if (!$this->datenbank->connect_errno) {
+    if (!$this->database->connect_errno) {
       // wenn kein fehler
 
+      // TABLE backend (id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+      //                role TINYINT UNSIGNED NOT NULL,
+      //                user VARCHAR(32) NOT NULL,
+      //                password VARCHAR(32) NOT NULL,
+      //                email VARCHAR(64) NOT NULL,
+      //                full_name VARCHAR(64) NOT NULL,
+      //                locale VARCHAR(8) NOT NULL,
+      //                last_login DATETIME NOT NULL,
+      //                use_2fa TINYINT UNSIGNED NOT NULL,
+      //                last_code INT UNSIGNED NOT NULL),
+      //                base64_secret VARBINARY(64) NOT NULL;
+
       // mit prepare() - sql injections verhindern
-      $sql = "SELECT id, role, user, password, telegram_id, use_2fa, last_code FROM backend WHERE user = ?";
-      $stmt = $this->datenbank->prepare($sql);	// liefert mysqli-statement-objekt
+      $sql = "SELECT id, role, user, password, locale, use_2fa, last_code, AES_DECRYPT(base64_secret, UNHEX('".self::$AES_SALT."')) AS base64_secret FROM backend WHERE user = ?";
+      $stmt = $this->database->prepare($sql);	// liefert mysqli-statement-objekt
       if ($stmt) {
         // wenn kein fehler 2a
 
         // austauschen ? durch user string (s)
         $stmt->bind_param("s", $user_login);
         $stmt->execute();	// ausführen geänderte zeile
-        $stmt->store_result();	// sonst $datenbank->error "Commands out of sync; you can't run this command now" bei stmt_opt
+        $stmt->store_result();	// sonst $database->error "Commands out of sync; you can't run this command now" bei stmt_opt
 
-        $stmt->bind_result($user_id, $user_role, $user_login, $password_hash, $telegram_id, $use_2fa, $last_code);	// ausgabe in $user_id, user_role, $user_login, $password_hash, $telegram_id, $use_2fa, $last_code
+        $stmt->bind_result($user_id, $user_role, $user_login, $password_hash, $user_locale, $use_2fa, $last_code, $base64_secret);	// ausgabe in $user_id, user_role, $user_login, $password_hash, $use_2fa, $last_code, $base64_secret
         // fetch liefert wert oder NULL (user aus SELECT stimmt nicht überein)
         if ($stmt->fetch()) {
           // SELECT lieferte wert, user stimmt
 
-            $check = true;
+          $check = true;
 
-          }
+        }
+
+        $stmt->close();
 
       } // stmt
 
       else {
         $errorstring .=  "<p>db error 2a</p>\n\n";
       }
-
-      $stmt->close();
-
+echo $this->database->error;
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n\n";
+      $errorstring .= "<br>db error 1\n";
     }
 
-    return array("check" => $check, "user_id" => $user_id, "user_role" => $user_role, "user_login" => $user_login, "password_hash" => $password_hash, "telegram_id" => $telegram_id, "use_2fa" => $use_2fa, "last_code" => $last_code, "error" => $errorstring);
+    return array("check" => $check, "user_id" => $user_id, "user_role" => $user_role, "user_login" => $user_login, "user_locale" => $user_locale, "password_hash" => $password_hash, "use_2fa" => $use_2fa, "last_code" => $last_code, "base64_secret" => $base64_secret, "error" => $errorstring);
   }
 
   // login zeitstempel
   public function timestamp($code) {
     $errorstring = "";
 
-    if (!$this->datenbank->connect_errno) {
+    if (!$this->database->connect_errno) {
       // wenn kein fehler
 
       // zugriff auf mysql datenbank
       // mit prepare() - sql injections verhindern
       $sql_ts = "UPDATE backend SET last_login = NOW(), last_code = ? WHERE id = ?";
-      $stmt_ts = $this->datenbank->prepare($sql_ts);	// liefert mysqli-statement-objekt
+      $stmt_ts = $this->database->prepare($sql_ts);	// liefert mysqli-statement-objekt
       if ($stmt_ts) {
         // wenn kein fehler 2c
 
@@ -323,32 +460,32 @@ class Model {
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n\n";
+      $errorstring .= "<br>db error 1\n";
     }
 
     return array("error" => $errorstring);
   }
 
-  // vergleich mit datenbank (passwort in datenbank ist md5 mit salt)
+  // vergleich mit datenbank (passwort in datenbank ist blowfish hash mit random salt)
   public function check_password() {
     $check = false;
     $errorstring = "";
 
     $password_hash = 0;
 
-    if (!$this->datenbank->connect_errno) {
+    if (!$this->database->connect_errno) {
       // wenn kein fehler
 
       // mit prepare() - sql injections verhindern
       $sql_select = "SELECT password FROM backend WHERE id = ?";
-      $stmt_select = $this->datenbank->prepare($sql_select);	// liefert mysqli-statement-objekt
+      $stmt_select = $this->database->prepare($sql_select);	// liefert mysqli-statement-objekt
       if ($stmt_select) {
         // wenn kein fehler 2b1
 
         // austauschen ? durch id int (i)
         $stmt_select->bind_param("i", $_SESSION["user_id"]);
         $stmt_select->execute();	// ausführen geänderte zeile
-        $stmt_select->store_result();	// sonst $datenbank->error "Commands out of sync; you can't run this command now" bei stmt_opt
+        $stmt_select->store_result();	// sonst $database->error "Commands out of sync; you can't run this command now" bei stmt_opt
 
         $stmt_select->bind_result($password_hash);	// ausgabe in $password_hash
         // fetch liefert wert oder NULL
@@ -373,25 +510,25 @@ class Model {
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n\n";
+      $errorstring .= "<br>db error 1\n";
     }
 
     return array("check" => $check, "password_hash" => $password_hash, "error" => $errorstring);
   }
 
-  // update in datenbank (passwort in datenbank ist md5 mit salt)
+  // update in datenbank (passwort in datenbank ist blowfish hash mit random salt)
   public function update_password($password_new_hash) {
     $html_backend_ext = "";
     $errorstring = "";
 
-    if (!$this->datenbank->connect_errno) {
+    if (!$this->database->connect_errno) {
       // wenn kein fehler
 
       $html_backend_ext .= "<section>\n\n";
 
       // mit prepare() - sql injections verhindern
       $sql_update = "UPDATE backend SET password = ? WHERE id = ?";
-      $stmt_update = $this->datenbank->prepare($sql_update);	// liefert mysqli-statement-objekt
+      $stmt_update = $this->database->prepare($sql_update);	// liefert mysqli-statement-objekt
       if ($stmt_update) {
         // wenn kein fehler 2b2
 
@@ -400,10 +537,10 @@ class Model {
         $stmt_update->execute();	// ausführen geänderte zeile
 
         if ($stmt_update->affected_rows == 1) {
-          $html_backend_ext .= "<p>done</p>\n\n";
+          $html_backend_ext .= "<p>".$this->language["MSG_DONE"]."</p>\n\n";
         }
         else {
-          $html_backend_ext .= "<p>no change</p>\n\n";
+          $html_backend_ext .= "<p>".$this->language["MSG_NO_CHANGE"]."</p>\n\n";
         }
 
         $stmt_update->close();
@@ -421,32 +558,32 @@ class Model {
       $errorstring .= "<br>db error 1\n";
     }
 
-    return array("inhalt" => $html_backend_ext, "error" => $errorstring);
+    return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
-  // telegram_id und use_2fa aus datenbank
+  // use_2fa und base64_secret aus datenbank
   public function getTwofa() {
     $result = false;
     $errorstring = "";
 
-    $telegram_id = 0;
     $use_2fa = 0;
+    $base64_secret = "";
 
-    if (!$this->datenbank->connect_errno) {
+    if (!$this->database->connect_errno) {
       // wenn kein fehler
 
       // mit prepare() - sql injections verhindern
-      $sql_select = "SELECT telegram_id, use_2fa FROM backend WHERE id = ?";
-      $stmt_select = $this->datenbank->prepare($sql_select);	// liefert mysqli-statement-objekt
+      $sql_select = "SELECT use_2fa, AES_DECRYPT(base64_secret, UNHEX('".self::$AES_SALT."')) AS base64_secret FROM backend WHERE id = ?";
+      $stmt_select = $this->database->prepare($sql_select);	// liefert mysqli-statement-objekt
       if ($stmt_select) {
         // wenn kein fehler 2b3
 
         // austauschen ? durch id int (i)
         $stmt_select->bind_param("i", $_SESSION["user_id"]);
         $stmt_select->execute();	// ausführen geänderte zeile
-        $stmt_select->store_result();	// sonst $datenbank->error "Commands out of sync; you can't run this command now" bei stmt_opt
+        $stmt_select->store_result();	// sonst $database->error "Commands out of sync; you can't run this command now" bei stmt_opt
 
-        $stmt_select->bind_result($telegram_id, $use_2fa);	// ausgabe in $telegram_id, $use_2fa
+        $stmt_select->bind_result($use_2fa, $base64_secret);	// ausgabe in $use_2fa, $base64_secret
         // fetch liefert wert oder NULL
         if ($stmt_select->fetch()) {
 
@@ -469,37 +606,37 @@ class Model {
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n\n";
+      $errorstring .= "<br>db error 1\n";
     }
 
-    return array("result" => $result, "telegram_id" => $telegram_id, "use_2fa" => $use_2fa, "error" => $errorstring);
+    return array("result" => $result, "use_2fa" => $use_2fa, "base64_secret" => $base64_secret, "error" => $errorstring);
   }
 
-  // update telegram_id und use_2fa in datenbank
-  public function update_twofa($telegram_id, $use_2fa) {
+  // update use_2fa  und base64_secret in datenbank
+  public function update_twofa($use_2fa, $base64_secret) {
     $html_backend_ext = "";
     $errorstring = "";
 
-    if (!$this->datenbank->connect_errno) {
+    if (!$this->database->connect_errno) {
       // wenn kein fehler
 
       $html_backend_ext .= "<section>\n\n";
 
       // mit prepare() - sql injections verhindern
-      $sql_update = "UPDATE backend SET telegram_id = ?, use_2fa = ? WHERE id = ?";
-      $stmt_update = $this->datenbank->prepare($sql_update);	// liefert mysqli-statement-objekt
+      $sql_update = "UPDATE backend SET use_2fa = ?, base64_secret = AES_ENCRYPT(?, UNHEX('".self::$AES_SALT."')) WHERE id = ?";
+      $stmt_update = $this->database->prepare($sql_update);	// liefert mysqli-statement-objekt
       if ($stmt_update) {
         // wenn kein fehler 2b4
 
-        // austauschen ??? durch 3x int (i)
-        $stmt_update->bind_param("iii", $telegram_id, $use_2fa, $_SESSION["user_id"]);
+        // austauschen ??? durch 2x int (i) und 1x (s)
+        $stmt_update->bind_param("isi", $use_2fa, $base64_secret, $_SESSION["user_id"]);
         $stmt_update->execute();	// ausführen geänderte zeile
 
         if ($stmt_update->affected_rows == 1) {
-          $html_backend_ext .= "<p>done</p>\n\n";
+          $html_backend_ext .= "<p>".$this->language["MSG_DONE"]."</p>\n\n";
         }
         else {
-          $html_backend_ext .= "<p>no change</p>\n\n";
+          $html_backend_ext .= "<p>".$this->language["MSG_NO_CHANGE"]."</p>\n\n";
         }
 
         $stmt_update->close();
@@ -517,7 +654,7 @@ class Model {
       $errorstring .= "<br>db error 1\n";
     }
 
-    return array("inhalt" => $html_backend_ext, "error" => $errorstring);
+    return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
   // get defined VERSION from version.php
@@ -527,7 +664,7 @@ class Model {
 
     if (!empty(VERSION)) {
       $html_backend_ext .= "<section>\n\n".
-                           "<p><b>backend</b></p>\n\n".
+                           "<p><b>".$this->language["HEADER_BACKEND"]."</b></p>\n\n".
                            "<p>".stripslashes($this->html5specialchars(VERSION))."</p>\n\n".
                            "</section>\n\n";
     }
@@ -535,7 +672,7 @@ class Model {
       $errorstring .= "<p>no version defined</p>\n\n";
     }
 
-    return array("inhalt" => $html_backend_ext, "error" => $errorstring);
+    return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
 }

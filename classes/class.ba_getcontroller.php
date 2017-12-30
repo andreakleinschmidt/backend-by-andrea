@@ -78,10 +78,12 @@ class GetController {
 
         $html_backend_ext = $this->model->html_backend($_SESSION["user_role"], $_SESSION["user_name"]);
 
-        $ret = null;	// ["inhalt","error"]
+        $ret = null;	// ["content","error"]
 
         // action überprüfen
-        if ($this->action != "home" and $this->action != "profil" and $this->action != "fotos" and $this->action != "blog" and $this->action != "comment" and $this->action != "upload" and $this->action != "admin" and $this->action != "password" and $this->action != "logout") {
+
+        $actions = array("home", "profile", "photos", "blog", "comment", "upload", "lang", "admin", "password", "logout");
+        if (!in_array($this->action, $actions)) {
           $this->action = "default";
         }
 
@@ -99,7 +101,7 @@ class GetController {
 
               $model_home = new Home();	// model erstellen
               $ret = $model_home->getHome();	// daten für home aus dem model
-              $html_backend_ext .= $ret["inhalt"];
+              $html_backend_ext .= $ret["content"];
               $errorstring = $ret["error"];
 
             } // ROLE_EDITOR
@@ -108,16 +110,16 @@ class GetController {
           }
 
 // *****************************************************************************
-// *** backend GET profil ***
+// *** backend GET profile ***
 // *****************************************************************************
 
-          case "profil": {
+          case "profile": {
 
             if ($_SESSION["user_role"] >= ROLE_EDITOR) {
 
-              $model_profil = new Profil();	// model erstellen
-              $ret = $model_profil->getProfil();	// daten für profil aus dem model
-              $html_backend_ext .= $ret["inhalt"];
+              $model_profile = new Profile();	// model erstellen
+              $ret = $model_profile->getProfile();	// daten für profile aus dem model
+              $html_backend_ext .= $ret["content"];
               $errorstring = $ret["error"];
 
             } // ROLE_EDITOR
@@ -126,16 +128,16 @@ class GetController {
           }
 
 // *****************************************************************************
-// *** backend GET fotos ***
+// *** backend GET photos ***
 // *****************************************************************************
 
-          case "fotos": {
+          case "photos": {
 
             if ($_SESSION["user_role"] >= ROLE_EDITOR) {
 
-              $model_fotos = new Fotos();	// model erstellen
-              $ret = $model_fotos->getFotos($this->galleryid);	// daten für fotos aus dem model
-              $html_backend_ext .= $ret["inhalt"];
+              $model_photos = new Photos();	// model erstellen
+              $ret = $model_photos->getPhotos($this->galleryid);	// daten für photos aus dem model
+              $html_backend_ext .= $ret["content"];
               $errorstring = $ret["error"];
 
             } // ROLE_EDITOR
@@ -153,7 +155,7 @@ class GetController {
 
               $model_blog = new Blog();	// model erstellen
               $ret = $model_blog->getBlog($this->id, $this->page);	// daten für blog aus dem model
-              $html_backend_ext .= $ret["inhalt"];
+              $html_backend_ext .= $ret["content"];
               $errorstring = $ret["error"];
 
             } // ROLE_EDITOR
@@ -171,7 +173,7 @@ class GetController {
 
               $model_comment = new Comment();	// model erstellen
               $ret = $model_comment->getComment($this->id, $this->page);	// daten für comment aus dem model
-              $html_backend_ext .= $ret["inhalt"];
+              $html_backend_ext .= $ret["content"];
               $errorstring = $ret["error"];
 
             } // ROLE_MASTER
@@ -189,7 +191,25 @@ class GetController {
 
               $model_upload = new Upload();	// model erstellen
               $ret = $model_upload->getUpload();	// daten für upload aus dem model
-              $html_backend_ext .= $ret["inhalt"];
+              $html_backend_ext .= $ret["content"];
+
+            } // ROLE_MASTER
+
+            break;
+          }
+
+// *****************************************************************************
+// *** backend GET languages ***
+// *****************************************************************************
+
+          case "lang": {
+
+            if ($_SESSION["user_role"] >= ROLE_MASTER) {
+
+              $model_languages = new Languages();	// model erstellen
+              $ret = $model_languages->getLanguages();	// daten für anguages aus dem model
+              $html_backend_ext .= $ret["content"];
+              $errorstring = $ret["error"];
 
             } // ROLE_MASTER
 
@@ -206,7 +226,7 @@ class GetController {
 
               $model_admin = new Admin();	// model erstellen
               $ret = $model_admin->getAdmin();	// daten für admin aus dem model
-              $html_backend_ext .= $ret["inhalt"];
+              $html_backend_ext .= $ret["content"];
               $errorstring = $ret["error"];
 
             } // ROLE_ADMIN
@@ -229,9 +249,9 @@ class GetController {
             $ret = $this->model->getTwofa();	// daten für twofa aus dem model
 
             // zwei-faktor-authentifizierung formular
-            // - telegram_id
+            // - shared secret
             // - use_2fa (an/aus)
-            $html_backend_ext .= $this->model->twofa_form($ret["telegram_id"], $ret["use_2fa"], false, true);	// section_end=true
+            $html_backend_ext .= $this->model->twofa_form($ret["base64_secret"], $ret["use_2fa"], false, true);	// section_end=true
             $errorstring = $ret["error"];
 
             break;
@@ -257,7 +277,7 @@ class GetController {
             // version
 
             $ret = $this->model->getVersion();	// daten für version aus dem model
-            $html_backend_ext .= $ret["inhalt"];
+            $html_backend_ext .= $ret["content"];
             $errorstring = $ret["error"];
 
           }
@@ -268,10 +288,10 @@ class GetController {
 
     } // no panic
 
-    if (DEBUG) { $debug_str .= "</p>\n</section>\n"; }
+    if (DEBUG) { $debug_str .= DEBUG_STR_END; }
 
     // setze inhalt, falls string vorhanden, sonst leer
-    $view->setContent("inhalt", isset($html_backend_ext) ? $html_backend_ext : "");
+    $view->setContent("content", isset($html_backend_ext) ? $html_backend_ext : "");
     $view->setContent("error", isset($errorstring) ? $errorstring : "");
     $view->setContent("debug", $debug_str);
 

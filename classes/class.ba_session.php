@@ -15,16 +15,16 @@ class Session {
   // setze login variablen in session und client cookie
   // return debug string
   public function set_login() {
-    $uid = md5(uniqid());	// md5 uid
+    $uid = sha1(uniqid(bin2hex(openssl_random_pseudo_bytes(8))));	// sha1 uid mit random prefix
     $ret = "<br>sl1 uid = ".$uid."\n";
 
-    $_SESSION["auth"] = md5($_SERVER['HTTP_USER_AGENT'].
-                            $_SERVER['REMOTE_ADDR'].
-                            AUTHORIZATION_CODE.
-                            $uid);
+    $_SESSION["auth"] = sha1($_SERVER['HTTP_USER_AGENT'].
+                             $_SERVER['REMOTE_ADDR'].
+                             "backend_".VERSION.
+                             $uid);
     $ret .= "<br>sl2 auth = ".$_SESSION["auth"]."\n";
 
-    // client id cookie setzen mit md5 uid
+    // client id cookie setzen mit sha1 uid
     setcookie("uid",$uid, time()+LOGIN_TIME);	// client
     $_COOKIE["uid"] = $uid;	// server
 
@@ -43,15 +43,15 @@ class Session {
 
       // cookies lesen
       $auth = $_SESSION["auth"];
-      $uid = $_COOKIE["uid"];	// cookie mit md5 uid alt
+      $uid = $_COOKIE["uid"];	// cookie mit sha1 uid alt
 
       $login = true;
 
       // authentifizierung
-      $auth2 = md5($_SERVER['HTTP_USER_AGENT'].
-                   $_SERVER['REMOTE_ADDR'].
-                   AUTHORIZATION_CODE.
-                   $uid);
+      $auth2 = sha1($_SERVER['HTTP_USER_AGENT'].
+                    $_SERVER['REMOTE_ADDR'].
+                    "backend_".VERSION.
+                    $uid);
 
       if ($auth != $auth2) {
         $login = false;
@@ -71,14 +71,16 @@ class Session {
 
   // setze login variablen
   // return debug string
-  public function set_user_login($user_id, $user_role, $user_login) {
+  public function set_user_login($user_id, $user_role, $user_login, $user_locale) {
     $_SESSION["user_id"] = $user_id;
     $_SESSION["user_role"] = $user_role;
     $_SESSION["user_name"] = $user_login;
+    $_SESSION["user_locale"] = $user_locale;
 
-    $ret = "<br />user_id = ".$_SESSION["user_id"]."\n";
-    $ret .= "<br />user_role = ".$_SESSION["user_role"]."\n";
-    $ret .= "<br />user_name = ".$_SESSION["user_name"]."\n";
+    $ret = "<br>user_id = ".$_SESSION["user_id"]."\n";
+    $ret .= "<br>user_role = ".$_SESSION["user_role"]."\n";
+    $ret .= "<br>user_name = ".$_SESSION["user_name"]."\n";
+    $ret .= "<br>user_locale = ".$_SESSION["user_locale"]."\n";
 
     return $ret;
   }
@@ -86,8 +88,8 @@ class Session {
   // entferne login variablen
   // return debug string
   public function unset_user_login() {
-    unset($_SESSION["user_id"], $_SESSION["user_role"], $_SESSION["user_name"]);
-    $ret = "<br />unset user_id/_role/_name\n";
+    unset($_SESSION["user_id"], $_SESSION["user_role"], $_SESSION["user_name"], $_SESSION["user_locale"]);
+    $ret = "<br>unset user_id/_role/_name/_locale\n";
 
     return $ret;
   }

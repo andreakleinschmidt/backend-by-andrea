@@ -20,6 +20,12 @@ define("MAXSIZE_FILEUPLOAD",2097152);	// 2048*1024 (2 MB default)
 
 class Upload extends Model {
 
+  public function __construct() {
+    parent::__construct();
+      // $this->database
+      // $this->language
+  }
+
   // MAXSIZE_FILEUPLOAD passende einheit berechnen
   private function getMaxsizeUpload() {
     $size = MAXSIZE_FILEUPLOAD;
@@ -39,14 +45,20 @@ class Upload extends Model {
   }
 
   // liste der dateien im verzeichnis mit dateierweiterung 
-  private function listFiles($dir, $filename_extension) {
+  public function listFiles($dir, $filename_extension) {
     $html_backend_ext = "<ul class=\"ul_backend_".$filename_extension."\">\n";
     $i = 0;	// count
     $listfiles = scandir($dir);
     foreach ($listfiles as $file) {
       if (substr($file, -3, 3) == $filename_extension) {
         $filename = $dir.$file;
-        $html_backend_ext .= "<li class=\"li_backend\" onclick=\"ajax('details','".rawurlencode($filename)."')\">".$file."</li>\n";
+        $details = array("jpg", "mp4");
+        if (in_array($filename_extension, $details)) {
+          $html_backend_ext .= "<li class=\"li_backend\" onclick=\"ajax('details','".rawurlencode($filename)."')\">".stripslashes($this->html5specialchars($file))."</li>\n";
+        }
+        else {
+          $html_backend_ext .= "<li class=\"li_backend\">".stripslashes($this->html5specialchars($file))."</li>\n";
+        }
         $i++;
       }
     }
@@ -58,7 +70,7 @@ class Upload extends Model {
     $html_backend_ext = "<section>\n\n";
 
     // fileupload formular
-    $html_backend_ext .= "<p id=\"upload\"><b>upload</b></p>\n\n".
+    $html_backend_ext .= "<p id=\"upload\"><b>".$this->language["HEADER_UPLOAD"]."</b></p>\n\n".
                          "<form action=\"backend.php\" method=\"post\" enctype=\"multipart/form-data\">\n".
                          "<table class=\"backend\">\n".
                          "<tr>\n<td class=\"td_backend\">\n".
@@ -71,13 +83,13 @@ class Upload extends Model {
                          "</form>\n\n";
 
     // liste dateien in "jpeg/" (nur *.jpg) und "video/" (nur *.mp4)
-    $html_backend_ext .= "<p id=\"media\"><b>media</b></p>\n\n".
+    $html_backend_ext .= "<p id=\"media\"><b>".$this->language["HEADER_MEDIA"]."</b></p>\n\n".
                          "<div id=\"details\"><noscript>no javascript</noscript></div>\n".
                          "<table class=\"backend\">\n".
-                         "<tr>\n<td class=\"td_media\">\n".
-                         "jpeg/\n".
-                         "</td>\n<td class=\"td_media\">\n".
-                         "video/\n".
+                         "<tr>\n<td class=\"td_media\">".
+                         "jpeg/".
+                         "</td>\n<td class=\"td_media\">".
+                         "video/".
                          "</td>\n</tr>\n<tr>\n<td class=\"td_media\">\n".
                          $this->listFiles("jpeg/", "jpg").
                          "</td>\n<td class=\"td_media\">\n".
@@ -87,7 +99,7 @@ class Upload extends Model {
 
     $html_backend_ext .= "</section>\n\n";
 
-    return array("inhalt" => $html_backend_ext);
+    return array("content" => $html_backend_ext);
   }
 
   public function postUpload($tmp_name, $name) {
@@ -136,7 +148,7 @@ class Upload extends Model {
 
     $html_backend_ext .= "</section>\n\n";
 
-    return array("inhalt" => $html_backend_ext, "error" => $errorstring);
+    return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
 }

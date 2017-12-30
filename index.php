@@ -15,8 +15,8 @@ require_once("classes/class.getcontroller.php");
 require_once("classes/class.postcontroller.php");
 require_once("classes/class.model.php");
 require_once("classes/class.model_home.php");
-require_once("classes/class.model_profil.php");
-require_once("classes/class.model_fotos.php");
+require_once("classes/class.model_profile.php");
+require_once("classes/class.model_photos.php");
 require_once("classes/class.model_blog.php");
 require_once("classes/class.view.php");
 

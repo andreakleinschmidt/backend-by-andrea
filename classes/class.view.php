@@ -7,14 +7,12 @@
 // * - mit daten ersetzen
 // * - str_replace($suchmuster_was, $ersetzung_womit, $zeichenkette_wo);
 // * - datenausgabe in html
-// * tpl_backend.htm
-// * - in backend.js rsa verschlüsselung mit public key , C = K^puk mod rsa
 // *****************************************************************************
 
 class View {
 
   private $template;	// name des templates (hier "default" oder "backend")
-  private $content = array();	// array mit variablen (hd_titel, login, inhalt, error) für das template
+  private $content_arr = array();	// array mit variablen (hd_title_ext, login, content, error) für das template
 
   // template auswählen
   public function setTemplate($template = "default") {
@@ -23,10 +21,10 @@ class View {
 
   // daten in array speichern
   public function setContent($key, $value) {
-    $this->content[$key] = $value;
+    $this->content_arr[$key] = $value;
   }
 
-  // template laden, enthält {hd_titel}, {login}, {inhalt} und {error}, daten ersetzen, template ausgeben
+  // template laden, enthält {hd_title_ext}, {login}, {content} und {error}, daten ersetzen, template ausgeben
   public function parseTemplate($backend = false) {
     if (file_exists($this->template)) {
 
@@ -34,19 +32,18 @@ class View {
       $template_out = fread($handle, filesize($this->template));
       fclose ($handle);
 
-      $errorstring = "".$this->content["error"];
+      $errorstring = "".$this->content_arr["error"];
 
       if ($backend) {
-        $debug_str = "".$this->content["debug"];
-        $template_out = str_replace("{inhalt}", $this->content["inhalt"], $template_out);
+        $debug_str = "".$this->content_arr["debug"];
+        $template_out = str_replace("{content}", $this->content_arr["content"], $template_out);
         $template_out = str_replace("{error}", $errorstring, $template_out);
         $template_out = str_replace("{debug}", $debug_str, $template_out);
       }
       else {
-        $hd_title_str = "morgana81".$this->content["hd_titel"];
-        $template_out = str_replace("{hd_titel}", $hd_title_str, $template_out);
-        $template_out = str_replace("{login}", $this->content["login"], $template_out);
-        $template_out = str_replace("{inhalt}", $this->content["inhalt"], $template_out);
+        $template_out = str_replace("{hd_title_ext}", $this->content_arr["hd_title_ext"], $template_out);
+        $template_out = str_replace("{login}", $this->content_arr["login"], $template_out);
+        $template_out = str_replace("{content}", $this->content_arr["content"], $template_out);
         $template_out = str_replace("{error}", $errorstring, $template_out);
       }
 

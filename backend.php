@@ -17,11 +17,12 @@ require_once("classes/class.ba_getcontroller.php");
 require_once("classes/class.ba_postcontroller.php");
 require_once("classes/class.ba_model.php");	// login, password, logout
 require_once("classes/class.ba_model_home.php");
-require_once("classes/class.ba_model_profil.php");
-require_once("classes/class.ba_model_fotos.php");
+require_once("classes/class.ba_model_profile.php");
+require_once("classes/class.ba_model_photos.php");
 require_once("classes/class.ba_model_blog.php");
 require_once("classes/class.ba_model_comment.php");
 require_once("classes/class.ba_model_upload.php");
+require_once("classes/class.ba_model_languages.php");
 require_once("classes/class.ba_model_admin.php");
 require_once("classes/class.view.php");
 

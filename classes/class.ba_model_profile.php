@@ -1,7 +1,7 @@
 <?php
 
 // *****************************************************************************
-// * ba_model - profil
+// * ba_model - profile
 // * funktionen für speichern, ändern,löschen in db
 // *****************************************************************************
 
@@ -22,18 +22,24 @@ define("MAXLEN_PROFILETEXT",256);
 //
 // db error 4b - stmt bei backend POST profile
 
-class Profil extends Model {
+class Profile extends Model {
 
-  public function getProfil() {
+  public function __construct() {
+    parent::__construct();
+      // $this->database
+      // $this->language
+  }
+
+  public function getProfile() {
     $html_backend_ext = "";
     $errorstring = "";
 
-    if (!$this->datenbank->connect_errno) {
+    if (!$this->database->connect_errno) {
       // wenn kein fehler
 
       $html_backend_ext .= "<section>\n\n";
 
-      $html_backend_ext .= "<p><b>profile</b></p>\n\n";
+      $html_backend_ext .= "<p><b>".$this->language["HEADER_PROFILE"]."</b></p>\n\n";
 
       $size1 = "size_16";
       $size2 = "size_32";
@@ -47,20 +53,20 @@ class Profil extends Model {
 
         // zugriff auf mysql datenbank (2)
         $sql = "SELECT ba_id, ba_tag, ba_text FROM ba_profile WHERE ba_id2 = ".$i;
-        $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
+        $ret = $this->database->query($sql);	// liefert in return db-objekt
         if ($ret) {
 
           $html_backend_ext .= "<form action=\"backend.php\" method=\"post\">\n".
                                "<table class=\"backend\">\n";
-          while ($datensatz = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
-            $html_backend_ext .= "<tr>\n<td class=\"td_backend\">\n".
-                                 "<input type=\"text\" name=\"ba_profile[".$datensatz["ba_id"]."][ba_tag]\" class=\"".$size1."\" maxlength=\"".MAXLEN_PROFILETAG."\" value=\"".stripslashes($this->html5specialchars($datensatz["ba_tag"]))."\"/>\n".
-                                 "</td>\n<td>\n".
-                                 "<input type=\"text\" name=\"ba_profile[".$datensatz["ba_id"]."][ba_text]\" class=\"".$size2."\" maxlength=\"".MAXLEN_PROFILETEXT."\" value=\"".stripslashes($this->html5specialchars($datensatz["ba_text"]))."\"/>\n".
+          while ($dataset = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
+            $html_backend_ext .= "<tr>\n<td class=\"td_backend\">".
+                                 "<input type=\"text\" name=\"ba_profile[".$dataset["ba_id"]."][ba_tag]\" class=\"".$size1."\" maxlength=\"".MAXLEN_PROFILETAG."\" value=\"".stripslashes($this->html5specialchars($dataset["ba_tag"]))."\"/>".
+                                 "</td>\n<td>".
+                                 "<input type=\"text\" name=\"ba_profile[".$dataset["ba_id"]."][ba_text]\" class=\"".$size2."\" maxlength=\"".MAXLEN_PROFILETEXT."\" value=\"".stripslashes($this->html5specialchars($dataset["ba_text"]))."\"/>".
                                  "</td>\n</tr>\n";
           }
-          $html_backend_ext .= "<tr>\n<td class=\"td_backend\">\n</td>\n<td>\n".
-                               "<input type=\"submit\" value=\"POST\" />\n".
+          $html_backend_ext .= "<tr>\n<td class=\"td_backend\"></td>\n<td>".
+                               "<input type=\"submit\" value=\"".$this->language["BUTTON_POST"]."\" />".
                                "</td>\n</tr>\n".
                                "</table>\n".
                                "</form>\n\n";
@@ -82,14 +88,14 @@ class Profil extends Model {
       $errorstring .= "<br>db error 1\n";
     }
 
-    return array("inhalt" => $html_backend_ext, "error" => $errorstring);
+    return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
-  public function postProfil($ba_profile_array_replaced) {
+  public function postProfile($ba_profile_array_replaced) {
     $html_backend_ext = "";
     $errorstring = "";
 
-    if (!$this->datenbank->connect_errno) {
+    if (!$this->database->connect_errno) {
       // wenn kein fehler
 
       $html_backend_ext .= "<section>\n\n";
@@ -102,7 +108,7 @@ class Profil extends Model {
 
         // update in datenbank , mit prepare() - sql injections verhindern
         $sql = "UPDATE ba_profile SET ba_tag = ?, ba_text = ? WHERE ba_id = ?";
-        $stmt = $this->datenbank->prepare($sql);	// liefert mysqli-statement-objekt
+        $stmt = $this->database->prepare($sql);	// liefert mysqli-statement-objekt
         if ($stmt) {
           // wenn kein fehler 4b
 
@@ -120,7 +126,7 @@ class Profil extends Model {
 
       }
 
-      $html_backend_ext .= "<p>".$count." rows changed</p>\n\n";
+      $html_backend_ext .= "<p>".$count." ".$this->language["MSG_ROWS_CHANGED"]."</p>\n\n";
 
       $html_backend_ext .= "</section>\n\n";
 
@@ -129,7 +135,7 @@ class Profil extends Model {
       $errorstring .= "<br>db error 1\n";
     }
 
-    return array("inhalt" => $html_backend_ext, "error" => $errorstring);
+    return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
 }

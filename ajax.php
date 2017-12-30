@@ -2,9 +2,9 @@
 header("Content-Type: application/xhtml+xml; charset=utf-8");
 session_start();
 
-/* xmlHttp.responseText für GET id suggest (blog formular suche) oder blogfoto
+/* xmlHttp.responseText für GET id suggest (blog formular suche) oder blogphoto
  * parameter falls id=suggest: q (query)
- * parameter falls id=blogfoto: fotoid (fotoid)
+ * parameter falls id=blogphoto: photoid (photoid)
  * weiterer parameter: request (zufallszahl 1...1000)
  */
 
@@ -64,15 +64,15 @@ function suggest($query) {
   return $ret;
 }
 
-// ausgabe für blogfoto in <div id="foto_$fotoid"></div>
-function blogfoto($fotoid) {
-  $imagename = "jpeg/".$fotoid.".jpg";
+// ausgabe für blogphoto in <div id="photo_$photoid"></div>
+function blogphoto($photoid) {
+  $imagename = "jpeg/".$photoid.".jpg";
   if (is_readable($imagename)) {
     $imagesize = getimagesize($imagename);
     $ret = "<img src=\"".$imagename."\" ".$imagesize[3].">";
   }
   else {
-    $ret = "fotoid file error";
+    $ret = "photoid file error";
   }
   return $ret;
 }
@@ -138,7 +138,7 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
   // GET auslesen
   if (isset($_GET["id"]) and isset($_GET["request"])) {
     $id = trim($_GET["id"]);	// überflüssige leerzeichen entfernen
-    $id = substr($id, 0, 8);	// zu langes GET abschneiden
+    $id = substr($id, 0, 16);	// zu langes GET abschneiden
     $request = intval($_GET["request"]);	// string zu int
 
     if (strlen($id) > 0 and $request > 0 and $request <= 1000) {
@@ -161,22 +161,22 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
         }
       } // if suggest
 
-      elseif ($id == "blogfoto") {
-        if (isset($_GET["fotoid"])) {
-          $fotoid = trim($_GET["fotoid"]);	// überflüssige leerzeichen entfernen
-          $fotoid = substr($fotoid, 0, 8);	// zu langes GET abschneiden
-          if (strlen($fotoid) > 0) {
-            // $fotoid nicht leer
-            $ret = blogfoto($fotoid);
+      elseif ($id == "blogphoto") {
+        if (isset($_GET["photoid"])) {
+          $photoid = trim($_GET["photoid"]);	// überflüssige leerzeichen entfernen
+          $photoid = substr($photoid, 0, 8);	// zu langes GET abschneiden
+          if (strlen($photoid) > 0) {
+            // $photoid nicht leer
+            $ret = blogphoto($photoid);
           }
           else {
-            $ret = "fotoid error";
+            $ret = "photoid error";
           }
-        } // if GET fotoid
+        } // if GET photoid
         else {
-          $ret = "fotoid not set";
+          $ret = "photoid not set";
         }
-      } // if blogfoto
+      } // if blogphoto
 
       elseif ($id == "details") {
         if (isset($_GET["filename"])) {

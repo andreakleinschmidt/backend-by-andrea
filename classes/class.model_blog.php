@@ -7,27 +7,38 @@
 define("STATE_APPROVAL",2);
 define("STATE_PUBLISHED",3);
 define("MB_ENCODING","UTF-8");
-define("MAILADDR","morgana@oscilloworld.de");
 
 class Blog extends Model {
 
   // variablen
   private static $month_min = 1;
   private static $month_max = 12;
-  private static $year_min = 2009;
-  private function year_max() {
-    return intval(date("Y"));
+
+  public function __construct() {
+    parent::__construct();
+      // $this->database
+      // $this->language
   }
 
   // (doppelt in frontend und backend model blog)
-  public function getOption_by_name($ba_name) {
-    $value = 1;
+  public function getOption_by_name($ba_name, $str_flag=false) {
+    if ($str_flag) {
+      $value = "";
+    }
+    else {
+      $value = 1;
+    }
 
-    if (!$this->datenbank->connect_errno) {
+    if (!$this->database->connect_errno) {
       // wenn kein fehler
 
-      $sql = "SELECT ba_value FROM ba_options WHERE ba_name = ?";
-      $stmt = $this->datenbank->prepare($sql);	// liefert mysqli-statement-objekt
+      if ($str_flag) {
+        $sql = "SELECT ba_value FROM ba_options_str WHERE ba_name = ?";
+      }
+      else {
+        $sql = "SELECT ba_value FROM ba_options WHERE ba_name = ?";
+      }
+      $stmt = $this->database->prepare($sql);	// liefert mysqli-statement-objekt
       if ($stmt) {
         // wenn kein fehler
 
@@ -35,12 +46,17 @@ class Blog extends Model {
         $stmt->bind_param("s", $ba_name);
         $stmt->execute();	// ausführen geänderte zeile
 
-        $stmt->bind_result($datensatz["ba_value"]);
+        $stmt->bind_result($dataset["ba_value"]);
         // mysqli-statement-objekt kennt kein fetch_assoc(), nur fetch(), kein assoc-array als rückgabe
 
         if ($stmt->fetch()) {
           // wenn kein fehler (name nicht vorhanden, datensatz leer)
-          $value = intval($datensatz["ba_value"]);
+          if ($str_flag) {
+            $value = trim($dataset["ba_value"]);
+          }
+          else {
+            $value = intval($dataset["ba_value"]);
+          }
         }
 
         $stmt->close();
@@ -53,7 +69,7 @@ class Blog extends Model {
     return $value;
   }
 
-  // ersetze tag kommandos im blogtext ~cmd{content} mit html tags <a>, <b>, <i>
+  // ersetze tag kommandos im blogtext ~cmd{content_str} mit html tags <a>, <b>, <i>
   public function html_tags($text_str, $tag_flag, $encoding="UTF-8") {
     for ($start=0; mb_strpos($text_str, "~", $start, $encoding); $start++) {
       // suche tilde, abbruch der schleife wenn keine tilde mehr in text_str vorhanden (strpos return false)
@@ -64,15 +80,15 @@ class Blog extends Model {
 
       if ($brace and $stop) {
         // nur ausführen wenn {} gefunden
-        $cmd     = mb_substr($text_str, $start+1, $brace-$start-1, $encoding);
-        $content = mb_substr($text_str, $brace+1, $stop-$brace-1 , $encoding);
+        $cmd         = mb_substr($text_str, $start+1, $brace-$start-1, $encoding);
+        $content_str = mb_substr($text_str, $brace+1, $stop-$brace-1 , $encoding);
 
         switch ($cmd) {
 
           case "link":
 
-            if (mb_strlen($content, $encoding) > 0 and $tag_flag) {
-              $link = explode("|", $content);
+            if (mb_strlen($content_str, $encoding) > 0 and $tag_flag) {
+              $link = explode("|", $content_str);
               if (count($link) == 2) {
                 $tag_str = "<a href=\"".$link[0]."\">".$link[1]."</a>";
               }
@@ -80,8 +96,8 @@ class Blog extends Model {
                 $tag_str = "<a href=\"".$link[0]."\">".$link[0]."</a>";
               }
             }
-            elseif (mb_strlen($content, $encoding) > 0 and !$tag_flag) {
-              $link = explode("|", $content);
+            elseif (mb_strlen($content_str, $encoding) > 0 and !$tag_flag) {
+              $link = explode("|", $content_str);
               if (count($link) == 2) {
                 $tag_str = $link[1];
               }
@@ -96,11 +112,11 @@ class Blog extends Model {
 
           case "bold":
 
-            if (mb_strlen($content, $encoding) > 0 and $tag_flag) {
-              $tag_str = "<b>".$content."</b>";
+            if (mb_strlen($content_str, $encoding) > 0 and $tag_flag) {
+              $tag_str = "<b>".$content_str."</b>";
             }
-            elseif (mb_strlen($content, $encoding) > 0 and !$tag_flag) {
-              $tag_str = $content;
+            elseif (mb_strlen($content_str, $encoding) > 0 and !$tag_flag) {
+              $tag_str = $content_str;
             }
             else {
               $tag_str = "";
@@ -109,11 +125,11 @@ class Blog extends Model {
 
           case "italic":
 
-            if (mb_strlen($content, $encoding) > 0 and $tag_flag) {
-              $tag_str = "<i>".$content."</i>";
+            if (mb_strlen($content_str, $encoding) > 0 and $tag_flag) {
+              $tag_str = "<i>".$content_str."</i>";
             }
-            elseif (mb_strlen($content, $encoding) > 0 and !$tag_flag) {
-              $tag_str = $content;
+            elseif (mb_strlen($content_str, $encoding) > 0 and !$tag_flag) {
+              $tag_str = $content_str;
             }
             else {
               $tag_str = "";
@@ -121,7 +137,7 @@ class Blog extends Model {
             break;
 
           default:
-            $tag_str = $cmd.$content;
+            $tag_str = $cmd.$content_str;
 
         } // switch
 
@@ -141,18 +157,18 @@ class Blog extends Model {
   }
 
   // ausgabe komplette blogzeile
-  private function blog_line($datensatz, &$option_array, &$blog_comment_id_array, $query_data, $header_flag, $num_sentences) {
-    $ersetzen = "";
+  private function blog_line($dataset, &$option_array, &$blog_comment_id_array, $query_data, $header_flag, $num_sentences) {
+    $replace = "";
 
-    $datum = stripslashes($this->html5specialchars($datensatz["ba_date"]));
-    $full_name = stripslashes($this->html5specialchars($datensatz["full_name"]));
-    $blogtext = stripslashes($this->html_tags(nl2br($this->html5specialchars($datensatz["ba_text"])), true));
-    $blogtext40 = stripslashes($this->html_tags($this->html5specialchars(mb_substr($datensatz["ba_text"], 0, 40, MB_ENCODING)), false));	// substr problem bei trennung umlaute
+    $datum = stripslashes($this->html5specialchars($dataset["ba_date"]));
+    $full_name = stripslashes($this->html5specialchars($dataset["full_name"]));
+    $blogtext = stripslashes($this->html_tags(nl2br($this->html5specialchars($dataset["ba_text"])), true));
+    $blogtext40 = stripslashes($this->html_tags($this->html5specialchars(mb_substr($dataset["ba_text"], 0, 40, MB_ENCODING)), false));	// substr problem bei trennung umlaute
 
     if ($header_flag) {
-      $split_array = array_slice(preg_split("/(?<=\!\s|\.\s|\:\s|\?\s)/", $datensatz["ba_text"], $num_sentences+1, PREG_SPLIT_NO_EMPTY), 0, $num_sentences);
+      $split_array = array_slice(preg_split("/(?<=\!\s|\.\s|\:\s|\?\s)/", $dataset["ba_text"], $num_sentences+1, PREG_SPLIT_NO_EMPTY), 0, $num_sentences);
       $blogheader = stripslashes($this->html_tags(nl2br($this->html5specialchars(implode($split_array))), false));	// satzendzeichen als trennzeichen, anzahl sätze optional
-      $ersetzen .= "<h1>".$blogheader."</h1>\n";
+      $replace .= "<h1>".$blogheader."</h1>\n";
     }
 
     // blog id für anker
@@ -163,24 +179,24 @@ class Blog extends Model {
     $minute = substr($datum, 14, 2);
     $jmtsm = "20".$jahr.$monat.$tag.$stunde.$minute."00";
 
-    $ersetzen .= "<p><a name=\"".$jmtsm."\"></a><b>[".$datum."]</b> <span id=\"white\" title=\"".$full_name."\">&#9998;</span> ".$blogtext."</p>\n";
+    $replace .= "<p><a name=\"".$jmtsm."\"></a><b>[".$datum."]</b> <span id=\"white\" title=\"".$full_name."\">&#9998;</span> ".$blogtext."</p>\n";
 
     // optional videos in blog
     if (function_exists("finfo_open")) {
 
       $finfo = finfo_open(FILEINFO_MIME_TYPE);	// resource für rückgabe mime type
-      if ($finfo and strlen($datensatz["ba_videoid"]) > 0) {
-        $videoid_array = explode(",",$datensatz["ba_videoid"]);
+      if ($finfo and strlen($dataset["ba_videoid"]) > 0) {
+        $videoid_array = explode(",",$dataset["ba_videoid"]);
         foreach ($videoid_array as $videoid) {
           $videoname = "video/".$videoid.".mp4";
           $mimetype = finfo_file($finfo, $videoname);
           if (is_readable($videoname) and $mimetype == "video/mp4") {
-            $ersetzen .= "<p>\n".
-                         "<video controls=\"\">\n".
-                         "<source src=\"".$videoname."\" type=\"video/mp4\">\n".
-                         "Your browser does not support the video tag.\n".
-                         "</video>\n".
-                         "</p>\n";
+            $replace .= "<p>\n".
+                        "<video controls=\"\">\n".
+                        "<source src=\"".$videoname."\" type=\"video/mp4\">\n".
+                        "Your browser does not support the video tag.\n".
+                        "</video>\n".
+                        "</p>\n";
           } // if mimetype
         } // foreach
         finfo_close($finfo);
@@ -189,28 +205,28 @@ class Blog extends Model {
     } // module fileinfo
 
     // optional fotos in blog
-    if (strlen($datensatz["ba_fotoid"]) > 0) {
-      $fotoid_array = explode(",",$datensatz["ba_fotoid"]);
-      foreach ($fotoid_array as $fotoid) {
-        $imagename = "jpeg/".$fotoid.".jpg";
+    if (strlen($dataset["ba_photoid"]) > 0) {
+      $photoid_array = explode(",",$dataset["ba_photoid"]);
+      foreach ($photoid_array as $photoid) {
+        $imagename = "jpeg/".$photoid.".jpg";
         if (is_readable($imagename) and $image_str = exif_thumbnail($imagename, $width, $height, $type)) {
-          $ersetzen .= "<div id=\"blogfoto\">\n";
-          $ersetzen .= "<a href=\"".$imagename."\" onMouseOver=\"ajax('blogfoto','".$fotoid."');\"><img class=\"kantefarbig\" src=\"thumbnail.php?".$this->html_build_query(array("image" => $imagename))."\" width=\"".$width."\" height=\"".$height."\"></a>\n";
-          $ersetzen .= "<div id=\"foto_".$fotoid."\"><noscript>no javascript</noscript></div>\n";
-          $ersetzen .= "</div>\n";
+          $replace .= "<div id=\"blogphoto\">\n";
+          $replace .= "<a href=\"".$imagename."\" onMouseOver=\"ajax('blogphoto','".$photoid."');\"><img class=\"kantefarbig\" src=\"thumbnail.php?".$this->html_build_query(array("image" => $imagename))."\" width=\"".$width."\" height=\"".$height."\"></a>\n";
+          $replace .= "<div id=\"photo_".$photoid."\"><noscript>no javascript</noscript></div>\n";
+          $replace .= "</div>\n";
         }
       }
     }
 
-    $blogid = $datensatz["ba_id"];
+    $blogid = $dataset["ba_id"];
     $option_array[$blogid] = "[".$datum."] ".$blogtext40."...";	// für select option in kommentar formular
 
     // optional link zu kommentar mit comment-id
     if (array_key_exists($blogid, $blog_comment_id_array)) {
-      $ersetzen .= "<div id=\"blogcomment\"><a href=\"index.php?".$this->html_build_query($query_data)."#comment".$blog_comment_id_array[$blogid]."\">Kommentar</a></div>";
+      $replace .= "<div id=\"blogcomment\"><a href=\"index.php?".$this->html_build_query($query_data)."#comment".$blog_comment_id_array[$blogid]."\">".$this->language["FRONTEND_COMMENT_LINK"]."</a></div>";
     }
 
-    return $ersetzen;
+    return $replace;
   }
 
   // GET page auslesen
@@ -232,8 +248,8 @@ class Blog extends Model {
   }
 
   // seitenauswahl mit links und vor/zurück
-  private function seitenauswahl($anzahl_s, $page, $vz_flag=true, $eq_flag=true, $query_data=array(), $anchor="") {
-    $ersetzen = "<p>\n";
+  private function page_index($anzahl_s, $page, $vz_flag=true, $eq_flag=true, $query_data=array(), $anchor="") {
+    $replace = "<p>\n";
 
     // default
     if(empty($query_data)) {
@@ -252,33 +268,33 @@ class Blog extends Model {
     if ($page > 1 and $vz_flag == true) {
       $i = $page - 1;
       $query_data[$page_key] = $i;
-      $ersetzen .= "<a href=\"index.php?".$this->html_build_query($query_data).$anchor."\">prev</a> \n";	// zurück
+      $replace .= "<a href=\"index.php?".$this->html_build_query($query_data).$anchor."\">".$this->language["PAGE_PREVIOUS"]."</a> \n";	// zurück
     }
 
-    for ($i=1; $i<=$anzahl_s; $i++) {										// seitenauswahl
+    for ($i=1; $i<=$anzahl_s; $i++) {													// seitenauswahl
       if ($i == $page and $eq_flag == true) {
-        $ersetzen .= $i." \n";
+        $replace .= $i." \n";
       }
       else {
         $query_data[$page_key] = $i;
-        $ersetzen .= "<a href=\"index.php?".$this->html_build_query($query_data).$anchor."\">".$i."</a> \n";
+        $replace .= "<a href=\"index.php?".$this->html_build_query($query_data).$anchor."\">".$i."</a> \n";
       }
     }
 
     if ($page < $anzahl_s and $vz_flag == true) {
       $i = $page + 1;
       $query_data[$page_key] = $i;
-      $ersetzen .= "<a href=\"index.php?".$this->html_build_query($query_data).$anchor."\">next</a>\n";		// vor
+      $replace .= "<a href=\"index.php?".$this->html_build_query($query_data).$anchor."\">".$this->language["PAGE_NEXT"]."</a>\n";	// vor
     }
 
-    $ersetzen .= "</p>\n";
-    return $ersetzen;
+    $replace .= "</p>\n";
+    return $replace;
   }
 
   // liste mit tags
-  private function tagliste($tag, $tags_from_db) {
-    $ersetzen = "<p><b>Tags:</b></p>\n".
-                "<p>\n";
+  private function taglist($tag, $tags_from_db) {
+    $replace = "<p><b>".$this->language["FRONTEND_TAGS"]."</b></p>\n".
+               "<p>\n";
 
     // array für tags
     $tags = array();
@@ -302,42 +318,69 @@ class Blog extends Model {
     ksort($tag_arr);	// nach tag sortieren
 
     // links tag (einträge)
-    $tagliste_arr = array();
+    $taglist_arr = array();
     foreach ($tag_arr as $tag_key => $entries) {
       $tag_key_html = stripslashes($this->html5specialchars($tag_key));
 
       if (mb_strtolower($tag_key, MB_ENCODING) == mb_strtolower($tag, MB_ENCODING)) {
         // tag GET
-        $tagliste_arr[] = $tag_key_html." (".$entries.")";
+        $taglist_arr[] = $tag_key_html." (".$entries.")";
       }
       else {
         // (alt)          "<a href=\"index.php?action=blog&tag=".rawurlencode(mb_strtolower($tag_key, MB_ENCODING))."\">".$tag_key_html."</a> (".$entries.")";
-        $tagliste_arr[] = "<a href=\"blog/".rawurlencode(mb_strtolower($tag_key, MB_ENCODING))."/\">".$tag_key_html."</a> (".$entries.")";
+        $taglist_arr[] = "<a href=\"blog/".rawurlencode(mb_strtolower($tag_key, MB_ENCODING))."/\">".$tag_key_html."</a> (".$entries.")";
       }
 
     }
-    $ersetzen .= implode(",\n", $tagliste_arr)."\n";
+    $replace .= implode(",\n", $taglist_arr)."\n";
 
-    $ersetzen .= "</p>\n";
-    return $ersetzen;
+    $replace .= "</p>\n";
+    return $replace;
   }
 
 // *****************************************************************************
 // * funktionen für speichern, ändern,löschen in db
 // *****************************************************************************
 
-  // links jahr, monat mit anzahl einträge als aufklappbare liste
-  private function jahr_monat_liste($year, $month, $show_year=false, $show_month=false) {
-    $ersetzen = "<p><b>Archiv:</b></p>\n";
+  private function year_min() {
+    $year_min = 1970;	// unix ts 0
 
-    if (!$this->datenbank->connect_errno) {
+    if (!$this->database->connect_errno) {
       // wenn kein fehler
+
+      $sql = "SELECT YEAR(ba_datetime) AS year_min FROM ba_blog WHERE YEAR(ba_datetime) >= FROM_UNIXTIME(0,'%Y') LIMIT 1";
+      $ret = $this->database->query($sql);	// liefert in return db-objekt
+      if ($ret) {
+        $dataset = $ret->fetch_assoc();	// fetch_assoc() liefert array
+        $year_min = intval($dataset["year_min"]);
+        $ret->close();
+        unset($ret);
+      }
+
+    } // datenbank
+
+    return $year_min;
+  }
+
+  private function year_max() {
+    return intval(date("Y"));
+  }
+
+  // links jahr, monat mit anzahl einträge als aufklappbare liste
+  private function year_month_list($year, $month, $show_year=false, $show_month=false) {
+    $replace = "<p><b>".$this->language["FRONTEND_ARCHIVE"]."</b></p>\n";
+
+    if (!$this->database->connect_errno) {
+      // wenn kein fehler
+
+      $year_min = $this->year_min();
+      $year_max = $this->year_max();
 
       // array für links jahr (einträge), aktuelles jahr zuerst
       $year_arr = array();
-      for ($i=$this->year_max(); $i>=self::$year_min; $i--) {
+      for ($i=$year_max; $i>=$year_min; $i--) {
         $sql = "SELECT ba_id FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$i;
-        $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
+        $ret = $this->database->query($sql);	// liefert in return db-objekt
         if ($ret) {
           $year_arr[$i] = $ret->num_rows;
           $ret->close();
@@ -345,18 +388,21 @@ class Blog extends Model {
         }
       }
 
-      $month_names = array("Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember");
+      $month_names = array($this->language["MONTH_01"], $this->language["MONTH_02"], $this->language["MONTH_03"],
+                           $this->language["MONTH_04"], $this->language["MONTH_05"], $this->language["MONTH_06"],
+                           $this->language["MONTH_07"], $this->language["MONTH_08"], $this->language["MONTH_09"],
+                           $this->language["MONTH_10"], $this->language["MONTH_11"], $this->language["MONTH_12"]);
 
       // links jahr(einträge) als liste
       foreach ($year_arr as $year_key => $year_entries) {
         if ($year_entries > 0) {
-          $ersetzen .= "<details>\n";
+          $replace .= "<details>\n";
 
           // array für links monat (einträge), neuster monat zuerst
           $month_arr = array();
           for ($i=self::$month_max; $i>=self::$month_min; $i--) {
             $sql = "SELECT ba_id FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$year_key." AND MONTH(ba_datetime) = ".$i;
-            $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
+            $ret = $this->database->query($sql);	// liefert in return db-objekt
             if ($ret) {
               $month_arr[$i] = $ret->num_rows;
               $ret->close();
@@ -366,53 +412,53 @@ class Blog extends Model {
 
           // jahr
           if ($year_key == $year and $show_year == true and $show_month == false) {
-            $ersetzen .= "<summary>".$year_key." (".$year_entries.")</summary>\n";
+            $replace .= "<summary>".$year_key." (".$year_entries.")</summary>\n";
           }
           else {
-            // (alt)     "<summary><a href=\"index.php?action=blog&year=".$year_key."\">".$year_key."</a> (".$year_entries.")</summary>\n";
-            $ersetzen .= "<summary><a href=\"blog/".$year_key."/\">".$year_key."</a> (".$year_entries.")</summary>\n";
+            // (alt)    "<summary><a href=\"index.php?action=blog&year=".$year_key."\">".$year_key."</a> (".$year_entries.")</summary>\n";
+            $replace .= "<summary><a href=\"blog/".$year_key."/\">".$year_key."</a> (".$year_entries.")</summary>\n";
           }
 
           // links monat(einträge) als liste
-          $ersetzen .= "<ul>\n";
+          $replace .= "<ul>\n";
           foreach ($month_arr as $month_key => $month_entries) {
             if ($month_entries > 0) {
 
               // monat
               if ($year_key == $year and $show_year == true and $month_key == $month and $show_month == true) {
-                $ersetzen .= "<li>".$month_names[$month_key-1]." (".$month_entries.")</li>\n";
+                $replace .= "<li>".$month_names[$month_key-1]." (".$month_entries.")</li>\n";
               }
               else {
-                // (alt)     "<li><a href=\"index.php?action=blog&year=".$year_key."&month=".$month_key."\">".$month_names[$month_key-1]."</a> (".$month_entries.")</li>\n";
-                $ersetzen .= "<li><a href=\"blog/".$year_key."/".str_pad($month_key, 2, "0", STR_PAD_LEFT)."/\">".$month_names[$month_key-1]."</a> (".$month_entries.")</li>\n";
+                // (alt)    "<li><a href=\"index.php?action=blog&year=".$year_key."&month=".$month_key."\">".$month_names[$month_key-1]."</a> (".$month_entries.")</li>\n";
+                $replace .= "<li><a href=\"blog/".$year_key."/".str_pad($month_key, 2, "0", STR_PAD_LEFT)."/\">".$month_names[$month_key-1]."</a> (".$month_entries.")</li>\n";
               }
 
             } // month_entries > 0
           } // foreach month
-          $ersetzen .= "</ul>\n";
+          $replace .= "</ul>\n";
 
-          $ersetzen .= "</details>\n";
+          $replace .= "</details>\n";
         } // year_entries > 0
       } // foreach year
 
     } // datenbank
 
-    return $ersetzen;
+    return $replace;
   }
 
   private function get_tags_from_db() {
     $tags_from_db = array();
 
-    if (!$this->datenbank->connect_errno) {
+    if (!$this->database->connect_errno) {
       // wenn kein fehler
 
       $sql = "SELECT ba_category, ba_tags FROM ba_blog INNER JOIN ba_blogcategory ON ba_blog.ba_catid = ba_blogcategory.ba_id WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_category != '' OR ba_tags != '')";
-      $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
+      $ret = $this->database->query($sql);	// liefert in return db-objekt
       if ($ret) {
         // ausgabeschleife
-        while ($datensatz = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
-          $ba_category = trim($datensatz["ba_category"]);
-          $ba_tags = trim($datensatz["ba_tags"]);
+        while ($dataset = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
+          $ba_category = trim($dataset["ba_category"]);
+          $ba_tags = trim($dataset["ba_tags"]);
           if ($ba_category == "") {
             $ba_category = "none";
           }
@@ -430,16 +476,16 @@ class Blog extends Model {
   private function get_blog_comment_id_array() {
     $blog_comment_id_array = array();
 
-    if (!$this->datenbank->connect_errno) {
+    if (!$this->database->connect_errno) {
       // wenn kein fehler
 
       $sql = "SELECT ba_id, ba_blogid FROM ba_comment WHERE ba_state >= ".STATE_PUBLISHED." AND ba_blogid > 1";
-      $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
+      $ret = $this->database->query($sql);	// liefert in return db-objekt
       if ($ret) {
         // ausgabeschleife
-        while ($datensatz = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
-          $commentid = $datensatz["ba_id"];
-          $blogid = $datensatz["ba_blogid"];
+        while ($dataset = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
+          $commentid = $dataset["ba_id"];
+          $blogid = $dataset["ba_blogid"];
           $blog_comment_id_array[$blogid] = $commentid;
         }
         $ret->close();
@@ -453,49 +499,49 @@ class Blog extends Model {
 
   public function getBlog($blog_query, $tag, $page, $year, $month, $compage) {
     $hd_title_str = "";
-    $ersetzen = "";
+    $replace = "";
     $errorstring = "";
 
     //$blog_query = rawurldecode($blog_query)
     //$tag = rawurldecode($tag);
 
-    if (!$this->datenbank->connect_errno) {
+    if (!$this->database->connect_errno) {
       // wenn kein fehler
 
-      $ersetzen = "<!-- blog -->\n";
+      $replace = "<!-- blog -->\n";
 
       $parameter_array = array();	// für links
       $option_array = array();	// für kommentar
 
       // formular für suche
-      $ersetzen .= "<div id=\"blogquery\">\n";
-      $ersetzen .= "<form action=\"index.php\" method=\"get\">\n";
-      $ersetzen .= "<input type=\"hidden\" name=\"action\" value=\"blog\" />\n";
-      $ersetzen .= "<input type=\"text\" name=\"q\" placeholder=\"Suche\" class=\"size_20\" maxlength=\"64\" onkeyup=\"ajax('suggest',this.value);\" />\n";
-      $ersetzen .= "<input type=\"submit\" value=\"Suche\" style=\"display:none;\" />\n";
-      $ersetzen .= "<div id=\"suggestion\"></div>";
-      $ersetzen .= "</form>\n";
-      $ersetzen .= "</div>\n";
+      $replace .= "<div id=\"blogquery\">\n";
+      $replace .= "<form action=\"index.php\" method=\"get\">\n";
+      $replace .= "<input type=\"hidden\" name=\"action\" value=\"blog\" />\n";
+      $replace .= "<input type=\"text\" name=\"q\" placeholder=\"Suche\" class=\"size_20\" maxlength=\"64\" onkeyup=\"ajax('suggest',this.value);\" />\n";
+      $replace .= "<input type=\"submit\" value=\"".$this->language["BUTTON_SEARCH"]."\" style=\"display:none;\" />\n";
+      $replace .= "<div id=\"suggestion\"></div>";
+      $replace .= "</form>\n";
+      $replace .= "</div>\n";
 
       // tags
       $tags_from_db = $this->get_tags_from_db();	// array mit category als key und zweites array mit allen tag_data zeilen, weiterverwendung weiter unten
 
-      $rubriken = array();
+      $categories = array();
       foreach ($tags_from_db as $key => $tag_data_arr) {
         if ($key != "none") {
           // keine leeren rubriken, keine einzelnen tags
           $tag_data_arr_unique = array_unique(array_filter($tag_data_arr));	// unique und keine leeren elemente
-          $rubriken[$key] = implode(", ", $tag_data_arr_unique);	// rubrik mit tag string
+          $categories[$key] = implode(", ", $tag_data_arr_unique);	// rubrik mit tag string
         }
       }
 
       // tags und rubriken als drop down menue (checkbox + label für mobile version)
-      $ersetzen .= "<div id=\"blogtag\">\n".
-                   "<input type=\"checkbox\" class=\"checkbox_hack more\" id=\"mobile_menue\" checked=\"checked\">\n".
-                   "<label class=\"more\" for=\"mobile_menue\">&equiv;</label>\n".
-                   "<ul>\n";
+      $replace .= "<div id=\"blogtag\">\n".
+                  "<input type=\"checkbox\" class=\"checkbox_hack more\" id=\"mobile_menue\" checked=\"checked\">\n".
+                  "<label class=\"more\" for=\"mobile_menue\">&equiv;</label>\n".
+                  "<ul>\n";
 
-      foreach ($rubriken as $rubrik => $tag_str) {
+      foreach ($categories as $category => $tag_str) {
         $tag_arr = preg_split("/\s*,+\s*|^\s+|\s+$/", $tag_str, 0, PREG_SPLIT_NO_EMPTY);	// tags einzeln, ohne leerzeichen
         $tag_arr_unique = array_unique($tag_arr);
         $tag_arr_unique_lower = array();
@@ -503,29 +549,29 @@ class Blog extends Model {
           $tag_arr_unique_lower[] = mb_strtolower($tag_str, MB_ENCODING);
         }
         $html_a_ext = "";
-        if (mb_strtolower($tag, MB_ENCODING) == mb_strtolower($rubrik, MB_ENCODING) or in_array(mb_strtolower($tag, MB_ENCODING), $tag_arr_unique_lower)) {
+        if (mb_strtolower($tag, MB_ENCODING) == mb_strtolower($category, MB_ENCODING) or in_array(mb_strtolower($tag, MB_ENCODING), $tag_arr_unique_lower)) {
           // tag GET
-          $html_a_ext = "id=\"aktiviert\" ";
+          $html_a_ext = "id=\"activated\" ";
         }
-        // (alt)     "<li><a ".$html_a_ext."href=\"index.php?action=blog&tag=".rawurlencode(mb_strtolower($rubrik, MB_ENCODING))."\">".stripslashes($this->html5specialchars($rubrik))."</a>\n".
-        $ersetzen .= "<li><a ".$html_a_ext."href=\"blog/".rawurlencode(mb_strtolower($rubrik, MB_ENCODING))."/\">".stripslashes($this->html5specialchars($rubrik))."</a>\n".
-                     "<ul>\n";
+        // (alt)    "<li><a ".$html_a_ext."href=\"index.php?action=blog&tag=".rawurlencode(mb_strtolower($category, MB_ENCODING))."\">".stripslashes($this->html5specialchars($category))."</a>\n".
+        $replace .= "<li><a ".$html_a_ext."href=\"blog/".rawurlencode(mb_strtolower($category, MB_ENCODING))."/\">".stripslashes($this->html5specialchars($category))."</a>\n".
+                    "<ul>\n";
         foreach ($tag_arr_unique as $tag_out) {
           if (mb_strtolower($tag, MB_ENCODING) == mb_strtolower($tag_out, MB_ENCODING)) {
             // tag GET
-            $ersetzen .= "<li><span>".stripslashes($this->html5specialchars($tag_out))."</span>\n";
+            $replace .= "<li><span>".stripslashes($this->html5specialchars($tag_out))."</span>\n";
           }
           else {
-            // (alt)     "<li><a href=\"index.php?action=blog&tag=".rawurlencode(mb_strtolower($tag_out, MB_ENCODING))."\">".stripslashes($this->html5specialchars($tag_out))."</a>\n";
-            $ersetzen .= "<li><a href=\"blog/".rawurlencode(mb_strtolower($tag_out, MB_ENCODING))."/\">".stripslashes($this->html5specialchars($tag_out))."</a>\n";
+            // (alt)    "<li><a href=\"index.php?action=blog&tag=".rawurlencode(mb_strtolower($tag_out, MB_ENCODING))."\">".stripslashes($this->html5specialchars($tag_out))."</a>\n";
+            $replace .= "<li><a href=\"blog/".rawurlencode(mb_strtolower($tag_out, MB_ENCODING))."/\">".stripslashes($this->html5specialchars($tag_out))."</a>\n";
           }
         }
-        $ersetzen .= "</ul>\n".
-                     "</li>\n";
+        $replace .= "</ul>\n".
+                    "</li>\n";
       }
 
-      $ersetzen .= "</ul>\n".
-                   "</div>\n";
+      $replace .= "</ul>\n".
+                  "</div>\n";
 
       // array mit comment-id und blog-id
       $blog_comment_id_array = $this->get_blog_comment_id_array();
@@ -535,76 +581,76 @@ class Blog extends Model {
         // suchen, ohne tag flag
 
         $ret_array = $this->getQuery($blog_query, $page, $parameter_array, $option_array, $blog_comment_id_array, false, $tags_from_db);
-        $hd_title_str = $ret_array["hd_titel"];
+        $hd_title_str = $ret_array["hd_title_ext"];
 
       }
       elseif (isset($tag)) {
         // tag suchen, mit tag flag
 
         $ret_array = $this->getQuery($tag, $page, $parameter_array, $option_array, $blog_comment_id_array, true, $tags_from_db);
-        $hd_title_str = $ret_array["hd_titel"];
+        $hd_title_str = $ret_array["hd_title_ext"];
 
       }
       else {
         // anzeigen
 
         $ret_array = $this->getEntry($page, $year, $month, $parameter_array, $option_array, $blog_comment_id_array);
-        $hd_title_str = $ret_array["hd_titel"];
+        $hd_title_str = $ret_array["hd_title_ext"];
 
       } // suche oder anzeigen
 
-      $ersetzen .= "<div id=\"blog\">\n";
+      $replace .= "<div id=\"blog\">\n";
 
-      $ersetzen .= $ret_array["inhalt"];
+      $replace .= $ret_array["content"];
       $errorstring .= $ret_array["error"];
 
-      $ersetzen .= "</div>\n";
+      $replace .= "</div>\n";
 
       // blogleiste
 
-      if (isset($ret_array["tagliste"])) {
-        $tagliste = $ret_array["tagliste"];
+      if (isset($ret_array["taglist"])) {
+        $taglist = $ret_array["taglist"];
       }
       else {
-        $tagliste .= $this->tagliste("", $tags_from_db);	// default
+        $taglist .= $this->taglist("", $tags_from_db);	// default
       }
 
-      if (isset($ret_array["jahr_monat_liste"])) {
-        $jahr_monat_liste = $ret_array["jahr_monat_liste"];
+      if (isset($ret_array["year_month_list"])) {
+        $year_month_list = $ret_array["year_month_list"];
       }
       else {
-        $jahr_monat_liste .= $this->jahr_monat_liste(0, 0);	// default
+        $year_month_list .= $this->year_month_list(0, 0);	// default
       }
 
-      $ersetzen .= "<div id=\"blogleiste\">\n".$tagliste.$jahr_monat_liste."</div>\n";
+      $replace .= "<div id=\"blogstrip\">\n".$taglist.$year_month_list."</div>\n";
 
-      $ersetzen .= "<div id=\"blogcommentform\">\n";
+      $replace .= "<div id=\"blogcommentform\">\n";
 
       // kommentar
       if (sizeof($option_array) > 0) {
         // nur wenn einträge angezeigt werden
 
         $ret_array = $this->getComment($parameter_array, $option_array, $compage);
-        $ersetzen .= $ret_array["inhalt"];
+        $replace .= $ret_array["content"];
         $errorstring .= $ret_array["error"];
 
       } // kommentar
 
-      $ersetzen .= "</div>";
+      $replace .= "</div>";
 
     } // datenbank
     else {
       $errorstring .= "<br>db error\n";
     }
 
-    return array("hd_titel" => $hd_title_str, "inhalt" => $ersetzen, "error" => $errorstring);
+    return array("hd_title_ext" => $hd_title_str, "content" => $replace, "error" => $errorstring);
   }
 
   // in blog suchen
   private function getQuery($blog_query_or_tag, $page, &$parameter_array, &$option_array, &$blog_comment_id_array, $tagflag, $tags_from_db) {
     $hd_title_str = "";
-    $ersetzen = "";
-    $tagliste = "";
+    $replace = "";
+    $taglist = "";
     $errorstring = "";
     if (!$tagflag) { 
       $hd_title_str = " query";
@@ -629,7 +675,7 @@ class Blog extends Model {
         // tag
         $sql = "SELECT ba_blog.ba_id FROM ba_blog INNER JOIN ba_blogcategory ON ba_blog.ba_catid = ba_blogcategory.ba_id WHERE ba_state >= ".STATE_PUBLISHED." AND (CONCAT(ba_category, ', ', ba_tags) RLIKE ?)";	// (1) ohne LIMIT
       }
-      $stmt = $this->datenbank->prepare($sql);	// liefert mysqli-statement-objekt
+      $stmt = $this->database->prepare($sql);	// liefert mysqli-statement-objekt
       if ($stmt) {
         // wenn kein fehler 5a
 
@@ -645,11 +691,11 @@ class Blog extends Model {
 
         if (!$tagflag) {
           // query
-          $results = $anzahl_e." Ergebnisse";
+          $results = $anzahl_e." ".$this->language["FRONTEND_RESULTS"];
           if ($anzahl_e == 1) {
-            $results = $anzahl_e." Ergebnis";
+            $results = $anzahl_e." ".$this->language["FRONTEND_RESULT"];
           }
-          $ersetzen = "<p>".$results."</p>\n";
+          $replace = "<p>".$results."</p>\n";
         }
         else {
           // tag
@@ -676,13 +722,13 @@ class Blog extends Model {
           // zugriff auf mysql datenbank (6), in mysql select mit prepare() - sql injections verhindern
           if (!$tagflag) {
             // query
-            $sql = "SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_text RLIKE ?) ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;	// (2) mit LIMIT
+            $sql = "SELECT ba_id, ba_date, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_text RLIKE ?) ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;	// (2) mit LIMIT
           }
           else {
             // tag
-            $sql = "SELECT ba_blog.ba_id, ba_date, ba_text, ba_videoid, ba_fotoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid INNER JOIN ba_blogcategory ON ba_blog.ba_catid = ba_blogcategory.ba_id WHERE ba_state >= ".STATE_PUBLISHED." AND (CONCAT(ba_category, ', ', ba_tags) RLIKE ?) ORDER BY ba_blog.ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;		// (2) mit LIMIT
+            $sql = "SELECT ba_blog.ba_id, ba_date, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid INNER JOIN ba_blogcategory ON ba_blog.ba_catid = ba_blogcategory.ba_id WHERE ba_state >= ".STATE_PUBLISHED." AND (CONCAT(ba_category, ', ', ba_tags) RLIKE ?) ORDER BY ba_blog.ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;		// (2) mit LIMIT
           }
-          $stmt = $this->datenbank->prepare($sql);	// liefert mysqli-statement-objekt
+          $stmt = $this->database->prepare($sql);	// liefert mysqli-statement-objekt
           if ($stmt) {
             // wenn kein fehler 6a
 
@@ -692,8 +738,8 @@ class Blog extends Model {
 
             $stmt->store_result();
 
-            $stmt->bind_result($datensatz["ba_id"],$datensatz["ba_date"],$datensatz["ba_text"],$datensatz["ba_videoid"],$datensatz["ba_fotoid"],$datensatz["full_name"]);
-            // oder ohne array datensatz: $stmt->bind_result($ba_id, $ba_date, $ba_text, $ba_videoid, $ba_fotoid, $full_name);
+            $stmt->bind_result($dataset["ba_id"],$dataset["ba_date"],$dataset["ba_text"],$dataset["ba_videoid"],$dataset["ba_photoid"],$dataset["full_name"]);
+            // oder ohne array dataset: $stmt->bind_result($ba_id, $ba_date, $ba_text, $ba_videoid, $ba_photoid, $full_name);
             // mysqli-statement-objekt kennt kein fetch_assoc(), nur fetch(), kein array als rückgabe
 
             // suche ausgeben (2), bei mehreren ergebnissen auf mehreren seiten
@@ -718,8 +764,8 @@ class Blog extends Model {
 
             // blog schreiben , ausgabeschleife
             $header_flag = true;
-            while ($stmt->fetch()) {	// $datensatz = $stmt->fetch_assoc(), fetch_assoc() liefert array, solange nicht NULL (letzter datensatz), hier jetzt nur fetch()
-              $ersetzen .= $this->blog_line($datensatz, $option_array, $blog_comment_id_array, $query_data, $header_flag, $num_sentences);
+            while ($stmt->fetch()) {	// $dataset = $stmt->fetch_assoc(), fetch_assoc() liefert array, solange nicht NULL (letzter datensatz), hier jetzt nur fetch()
+              $replace .= $this->blog_line($dataset, $option_array, $blog_comment_id_array, $query_data, $header_flag, $num_sentences);
               $header_flag = false;	// nur erster schleifenaufruf
             }
 
@@ -734,14 +780,14 @@ class Blog extends Model {
               $query_data["tag"] = mb_strtolower($blog_query_or_tag, MB_ENCODING);
             }
             $query_data["page"] = 0;
-            $ersetzen .= $this->seitenauswahl($anzahl_s, $page, false, true, $query_data);
+            $replace .= $this->page_index($anzahl_s, $page, false, true, $query_data);
 
             // tags
             if ($tagflag) {
-              $tagliste .= $this->tagliste($blog_query_or_tag, $tags_from_db);
+              $taglist .= $this->taglist($blog_query_or_tag, $tags_from_db);
             }
             else {
-              $tagliste .= $this->tagliste("", $tags_from_db);
+              $taglist .= $this->taglist("", $tags_from_db);
             }
 
           }
@@ -764,14 +810,14 @@ class Blog extends Model {
       $errorstring .= "<br>empty query or tag\n";	// query leer
     }
 
-    return array("hd_titel" => $hd_title_str, "inhalt" => $ersetzen, "tagliste" => $tagliste, "error" => $errorstring);
+    return array("hd_title_ext" => $hd_title_str, "content" => $replace, "taglist" => $taglist, "error" => $errorstring);
   }
 
   // blog anzeigen
   private function getEntry($page, $year, $month, &$parameter_array, &$option_array, &$blog_comment_id_array) {
     $hd_title_str = "";
-    $ersetzen = "";
-    $tagliste = "";
+    $replace = "";
+    $taglist = "";
     $errorstring = "";
 
     // options
@@ -780,7 +826,7 @@ class Blog extends Model {
 
     // zugriff auf mysql datenbank (5)
     $sql = "SELECT ba_id FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id != 1";
-    $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
+    $ret = $this->database->query($sql);	// liefert in return db-objekt
     if ($ret) {
       // wenn kein fehler 5b
 
@@ -809,12 +855,15 @@ class Blog extends Model {
       elseif (isset($year) and is_numeric($year)) {
         // year als zahl vorhanden und nicht NULL
 
+        $year_min = $this->year_min();
+        $year_max = $this->year_max();
+
         // year eingrenzen
-        if ($year < self::$year_min) {
-          $year = sel::$year_min;
+        if ($year < $year_min) {
+          $year = $year_min;
         }
-        elseif ($year > $this->year_max()) {
-          $year = $this->year_max();
+        elseif ($year > $year_max) {
+          $year = $year_max;
         }
 
         $show_year = true;
@@ -867,22 +916,22 @@ class Blog extends Model {
       // zugriff auf mysql datenbank (6)
       $sql = "";	// blog eintrag nr.1 nur auf erster seite, danach alle absteigend 100..99...2 (ohne 1)
       if ($page == 1 or $show_year == true) {
-        $sql .= "SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id = 1".
+        $sql .= "SELECT ba_id, ba_date, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id = 1".
                 "\nUNION\n";
       }
       if ($show_page == true) {
-        $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id != 1 ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps.")";
+        $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id != 1 ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps.")";
       }
       elseif ($show_year == true and $show_month == false) {
-        $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$year." ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
+        $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$year." ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
       }
       elseif ($show_year == true and $show_month == true) {
-        $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$year." AND MONTH(ba_datetime) = ".$month." ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
+        $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$year." AND MONTH(ba_datetime) = ".$month." ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
       }
       else {
-        $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_fotoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id = 1)";
+        $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id = 1)";
       }
-      $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
+      $ret = $this->database->query($sql);	// liefert in return db-objekt
       if ($ret) {
         // wenn kein fehler 6b
 
@@ -904,8 +953,8 @@ class Blog extends Model {
 
         // blog schreiben , ausgabeschleife
         $header_flag = true;
-        while ($datensatz = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
-          $ersetzen .= $this->blog_line($datensatz, $option_array, $blog_comment_id_array, $query_data, $header_flag, $num_sentences);
+        while ($dataset = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
+          $replace .= $this->blog_line($dataset, $option_array, $blog_comment_id_array, $query_data, $header_flag, $num_sentences);
           $header_flag = false;	// nur erster schleifenaufruf
         }
 
@@ -918,28 +967,28 @@ class Blog extends Model {
       }
 
       // seitenauswahl mit links und vor/zurück
-      $ersetzen .= $this->seitenauswahl($anzahl_s, $page, $show_page, $show_page);
+      $replace .= $this->page_index($anzahl_s, $page, $show_page, $show_page);
 
       // links jahr, monat mit anzahl einträge als aufklappbare liste
-      $jahr_monat_liste .= $this->jahr_monat_liste($year, $month, $show_year, $show_month);
+      $year_month_list .= $this->year_month_list($year, $month, $show_year, $show_month);
 
     }
     else {
       $errorstring .= "<br>db error 5b\n";
     }
 
-    return array("hd_titel" => $hd_title_str, "inhalt" => $ersetzen, "jahr_monat_liste" => $jahr_monat_liste, "error" => $errorstring);
+    return array("hd_title_ext" => $hd_title_str, "content" => $replace, "year_month_list" => $year_month_list, "error" => $errorstring);
   }
 
   // kommentar
   private function getComment(&$parameter_array, &$option_array, $compage) {
-    $ersetzen = "";
+    $replace = "";
     $errorstring = "";
 
     // options
     $anzahl_cps = intval($this->getOption_by_name("blog_comments_per_page"));	// anzahl kommentare pro seite = 20
 
-    $ersetzen .= "<p><a name=\"comment\"></a><b>Kommentar:</b></p>\n";
+    $replace .= "<p><a name=\"comment\"></a><b>".$this->language["FRONTEND_COMMENT"]."</b></p>\n";
 
     // für SELECT
     $min_blogid = 0;
@@ -972,7 +1021,7 @@ class Blog extends Model {
 
     // zugriff auf mysql datenbank (7)
     $sql = "SELECT ba_id FROM ba_comment WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_blogid = 1 OR ".$sql_part.")";
-    $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
+    $ret = $this->database->query($sql);	// liefert in return db-objekt
     if ($ret) {
       // wenn kein fehler 7
 
@@ -991,34 +1040,35 @@ class Blog extends Model {
       $lmt_start = ($compage-1) * $anzahl_cps;
 
       // zugriff auf mysql datenbank (8)
-      $sql = "SELECT ba_id, ba_date, ba_name, ba_mail, ba_text, ba_comment, ba_blogid FROM ba_comment WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_blogid = 1 OR ".$sql_part.") ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_cps;
-      $ret = $this->datenbank->query($sql);	// liefert in return db-objekt
+      $sql = "SELECT ba_id, ba_date, ba_name, ba_mail, ba_text, ba_comment, ba_blogid, IFNULL(full_name,'nobody') FROM ba_comment LEFT JOIN backend ON backend.id = ba_comment.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_blogid = 1 OR ".$sql_part.") ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_cps;
+      $ret = $this->database->query($sql);	// liefert in return db-objekt
       if ($ret) {
         // wenn kein fehler 8
 
         // kommentare schreiben, ausgabeschleife
-        while ($datensatz = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
+        while ($dataset = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
 
-          $comment_id = intval($datensatz["ba_id"]);
-          $date = date_create($datensatz["ba_date"]);
+          $comment_id = intval($dataset["ba_id"]);
+          $date = date_create($dataset["ba_date"]);
           $comment_date = date_format($date, "d.m.y / H:i");
-          $comment_name = stripslashes($this->html5specialchars($datensatz["ba_name"]));
-          $comment_mail = stripslashes($this->html5specialchars($datensatz["ba_mail"]));
-          $comment_text = stripslashes(nl2br($this->html5specialchars($datensatz["ba_text"])));
-          $comment_comment = stripslashes(nl2br($this->html5specialchars($datensatz["ba_comment"])));
-          //$comment_blogid = intval($datensatz["ba_blogid"]);
+          $comment_name = stripslashes($this->html5specialchars($dataset["ba_name"]));
+          $comment_mail = stripslashes($this->html5specialchars($dataset["ba_mail"]));
+          $comment_text = stripslashes(nl2br($this->html5specialchars($dataset["ba_text"])));
+          $comment_comment = stripslashes(nl2br($this->html5specialchars($dataset["ba_comment"])));
+          //$comment_blogid = intval($dataset["ba_blogid"]);
+          $comment_full_name = stripslashes($this->html5specialchars($dataset["full_name"]));	// comment commenters full name
 
-          $ersetzen .= "<p><a name=\"comment".$comment_id."\"></a><b>[".$comment_date."]</b> <span id=\"white\">";
+          $replace .= "<p><a name=\"comment".$comment_id."\"></a><b>[".$comment_date."]</b> <span id=\"white\">";
           if ($comment_mail != "") {
-            $ersetzen .= "<a href=\"mailto:".$comment_mail."\">".$comment_name."</a>";
+            $replace .= "<a href=\"mailto:".$comment_mail."\">".$comment_name."</a>";
           }
           else {
-            $ersetzen .= $comment_name;
+            $replace .= $comment_name;
           }
-          $ersetzen .= ":</span> ".$comment_text."</p>\n";
+          $replace .= ":</span> ".$comment_text."</p>\n";
 
           if ($comment_comment != "") {
-            $ersetzen .= "<p><i>Morgana: ".$comment_comment."</i></p>\n";
+            $replace .= "<p><i>".$comment_full_name.": ".$comment_comment."</i></p>\n";
           }
 
         } // while
@@ -1057,7 +1107,7 @@ class Blog extends Model {
 
       // seitenauswahl mit links und vor/zurück
       $query_data["compage"] = 0;
-      $ersetzen .= $this->seitenauswahl($anzahl_s, $compage, true, true, $query_data, "#comment");
+      $replace .= $this->page_index($anzahl_s, $compage, true, true, $query_data, "#comment");
 
     }
     else {
@@ -1065,55 +1115,58 @@ class Blog extends Model {
     }
 
     // kommentar formular
-    $ersetzen .= "<form action=\"index.php\" method=\"post\">\n".
-                 "<div id=\"input_name\">Name:\n".
-                 "<br><input type=\"text\" name=\"comment[name]\" class=\"size_20\" maxlength=\"".MAXLEN_COMMENTNAME."\" />\n".
-                 "</div>\n".
-                 "<div id=\"input_mail\">Mail:\n".
-                 "<br><input type=\"text\" name=\"comment[mail]\" class=\"size_20\" maxlength=\"".MAXLEN_COMMENTMAIL."\" />\n".
-                 "</div>\n".
-                 "<div id=\"input_website\">Website:\n".
-                 "<br><input type=\"text\" name=\"comment[website]\" class=\"size_20\" maxlength=\"".MAXLEN_COMMENTURL."\" value=\"http://\" />\n".
-                 "</div>\n".
-                 "<p>Der Blog-Eintrag auf dem sich dein Kommentar bezieht:\n".
-                 "<br><select name=\"comment[blogid]\" size=\"1\">\n".
-                 "<option value=\"0\" selected>Ich bin ein Bot und mein Kommentar wird ignoriert</option>\n";
+    $replace .= "<form action=\"index.php\" method=\"post\">\n".
+                "<div id=\"input_name\">".$this->language["PROMPT_NAME"]."\n".
+                "<br><input type=\"text\" name=\"comment[name]\" class=\"size_20\" maxlength=\"".MAXLEN_COMMENTNAME."\" />\n".
+                "</div>\n".
+                "<div id=\"input_mail\">".$this->language["PROMPT_MAIL"]."\n".
+                "<br><input type=\"text\" name=\"comment[mail]\" class=\"size_20\" maxlength=\"".MAXLEN_COMMENTMAIL."\" />\n".
+                "</div>\n".
+                "<div id=\"input_website\">".$this->language["PROMPT_WEBSITE"]."\n".
+                "<br><input type=\"text\" name=\"comment[website]\" class=\"size_20\" maxlength=\"".MAXLEN_COMMENTURL."\" value=\"http://\" />\n".
+                "</div>\n".
+                "<p>".$this->language["FRONTEND_PROMPT_BLOGENTRY"]."\n".
+                "<br><select name=\"comment[blogid]\" size=\"1\">\n".
+                "<option value=\"0\" selected>".$this->language["FRONTEND_IGNORE_MY_COMMENT"]."</option>\n";
     foreach ($option_array as $blogid => $blogtext) {
       if ($blogid == 1) {
-        $blogtext = "keiner";
+        $blogtext = $this->language["FRONTEND_NONE"];
       }
-      $ersetzen .= "<option value=\"".$blogid."\">".$blogtext."</option>\n";
+      $replace .= "<option value=\"".$blogid."\">".$blogtext."</option>\n";
     }
-    $ersetzen .= "</select></p>\n".
-                 "<p>Kommentar (max. 2048 Zeichen):\n".
-                 "<br><textarea name=\"comment[text]\" class=\"cols_60_rows_6\"></textarea></p>\n".
-                 "<p><input type=\"submit\" value=\"send\" /><input type=\"reset\" value=\"clear\" /></p>\n".
-                 "</form>\n";
+    $replace .= "</select></p>\n".
+                "<p>".$this->language["FRONTEND_PROMPT_COMMENT_MAXLEN"]."\n".
+                "<br><textarea name=\"comment[text]\" class=\"cols_60_rows_6\"></textarea></p>\n".
+                "<p><input type=\"submit\" value=\"".$this->language["BUTTON_SEND"]."\" /><input type=\"reset\" value=\"".$this->language["BUTTON_CLEAR"]."\" /></p>\n".
+                "</form>\n";
 
-    return array("inhalt" => $ersetzen, "error" => $errorstring);
+    return array("content" => $replace, "error" => $errorstring);
   }
 
   // comment_array[name, mail, website, blogid, text]
   public function postComment($comment_name, $comment_mail, $comment_website, $comment_blogid, $comment_text) {
-    $ersetzen = "";
+    $replace = "";
     $errorstring = "";
 
-    if (!$this->datenbank->connect_errno) {
+    if (!$this->database->connect_errno) {
       // wenn kein fehler
 
-      $ersetzen = "<!-- blog (POST comment) -->\n".
-                  "<div id=\"blog\">\n";
+      // options
+      $contact_mail = stripslashes($this->getOption_by_name("contact_mail", true));	// als string
+
+      $replace = "<!-- blog (POST comment) -->\n".
+                 "<div id=\"blog\">\n";
 
       // IP zeitlimit überprüfen
       $comment_ip = $_SERVER["REMOTE_ADDR"];
       $sql = "SELECT ba_ip,
                      TIMESTAMPDIFF(MINUTE, ba_date, NOW()) AS zeitdifferenz
               FROM ba_comment ORDER BY ba_id DESC LIMIT 1";
-      $ret = $this->datenbank->query($sql);	// letzte eingetragene zeile IP und zeitdifferenz auslesen
-      $datensatz = $ret->fetch_assoc();	// IP und zeitdifferenz auswertbar als array
+      $ret = $this->database->query($sql);	// letzte eingetragene zeile IP und zeitdifferenz auslesen
+      $dataset = $ret->fetch_assoc();	// IP und zeitdifferenz auswertbar als array
 
       // gleiche IP und weniger als 1 minute ist nicht ok
-      if ($comment_ip != $datensatz["ba_ip"] or $datensatz["zeitdifferenz"] > 1) {
+      if ($comment_ip != $dataset["ba_ip"] or $dataset["zeitdifferenz"] > 1) {
         // wenn kein zeit-limit
 
         if ($comment_website == "http://") {
@@ -1142,7 +1195,7 @@ class Blog extends Model {
 
               // in mysql einfügen mit prepare() - sql injections verhindern
               $sql = "INSERT INTO ba_comment(ba_date, ba_ip, ba_name, ba_mail, ba_text, ba_blogid, ba_state) VALUES (NOW(), ?, ?, ?, ?, ?, ?)";
-              $stmt = $this->datenbank->prepare($sql);	// liefert mysqli-statement-objekt
+              $stmt = $this->database->prepare($sql);	// liefert mysqli-statement-objekt
               if ($stmt) {
                 // wenn kein fehler 9
 
@@ -1150,9 +1203,9 @@ class Blog extends Model {
                 $stmt->bind_param("ssssii", $comment_ip, $comment_name, $comment_mail, $comment_text, $comment_blogid, $comment_state);
                 $stmt->execute();	// ausführen geänderte zeile
 
-                $ersetzen .= "<p>Dein Kommentar wird in Kürze freigegeben, zensiert oder gelöscht - <a href=\"index.php?action=blog#comment\">Zurück zum Blog</a> (automatisch in 10 Sekunden)</p>\n";
+                $replace .= "<p>".$this->language["FRONTEND_MSG_NEW_COMMENT"]." - <a href=\"index.php?action=blog#comment\">".$this->language["FRONTEND_MSG_RETURN_TO_BLOG"]."</a> ".$this->language["FRONTEND_MSG_AUTOMATIC_IN_10_SECONDS"]."</p>\n";
 
-                mail(MAILADDR, "neuer blog kommentar", $comment_name." (".$comment_mail."): ".$comment_text." (".$comment_blogid.")", "from:".MAILADDR);
+                mail($contact_mail, $this->language["FRONTEND_MSG_NEW_BLOG_COMMENT"], $comment_name." (".$comment_mail."): ".$comment_text." (".$comment_blogid.")", "from:".$contact_mail);
 
               }
               else {
@@ -1161,29 +1214,29 @@ class Blog extends Model {
 
             }
             else {
-              $ersetzen .= "<p>spamfilter</p>\n";
+              $replace .= "<p>".$this->language["FRONTEND_MSG_SPAMFILTER"]."</p>\n";
             }
 
           }
           else {
-            $ersetzen .= "<p>Leere Felder - Kein Inhalt</p>\n";
+            $replace .= "<p>".$this->language["FRONTEND_MSG_EMPTY_FIELDS"]."</p>\n";
           }
 
         } // kein honeypot
 
       }
       else {
-        $ersetzen .= "<p>Zeit-Limit 1 Minute</p>\n";
+        $replace .= "<p>".$this->language["FRONTEND_MSG_TIMELIMIT_MINUTES"]."</p>\n";
       }
 
-      $ersetzen .= "</div>";
+      $replace .= "</div>";
 
     } // datenbank
     else {
       $errorstring .= "<br>db error\n";
     }
 
-    return array("inhalt" => $ersetzen, "error" => $errorstring);
+    return array("content" => $replace, "error" => $errorstring);
   }
 
 }

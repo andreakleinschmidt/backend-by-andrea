@@ -1,4 +1,4 @@
-var div_id = "fotoleiste";
+var div_id = "photostrip";
 var offset = 0;
 var speed = 50;
 var step = 10;

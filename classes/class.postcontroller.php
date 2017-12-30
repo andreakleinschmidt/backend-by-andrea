@@ -23,7 +23,7 @@ class PostController {
     $login = $this->model->getLogin();	// daten für login aus dem model
     $view->setContent("login", $login["login"]);
 
-    $ret = null;	// ["inhalt","error"]
+    $ret = null;	// ["content","error"]
 
     // POST überprüfen
     if (isset($_POST["comment"])) {
@@ -54,20 +54,20 @@ class PostController {
       }
 
       $ret = $model_blog->postComment($comment_name, $comment_mail, $comment_website, $comment_blogid, $comment_text);	// daten für comment in das model
-      $view->setContent("hd_titel", " blog (comment)");
+      $view->setContent("hd_title_ext", " blog (comment)");
 
     } // comment[]
 
     else {
       $errorstring = "<p>POST error</p>\n\n";
-      $ret["inhalt"] = "";
+      $ret["content"] = "";
       $ret["error"] = $errorstring;
     }
 
     // redirect index.php?action=blog#comment
     header("refresh:10;index.php?action=blog#comment");
 
-    $view->setContent("inhalt", $ret["inhalt"]);
+    $view->setContent("content", $ret["content"]);
     $view->setContent("error", $login["error"].$ret["error"]);
 
     return $view->parseTemplate();	// ausgabe geändertes template

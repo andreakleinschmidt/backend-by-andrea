@@ -10,7 +10,7 @@
 class View {
 
   private $template;	// name des templates (hier "default" oder "atom")
-  private $content = array();	// array mit variablen (feed, error) für das template
+  private $content_arr = array();	// array mit variablen (feed, error) für das template
 
   // template auswählen
   public function setTemplate($template = "default") {
@@ -19,7 +19,7 @@ class View {
 
   // daten in array speichern
   public function setContent($key, $value) {
-    $this->content[$key] = $value;
+    $this->content_arr[$key] = $value;
   }
 
   // DOM tag als child in parent einfügen
@@ -44,9 +44,9 @@ class View {
 
       if ($root_node->tagName == "feed") {
 
-        $feed = $this->content["feed"];
+        $feed = $this->content_arr["feed"];
         // $feed = array("updated" => $atomupdated, "entry" => array(20))
-        // array(20) => array("title" => $atomtitel,
+        // array(20) => array("title" => $atomtitle,
         //                    "link" => $atomlink,
         //                    "id" => $atomid,
         //                    "updated" => $atomupdated,
@@ -88,7 +88,7 @@ class View {
 
         } // foreach entry
 
-        $errorstring = $this->content["error"];
+        $errorstring = $this->content_arr["error"];
         if (strlen($errorstring) > 0) {
 
           // <entry></entry>

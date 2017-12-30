@@ -26,7 +26,7 @@ class GetController {
     $this->action = !empty($_GET["action"]) ? substr(trim($_GET["action"]), 0, 8) : "home";	// GET auslesen, überflüssige leerzeichen entfernen, zu langes GET abschneiden
     $this->language = !empty($_GET["lang"]) ? substr(trim($_GET["lang"]), 0, 4) : "de";	// GET auslesen, überflüssige leerzeichen entfernen, zu langes GET abschneiden
     $this->gallery = !empty($_GET["gallery"]) ? substr(trim($_GET["gallery"]), 0, 16) : NULL;	// GET gallery auslesen, überflüssige leerzeichen entfernen, zu langen alias abschneiden
-    $this->id = !empty($_GET["id"]) ? substr(trim($_GET["id"]), 0, 8) : NULL;	// GET id auslesen, überflüssige leerzeichen entfernen, zu lange fotoid abschneiden
+    $this->id = !empty($_GET["id"]) ? substr(trim($_GET["id"]), 0, 8) : NULL;	// GET id auslesen, überflüssige leerzeichen entfernen, zu lange photoid abschneiden
     $this->q = !empty($_GET["q"]) ? mb_substr(trim($_GET["q"]), 0, 64, MB_ENCODING) : NULL;	// GET q auslesen, überflüssige leerzeichen entfernen, zu langes GET abschneiden
     $this->tag = !empty($_GET["tag"]) ? mb_substr(trim($_GET["tag"]), 0, 32, MB_ENCODING) : NULL;	// GET tag auslesen, überflüssige leerzeichen entfernen, zu langes GET abschneiden
     $this->page = !empty($_GET["page"]) ? (is_numeric($_GET["page"]) ? intval($_GET["page"]) : NULL) : NULL;	// GET page auslesen, string in int umwandeln
@@ -67,10 +67,11 @@ class GetController {
     $login = $this->model->getLogin($ret_array);	// daten für login aus dem model, mit login erweiterung als parameter
     $view->setContent("login", $login["login"]);
 
-    $ret = null;	// ["inhalt","error"]
+    $ret = null;	// ["content","error"]
 
     // action überprüfen
-    if ($this->action != "home" and $this->action != "profil" and $this->action != "fotos" and $this->action != "blog") {
+    $actions = array("home", "profile", "photos", "blog");
+    if (!in_array($this->action, $actions)) {
       $this->action = "home";
     }
 
@@ -79,41 +80,41 @@ class GetController {
       $this->language = "de";
     }
 
-    // switch anweisung, {hd_titel} und {inhalt} ersetzen je nach GET-action
+    // switch anweisung, {hd_title_ext} und {content} ersetzen je nach GET-action
 
     switch($this->action) {
 
       case "home": {
         $model_home = new Home();	// model erstellen
         $ret = $model_home->getHome();	// daten für home aus dem model
-        //$view->setContent("hd_titel", " home");
+        //$view->setContent("hd_title_ext", " home");
         break;
       }
 
-      case "profil": {
-        $model_profil = new Profil();	// model erstellen
-        $ret = $model_profil->getProfil($this->language);	// daten für profil aus dem model
-        $view->setContent("hd_titel", " profile");
+      case "profile": {
+        $model_profile = new Profile();	// model erstellen
+        $ret = $model_profile->getProfile($this->language);	// daten für profile aus dem model
+        $view->setContent("hd_title_ext", " profile");
         break;
       }
 
-      case "fotos": {
-        $model_fotos = new Fotos();	// model erstellen
-        $ret = $model_fotos->getFotos($this->gallery, $this->id);	// daten für fotos aus dem model
-        $view->setContent("hd_titel", " photos".$ret["hd_titel"]);
+      case "photos": {
+        $model_photos = new Photos();	// model erstellen
+        $ret = $model_photos->getPhotos($this->gallery, $this->id);	// daten für photos aus dem model
+        $view->setContent("hd_title_ext", " photos".$ret["hd_title_ext"]);
         break;
       }
 
       case "blog": {
         $model_blog = new Blog();	// model erstellen
         $ret = $model_blog->getBlog($this->q, $this->tag, $this->page, $this->year, $this->month, $this->compage);	// daten für blog aus dem model
-        $view->setContent("hd_titel", " blog".$ret["hd_titel"]);
+        $view->setContent("hd_title_ext", " blog".$ret["hd_title_ext"]);
         break;
       }
 
     } // switch
 
-    $view->setContent("inhalt", $ret["inhalt"]);
+    $view->setContent("content", $ret["content"]);
     $view->setContent("error", $login["error"].$ret["error"]);
 
     return $view->parseTemplate();	// ausgabe geändertes template

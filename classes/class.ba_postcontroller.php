@@ -35,8 +35,8 @@ class PostController {
 // *** funktionen ***
 // *****************************************************************************
 
-  // generate random password
-  private function gen_password($len = 8) {
+  // generate random password mit duplikaten (für email und shared secret)
+  private function gen_password($len) {
     $char_pool = "abcdefghijklmnopqrstuvwxyz".
                  "ABCDEFGHIJKLMNOPQRSTUVWXYZ".
                  "0123456789".
@@ -48,15 +48,6 @@ class PostController {
       $len = MAXLEN_PASSWORD;
     }
 
-    return substr(str_shuffle($char_pool), 0, $len);	// nur ascii
-  }
-
-  // generate random alphanumeric password (mit duplikaten)
-  private function gen_anum_password($len = 16) {
-    $char_pool = "abcdefghijklmnopqrstuvwxyz".
-                 "ABCDEFGHIJKLMNOPQRSTUVWXYZ".
-                 "0123456789";
-
     $pwd_str = "";
     for ($i = 0; $i < $len; $i++) {
       $offset = mt_rand(0, strlen($char_pool)-1);	// nur ascii
@@ -66,13 +57,25 @@ class PostController {
     return $pwd_str;
   }
 
+  // PBKDF2
+  private function generate_shared_secret($password) {
+    $salt = openssl_random_pseudo_bytes(16);
+    $iterations = 1000;
+    $keylength = 10;	// 80 bit
+    $shared_secret = openssl_pbkdf2($password, $salt, $keylength, $iterations, "sha1");
+    return $shared_secret;
+  }
+
   // berechne code (zwei-faktor-authentifizierung)
-  private function get_code($secret, $ts, $n=0, $digits=8) {
+  private function get_code($secret, $ts, $n=0, $digits=6) {
     $tc = floor($ts/30)+$n;				// n: z.B n-1 -> tc-1
-    $hash = hash_hmac("sha256", $tc, $secret, true);	// raw binary output
+    $tc = chr(0).chr(0).chr(0).chr(0).pack("N*", $tc);	// unsigned long (32 bit), big endian
+    $hash = hash_hmac("sha1", $tc, $secret, true);	// raw binary output
     $offset = ord(substr($hash, -1, 1)) & 0x0F;		// least 4 significant bits
     $hotp = substr($hash, $offset, 4);			// 4 bytes ab offset...
-    $hotp = hexdec(bin2hex($hotp)) & 0x7FFFFFFF;	// ...MSB verwerfen (unsigned 32 bit)
+    $first = chr(ord(substr($hotp, 0, 1)) & 0x7F);	// MSB verwerfen...
+    $hotp = substr_replace($hotp, $first, 0, 1);	// ...unsigned 32 bit
+    $hotp = reset(unpack("N", $hotp));			// unsigned long (32 bit), big endian
     $code = $hotp % pow(10, $digits);			// code mit x ziffern
     $code = str_pad($code, $digits, "0", STR_PAD_LEFT);	// von links auffüllen mit 0, falls weniger als x ziffern
     return $code;
@@ -123,7 +126,7 @@ class PostController {
           if ($this->user_login != "" and mb_strlen($this->user_login, MB_ENCODING) <= MAXLEN_USER and $this->password != "" and mb_strlen($this->password, MB_ENCODING) <= MAXLEN_PASSWORD) {
             // test auf leere felder
 
-            // vergleich mit datenbank (passwort in datenbank ist md5 mit salt)
+            // vergleich mit datenbank (passwort in datenbank ist blowfish hash mit random salt)
             $ret = $this->model->check_user($this->user_login);
 
             if ($ret["check"] = true) {
@@ -131,13 +134,14 @@ class PostController {
               $user_id = $ret["user_id"];
               $user_role = $ret["user_role"];
               $user_login = $ret["user_login"];
+              $user_locale = $ret["user_locale"];
               $password_hash = $ret["password_hash"];
-              $telegram_id = $ret["telegram_id"];
               $use_2fa = $ret["use_2fa"];
               $last_code = $ret["last_code"];
+              $base64_secret = $ret["base64_secret"];
 
               if (DEBUG) { $debug_str .= "<br>010 pwd-hash = ".$password_hash."\n"; }
-              if (crypt($this->password, $password_hash) == $password_hash) {
+              if (hash_equals(crypt($this->password, $password_hash), $password_hash)) {
                 // passwort stimmt
 
                 $login_1 = true;
@@ -145,18 +149,14 @@ class PostController {
                 // optional zwei-faktor-authentifizierung
                 if ($use_2fa > 0) {
 
-                  $random_pwd = $this->gen_anum_password();	// generate random alphanumeric password (mit duplikaten)
-
-                  $_SESSION["login_random_pwd"] = $random_pwd;
-                  $_SESSION["login_telegram_id"] = $telegram_id;
                   $_SESSION["login_last_code"] = $last_code;
+                  $_SESSION["login_base64_secret"] = $base64_secret;
 
-                  if (DEBUG) { $debug_str .= "<br>2fa random_pwd = ".$random_pwd."\n"; }
-                  if (DEBUG) { $debug_str .= "<br>2fa telegram_id = ".$telegram_id."\n"; }
                   if (DEBUG) { $debug_str .= "<br>2fa last_code = ".$last_code."\n"; }
+                  if (DEBUG) { $debug_str .= "<br>2fa base64_secret = ".$base64_secret."\n"; }
 
                   // login form 2fa
-                  $html_backend_ext = $this->model->html_form_2fa($random_pwd);
+                  $html_backend_ext = $this->model->html_form_2fa();
 
                 } // $use_2fa
                 else {
@@ -186,22 +186,20 @@ class PostController {
         } // password in POST
 
         // POST überprüfen
-        elseif (isset($this->code, $_SESSION["login_passed"], $_SESSION["login_random_pwd"], $_SESSION["login_telegram_id"], $_SESSION["login_last_code"])) {
+        elseif (isset($this->code, $_SESSION["login_passed"], $_SESSION["login_last_code"], $_SESSION["login_base64_secret"])) {
 
           $login_passed = $_SESSION["login_passed"];
-          $random_pwd = $_SESSION["login_random_pwd"];
-          $telegram_id = $_SESSION["login_telegram_id"];
           $last_code= $_SESSION["login_last_code"];
+          $base64_secret = $_SESSION["login_base64_secret"];
+
 
           unset($_SESSION["login_passed"]);
-          unset($_SESSION["login_random_pwd"]);
-          unset($_SESSION["login_telegram_id"]);
           unset($_SESSION["login_last_code"]);
+          unset($_SESSION["login_base64_secret"]);
 
           if (DEBUG) { $debug_str .= "<br>2fa first login passed (1) = ".$login_passed."\n"; }
-          if (DEBUG) { $debug_str .= "<br>2fa random_pwd = ".$random_pwd."\n"; }
-          if (DEBUG) { $debug_str .= "<br>2fa telegram_id = ".$telegram_id."\n"; }
           if (DEBUG) { $debug_str .= "<br>2fa last_code = ".$last_code."\n"; }
+          if (DEBUG) { $debug_str .= "<br>2fa base64_secret = ".$base64_secret."\n"; }
 
           if ($login_passed) {
 
@@ -211,9 +209,9 @@ class PostController {
               // test auf leere felder
 
               $unix_ts = time();	// totp - time based one time password
-              $secret = sha1($random_pwd.$telegram_id);
-              $own_code = $this->get_code($secret, $unix_ts);
-              $own_code_n1 = $this->get_code($secret, $unix_ts, -1);
+              $shared_secret = base64_decode($base64_secret);
+              $own_code = $this->get_code($shared_secret, $unix_ts);
+              $own_code_n1 = $this->get_code($shared_secret, $unix_ts, -1);
               if (DEBUG) { $debug_str .= "<br>010 own_code = ".$own_code."\n"; }
               if (DEBUG) { $debug_str .= "<br>010 own_code_n1 = ".$own_code_n1."\n"; }
               if (DEBUG) { $debug_str .= "<br>010 last_code = ".$last_code."\n"; }
@@ -250,7 +248,7 @@ class PostController {
 
         if ($login_1) {
           // password in POST
-          $ret = $this->session->set_user_login($user_id, $user_role, $user_login);	// server session erweitern (mit variablen für user login)
+          $ret = $this->session->set_user_login($user_id, $user_role, $user_login, $user_locale);	// server session erweitern (mit variablen für user login)
           if (DEBUG) { $debug_str .= $ret; }
         }
         elseif ($login_2) {
@@ -297,7 +295,7 @@ class PostController {
 
         $html_backend_ext = $this->model->html_backend($_SESSION["user_role"], $_SESSION["user_name"]);
 
-        $ret = null;	// ["inhalt","error"]
+        $ret = null;	// ["content","error"]
 
 // *****************************************************************************
 // *** backend POST password ***
@@ -323,7 +321,7 @@ class PostController {
             // passwort neu 1 und 2 gleich?
             if ($password_new1 == $password_new2) {
 
-              // vergleich mit datenbank (passwort in datenbank ist md5 mit salt)
+              // vergleich mit datenbank (passwort in datenbank ist blowfish hash mit random salt)
               $ret = $this->model->check_password();
 
               if ($ret["check"] = true) {
@@ -331,15 +329,16 @@ class PostController {
                 $password_hash = $ret["password_hash"];
 
                 if (DEBUG) { $debug_str .= "<br>020 pwd-hash = ".$password_hash."\n"; }
-                if (crypt($password, $password_hash) == $password_hash) {
+                if (hash_equals(crypt($password, $password_hash), $password_hash)) {
                   // passwort stimmt
 
-                  $password_new_hash = crypt($password_new1);
+                  // CRYPT_BLOWFISH (60 Zeichen): "$2y$" + default cost "10" + "$" + random 22 zeichen salt + 31 zeichen hash
+                  $password_new_hash = password_hash($password_new1, PASSWORD_BCRYPT);
                   if (DEBUG) { $debug_str .= "<br>021 pwd-n-hash = ".$password_new_hash."\n"; }
 
-                  // update in datenbank (passwort in datenbank ist md5 mit salt)
+                  // update in datenbank (passwort in datenbank ist blowfish hash mit random salt)
                   $ret = $this->model->update_password($password_new_hash);
-                  $html_backend_ext .= $ret["inhalt"];
+                  $html_backend_ext .= $ret["content"];
                   $errorstring = $ret["error"];
 
                 } // passwort ok
@@ -372,11 +371,16 @@ class PostController {
 // *** backend POST twofa ***
 // *****************************************************************************
 
-        elseif (isset($_POST["telegram_id"])) {
-          // telegram_id und use_2fa in POST
+        elseif (isset($_POST["base64_secret"])) {
+          // base64_secret, request_new_secret und use_2fa in POST
 
-          // str zu int
-          $telegram_id = intval($_POST["telegram_id"]);
+          // überflüssige leerzeichen entfernen
+          $base64_secret = trim($_POST["base64_secret"]);
+
+          // zeichen limit
+          if (strlen($base64_secret) > MAXLEN_SHAREDSECRET) {
+            $base64_secret = substr($base64_secret, 0, MAXLEN_SHAREDSECRET);
+          }
 
           $use_2fa = 0;	// default
           if (isset($_POST["use_2fa"])) {
@@ -393,12 +397,25 @@ class PostController {
             }
           } // isset use_2fa
 
+          $request_new_secret = 0;	// default
+          if (isset($_POST["request_new_secret"])) {
+            // überflüssige leerzeichen entfernen
+            $request_new_secret_str = trim($_POST["request_new_secret"]);
+
+            if ($request_new_secret_str == "yes") {
+              // checked
+              $random_pwd = $this->gen_password(16);
+              $shared_secret = $this->generate_shared_secret($random_pwd);
+              $base64_secret = base64_encode($shared_secret);	// für db
+            }
+          } // isset request_new_secret
+
           // update in datenbank
-          $ret = $this->model->update_twofa($telegram_id, $use_2fa);
-          $html_backend_ext .= $ret["inhalt"];
+          $ret = $this->model->update_twofa($use_2fa, $base64_secret);
+          $html_backend_ext .= $ret["content"];
           $errorstring = $ret["error"];
 
-        } // telegram_id und use_2fa in POST
+        } // base64_secret, request_new_secret und use_2fa in POST
 
 // *****************************************************************************
 // *** backend POST home ***
@@ -423,7 +440,7 @@ class PostController {
           }
 
           $ret = $model_home->postHome($ba_home_array_replaced);	// daten für home in das model
-          $html_backend_ext .= $ret["inhalt"];
+          $html_backend_ext .= $ret["content"];
           $errorstring = $ret["error"];
 
         } // ba_home[ba_id]
@@ -435,7 +452,7 @@ class PostController {
         elseif (isset($_POST["ba_profile"]) and ($_SESSION["user_role"] >= ROLE_EDITOR)) {
           // ba_profile[ba_id][ba_tag, ba_text]
 
-          $model_profil = new Profil();	// model erstellen
+          $model_profile = new Profile();	// model erstellen
           $ba_profile_array = $_POST["ba_profile"];
           $ba_profile_array_replaced = array();
 
@@ -454,14 +471,14 @@ class PostController {
             $ba_profile_array_replaced[$ba_id] = array("ba_tag" => $ba_tag, "ba_text" => $ba_text);
           }
 
-          $ret = $model_profil->postProfil($ba_profile_array_replaced);	// daten für profile in das model
-          $html_backend_ext .= $ret["inhalt"];
+          $ret = $model_profile->postProfile($ba_profile_array_replaced);	// daten für profile in das model
+          $html_backend_ext .= $ret["content"];
           $errorstring = $ret["error"];
 
         } // ba_profile[ba_id][ba_tag, ba_text]
 
 // *****************************************************************************
-// *** backend POST galerie (neu) ***
+// *** backend POST gallery (neu) ***
 // *****************************************************************************
 
         elseif (isset($_POST["ba_gallery_new"]) and ($_SESSION["user_role"] >= ROLE_EDITOR)) {
@@ -469,7 +486,7 @@ class PostController {
           // ba_gallery_new[ba_text]	MAXLEN_GALLERYTEXT
           // ba_gallery_new[ba_order]	ASC DESC
 
-          $model_fotos = new Fotos();	// model erstellen
+          $model_photos = new Photos();	// model erstellen
           $ba_gallery_new_array = $_POST["ba_gallery_new"];
 
           // überflüssige leerzeichen entfernen
@@ -493,14 +510,14 @@ class PostController {
             $ba_order = "ASC";
           }
 
-          $ret = $model_fotos->postGalleryNew($ba_alias, $ba_text, $ba_order);	// daten für galerie (neu) in das model
-          $html_backend_ext .= $ret["inhalt"];
+          $ret = $model_photos->postGalleryNew($ba_alias, $ba_text, $ba_order);	// daten für gallery (neu) in das model
+          $html_backend_ext .= $ret["content"];
           $errorstring = $ret["error"];
 
         } // ba_gallery_new[ba_text]
 
 // *****************************************************************************
-// *** backend POST galerie ***
+// *** backend POST gallery ***
 // *****************************************************************************
 
         elseif (isset($_POST["ba_gallery"]) and ($_SESSION["user_role"] >= ROLE_EDITOR)) {
@@ -509,7 +526,7 @@ class PostController {
           // ba_gallery[ba_id][ba_order]	ASC DESC
           // ba_gallery[ba_id]["delete"]
 
-          $model_fotos = new Fotos();	// model erstellen
+          $model_photos = new Photos();	// model erstellen
           $ba_gallery_array = $_POST["ba_gallery"];
           $ba_gallery_array_replaced = array();
 
@@ -541,111 +558,101 @@ class PostController {
             $ba_gallery_array_replaced[$ba_id] = array("ba_alias" => $ba_alias, "ba_text" => $ba_text, "ba_order" => $ba_order, "delete" => $ba_delete);
           }
 
-          $ret = $model_fotos->postGallery($ba_gallery_array_replaced);	// daten für galerie in das model
-          $html_backend_ext .= $ret["inhalt"];
+          $ret = $model_photos->postGallery($ba_gallery_array_replaced);	// daten für gallery in das model
+          $html_backend_ext .= $ret["content"];
           $errorstring = $ret["error"];
 
         } // ba_gallery[ba_id][ba_text]
 
 // *****************************************************************************
-// *** backend POST fotos (neu) ***
+// *** backend POST photos (neu) ***
 // *****************************************************************************
 
-        elseif (isset($_POST["ba_fotos_new"]) and ($_SESSION["user_role"] >= ROLE_EDITOR)) {
-          // ba_fotos_new[ba_galleryid]
-          // ba_fotos_new[ba_fotoid]	MAXLEN_FOTOID
-          // ba_fotos_new[ba_text]	MAXLEN_FOTOTEXT
-          // ba_fotos_new["sperrlist"]
-          // ba_fotos_new["hide"]
+        elseif (isset($_POST["ba_photos_new"]) and ($_SESSION["user_role"] >= ROLE_EDITOR)) {
+          // ba_photos_new[ba_galleryid]
+          // ba_photos_new[ba_photoid]	MAXLEN_PHOTOID
+          // ba_photos_new[ba_text]	MAXLEN_PHOTOTEXT
+          // ba_photos_new["hide"]
 
-          $model_fotos = new Fotos();	// model erstellen
-          $ba_fotos_new_array = $_POST["ba_fotos_new"];
+          $model_photos = new Photos();	// model erstellen
+          $ba_photos_new_array = $_POST["ba_photos_new"];
 
           // überflüssige leerzeichen entfernen, str zu int
-          $ba_galleryid = intval($ba_fotos_new_array["ba_galleryid"]);
-          $ba_fotoid = trim($ba_fotos_new_array["ba_fotoid"]);
-          $ba_text = trim($ba_fotos_new_array["ba_text"]);
+          $ba_galleryid = intval($ba_photos_new_array["ba_galleryid"]);
+          $ba_photoid = trim($ba_photos_new_array["ba_photoid"]);
+          $ba_text = trim($ba_photos_new_array["ba_text"]);
 
           // zeichen limit
-          if (strlen($ba_fotoid) > MAXLEN_FOTOID) {
-            $ba_fotoid = substr($ba_fotoid, 0, MAXLEN_FOTOID);
+          if (strlen($ba_photoid) > MAXLEN_PHOTOID) {
+            $ba_photoid = substr($ba_photoid, 0, MAXLEN_PHOTOID);
           }
-          if (mb_strlen($ba_text, MB_ENCODING) > MAXLEN_FOTOTEXT) {
-            $ba_text = mb_substr($ba_text, 0, MAXLEN_FOTOTEXT, MB_ENCODING);
+          if (mb_strlen($ba_text, MB_ENCODING) > MAXLEN_PHOTOTEXT) {
+            $ba_text = mb_substr($ba_text, 0, MAXLEN_PHOTOTEXT, MB_ENCODING);
           }
 
-          $ba_sperrlist = 0;
           $ba_hide = 0;
-          if (in_array("sperrlist", $ba_fotos_new_array)) {	// in array nach string suchen
-            $ba_sperrlist = 1;
-          }
-          if (in_array("hide", $ba_fotos_new_array)) {
+          if (in_array("hide", $ba_photos_new_array)) {
             $ba_hide = 1;
           }
 
-          $ret = $model_fotos->postFotosNew($ba_galleryid, $ba_fotoid, $ba_text, $ba_sperrlist, $ba_hide);	// daten für fotos (neu) in das model
-          $html_backend_ext .= $ret["inhalt"];
+          $ret = $model_photos->postPhotosNew($ba_galleryid, $ba_photoid, $ba_text, $ba_hide);	// daten für photos (neu) in das model
+          $html_backend_ext .= $ret["content"];
           $errorstring = $ret["error"];
 
-        } // ba_fotos_new[ba_text]
+        } // ba_photos_new[ba_text]
 
 // *****************************************************************************
-// *** backend POST fotos ***
+// *** backend POST photos ***
 // *****************************************************************************
 
-        elseif (isset($_POST["ba_fotos"]) and ($_SESSION["user_role"] >= ROLE_EDITOR)) {
-          // ba_fotos[ba_id][ba_galleryid]
-          // ba_fotos[ba_id][ba_fotoid]	MAXLEN_FOTOID
-          // ba_fotos[ba_id][ba_text]	MAXLEN_FOTOTEXT
-          // ba_fotos[ba_id]["sperrlist"]
-          // ba_fotos[ba_id]["hide"]
-          // ba_fotos[ba_id]["delete"]
+        elseif (isset($_POST["ba_photos"]) and ($_SESSION["user_role"] >= ROLE_EDITOR)) {
+          // ba_photos[ba_id][ba_galleryid]
+          // ba_photos[ba_id][ba_photoid]	MAXLEN_PHOTOID
+          // ba_photos[ba_id][ba_text]		MAXLEN_PHOTOTEXT
+          // ba_photos[ba_id]["hide"]
+          // ba_photos[ba_id]["delete"]
 
-          $model_fotos = new Fotos();	// model erstellen
-          $ba_fotos_array = $_POST["ba_fotos"];
-          $ba_fotos_array_replaced = array();
+          $model_photos = new Photos();	// model erstellen
+          $ba_photos_array = $_POST["ba_photos"];
+          $ba_photos_array_replaced = array();
 
-          foreach ($ba_fotos_array as $ba_id => $ba_array) {
+          foreach ($ba_photos_array as $ba_id => $ba_array) {
 
             // überflüssige leerzeichen entfernen, str zu int
             $ba_id = intval($ba_id);
             $ba_galleryid = intval($ba_array["ba_galleryid"]);
-            $ba_fotoid = trim($ba_array["ba_fotoid"]);
+            $ba_photoid = trim($ba_array["ba_photoid"]);
             $ba_text = trim($ba_array["ba_text"]);
 
             // zeichen limit
-            if (strlen($ba_fotoid) > MAXLEN_FOTOID) {
-              $ba_fotoid = substr($ba_fotoid, 0, MAXLEN_FOTOID);
+            if (strlen($ba_photoid) > MAXLEN_PHOTOID) {
+              $ba_photoid = substr($ba_photoid, 0, MAXLEN_PHOTOID);
             }
-            if (mb_strlen($ba_text, MB_ENCODING) > MAXLEN_FOTOTEXT) {
-              $ba_text = mb_substr($ba_text, 0, MAXLEN_FOTOTEXT, MB_ENCODING);
+            if (mb_strlen($ba_text, MB_ENCODING) > MAXLEN_PHOTOTEXT) {
+              $ba_text = mb_substr($ba_text, 0, MAXLEN_PHOTOTEXT, MB_ENCODING);
             }
 
-            $ba_sperrlist = 0;
             $ba_hide = 0;
             $ba_delete = in_array("delete", $ba_array);	// in array nach string suchen
-            if (in_array("sperrlist", $ba_array)) {
-              $ba_sperrlist = 1;
-            }
             if (in_array("hide", $ba_array)) {
               $ba_hide = 1;
             }
 
-            $ba_fotos_array_replaced[$ba_id] = array("ba_galleryid" => $ba_galleryid, "ba_fotoid" => $ba_fotoid, "ba_text" => $ba_text, "sperrlist" => $ba_sperrlist, "hide" => $ba_hide, "delete" => $ba_delete);
+            $ba_photos_array_replaced[$ba_id] = array("ba_galleryid" => $ba_galleryid, "ba_photoid" => $ba_photoid, "ba_text" => $ba_text, "hide" => $ba_hide, "delete" => $ba_delete);
           }
 
-          $ret = $model_fotos->postFotos($ba_fotos_array_replaced);	// daten für fotos in das model
-          $html_backend_ext .= $ret["inhalt"];
+          $ret = $model_photos->postPhotos($ba_photos_array_replaced);	// daten für photos in das model
+          $html_backend_ext .= $ret["content"];
           $errorstring = $ret["error"];
 
-        } // ba_fotos[ba_id][ba_text]
+        } // ba_photos[ba_id][ba_text]
 
 // *****************************************************************************
 // *** backend POST blog ***
 // *****************************************************************************
 
         elseif (isset($_POST["ba_blog"]) and ($_SESSION["user_role"] >= ROLE_EDITOR)) {
-          // ba_blog[ba_id, ba_userid, ba_date, ba_text, ba_videoid, ba_fotoid, ba_catid, ba_tags, ba_state, "delete"]
+          // ba_blog[ba_id, ba_userid, ba_date, ba_text, ba_videoid, ba_photoid, ba_catid, ba_tags, ba_state, "delete"]
           // ba_id == 0 -> neuer blog eintrag
           // ba_id == 0xffff -> error
 
@@ -659,7 +666,7 @@ class PostController {
           $ba_date = trim($ba_blog_array["ba_date"]);
           $ba_text = trim($ba_blog_array["ba_text"]);
           $ba_videoid = trim($ba_blog_array["ba_videoid"]);
-          $ba_fotoid = trim($ba_blog_array["ba_fotoid"]);
+          $ba_photoid = trim($ba_blog_array["ba_photoid"]);
           $ba_tags = trim($ba_blog_array["ba_tags"]);
 
           // str zu int
@@ -676,8 +683,8 @@ class PostController {
           if (strlen($ba_videoid) > MAXLEN_BLOGVIDEOID) {
             $ba_videoid = substr($ba_videoid, 0, MAXLEN_BLOGVIDEOID);
           }
-          if (strlen($ba_fotoid) > MAXLEN_BLOGFOTOID) {
-            $ba_fotoid = substr($ba_fotoid, 0, MAXLEN_BLOGFOTOID);
+          if (strlen($ba_photoid) > MAXLEN_BLOGPHOTOID) {
+            $ba_photoid = substr($ba_photoid, 0, MAXLEN_BLOGPHOTOID);
           }
           if (mb_strlen($ba_tags, MB_ENCODING) > MAXLEN_BLOGTAGS) {
             $ba_tags = mb_substr($ba_tags, 0, MAXLEN_BLOGTAGS, MB_ENCODING);
@@ -691,8 +698,8 @@ class PostController {
 
           $ba_delete = in_array("delete", $ba_blog_array);	// in array nach string suchen
 
-          $ret = $model_blog->postBlog($ba_id, $ba_userid, $ba_date, $ba_text, $ba_videoid, $ba_fotoid, $ba_catid, $ba_tags, $ba_state, $ba_delete);	// daten für blog in das model
-          $html_backend_ext .= $ret["inhalt"];
+          $ret = $model_blog->postBlog($ba_id, $ba_userid, $ba_date, $ba_text, $ba_videoid, $ba_photoid, $ba_catid, $ba_tags, $ba_state, $ba_delete);	// daten für blog in das model
+          $html_backend_ext .= $ret["content"];
           $errorstring = $ret["error"];
 
         } // ba_blog[]
@@ -716,7 +723,7 @@ class PostController {
           }
 
           $ret = $model_blog->postBlogrollNew($feed);	// daten für blogroll (neu) in das model
-          $html_backend_ext .= $ret["inhalt"];
+          $html_backend_ext .= $ret["content"];
           $errorstring = $ret["error"];
 
         } // ba_blogroll_new[]
@@ -731,7 +738,7 @@ class PostController {
           $model_blog = new Blog();	// model erstellen
           $ba_blogroll_array = $_POST["ba_blogroll"];
           $ret = $model_blog->postBlogroll($ba_blogroll_array);	// daten für blogroll in das model
-          $html_backend_ext .= $ret["inhalt"];
+          $html_backend_ext .= $ret["content"];
           $errorstring = $ret["error"];
 
         } // ba_blogroll[]
@@ -755,7 +762,7 @@ class PostController {
           }
 
           $ret = $model_blog->postBlogcategoryNew($category);	// daten für blogcategory (neu) in das model
-          $html_backend_ext .= $ret["inhalt"];
+          $html_backend_ext .= $ret["content"];
           $errorstring = $ret["error"];
 
         } // ba_blogcategory_new[]
@@ -770,7 +777,7 @@ class PostController {
           $model_blog = new Blog();	// model erstellen
           $ba_blogcategory_array = $_POST["ba_blogcategory"];
           $ret = $model_blog->postBlogcategory($ba_blogcategory_array);	// daten für blogcategory in das model
-          $html_backend_ext .= $ret["inhalt"];
+          $html_backend_ext .= $ret["content"];
           $errorstring = $ret["error"];
 
         } // ba_blogcategory[]
@@ -780,23 +787,29 @@ class PostController {
 // *****************************************************************************
 
         elseif (isset($_POST["ba_options"]) and ($_SESSION["user_role"] >= ROLE_EDITOR)) {
-          // ba_options[ba_name][ba_value]
+          // ba_options[ba_name][ba_value, "str_flag"]
 
           $model_blog = new Blog();	// model erstellen
           $ba_options_array = $_POST["ba_options"];
           $ba_options_array_replaced = array();
 
-          foreach ($ba_options_array as $ba_name => $ba_value) {
+          foreach ($ba_options_array as $ba_name => $ba_array) {
 
             // überflüssige leerzeichen entfernen, str zu int
             $ba_name = trim($ba_name);
-            $ba_value = intval($ba_value);
+            $str_flag = in_array("str_flag", $ba_array);
+            if ($str_flag) {
+              $ba_value = trim($ba_array["ba_value"]);
+            }
+            else {
+              $ba_value = intval($ba_array["ba_value"]);
+            }
 
-            $ba_options_array_replaced[$ba_name] = $ba_value;
+            $ba_options_array_replaced[$ba_name] = array("ba_value" => $ba_value, "str_flag" => $str_flag);
           }
 
           $ret = $model_blog->postOptions($ba_options_array_replaced);	// daten für options in das model
-          $html_backend_ext .= $ret["inhalt"];
+          $html_backend_ext .= $ret["content"];
           $errorstring = $ret["error"];
 
         } // ba_options[ba_name][ba_value]
@@ -806,7 +819,7 @@ class PostController {
 // *****************************************************************************
 
         elseif (isset($_POST["ba_comment"]) and ($_SESSION["user_role"] >= ROLE_MASTER)) {
-          // ba_comment[ba_id, ba_date, ba_ip, ba_name, ba_mail, ba_text, ba_comment, ba_blogid, ba_state, "delete"]
+          // ba_comment[ba_id, ba_userid, ba_date, ba_ip, ba_name, ba_mail, ba_text, ba_comment, ba_blogid, ba_state, "delete"]
           // ba_id == 0 -> neuer kommentar eintrag
           // ba_id == 0xffff -> error
 
@@ -814,6 +827,7 @@ class PostController {
           $ba_comment_array = $_POST["ba_comment"];
 
           $ba_id = $ba_comment_array["ba_id"];
+          $ba_userid = $ba_comment_array["ba_userid"];
 
           // überflüssige leerzeichen entfernen, str zu int
           $ba_date = trim($ba_comment_array["ba_date"]);
@@ -853,8 +867,8 @@ class PostController {
 
           $ba_delete = in_array("delete", $ba_comment_array);	// in array nach string suchen
 
-          $ret = $model_comment->postComment($ba_id, $ba_date, $ba_ip, $ba_name, $ba_mail, $ba_text, $ba_comment, $ba_blogid, $ba_state, $ba_delete);	// daten für comment in das model
-          $html_backend_ext .= $ret["inhalt"];
+          $ret = $model_comment->postComment($ba_id, $ba_userid, $ba_date, $ba_ip, $ba_name, $ba_mail, $ba_text, $ba_comment, $ba_blogid, $ba_state, $ba_delete);	// daten für comment in das model
+          $html_backend_ext .= $ret["content"];
           $errorstring = $ret["error"];
 
         } // ba_comment[]
@@ -868,10 +882,79 @@ class PostController {
 
           $model_upload = new Upload();	// model erstellen
           $ret = $model_upload->postUpload($_FILES["upfile"]["tmp_name"], $_FILES["upfile"]["name"]);	// daten für upload in das model
-          $html_backend_ext .= $ret["inhalt"];
+          $html_backend_ext .= $ret["content"];
           $errorstring = $ret["error"];
 
         }
+
+// *****************************************************************************
+// *** backend POST languages (neu) ***
+// *****************************************************************************
+
+        elseif (isset($_POST["ba_languages_new"]) and ($_SESSION["user_role"] >= ROLE_MASTER)) {
+          // ba_languages_new[locale]
+
+          $model_languages = new Languages();	// model erstellen
+          $ba_languages_new_array = $_POST["ba_languages_new"];
+
+          // überflüssige leerzeichen entfernen
+          $locale = trim($ba_languages_new_array["locale"]);
+
+          // zeichen limit
+          if (strlen($locale) > MAXLEN_LOCALE) {
+            $locale = substr($locale, 0, MAXLEN_LOCALE);
+          }
+
+          $ret = $model_languages->postLanguagesNew($locale, 0);	// daten für blogroll (neu) in das model, 2.parameter "selected" immer 0
+          $html_backend_ext .= $ret["content"];
+          $errorstring = $ret["error"];
+
+        } // ba_languages_new[]
+
+// *****************************************************************************
+// *** backend POST languages ***
+// *****************************************************************************
+
+        elseif (isset($_POST["ba_languages"]) and ($_SESSION["user_role"] >= ROLE_MASTER)) {
+          // ba_languages[ba_id][ba_locale]	MAXLEN_LOCALE
+          // ba_languages[ba_id]["delete"]
+          // ba_languages[ba_selected][ba_id]	radio button für alle ba_id (ba_id als value)
+
+          $model_languages = new Languages();	// model erstellen
+          $ba_languages_array = $_POST["ba_languages"];
+          $ba_languages_array_replaced = array();
+
+          $ba_id_selected = intval($ba_languages_array["ba_selected"]);	// str zu int
+          unset($ba_languages_array["ba_selected"]);	// nur ba_id in array
+
+          foreach ($ba_languages_array as $ba_id => $ba_array) {
+            // überflüssige leerzeichen entfernen, str zu int
+            $ba_id = intval($ba_id);
+            $ba_locale = trim($ba_array["ba_locale"]);
+
+            // zeichen limit
+            if (strlen($ba_locale) > MAXLEN_LOCALE) {
+              $ba_locale = substr($ba_locale, 0, MAXLEN_LOCALE);
+            }
+
+            // nur 0 oder 1, sonst 0
+            if ($ba_id == $ba_id_selected) {
+              $ba_selected = 1;
+            }
+            else {
+              $ba_selected = 0;
+            }
+
+            $delete = in_array("delete", $ba_array);	// in array nach string suchen
+
+            $ba_languages_array_replaced[$ba_id] = array("ba_locale" => $ba_locale, "ba_selected" => $ba_selected, "delete" => $delete);
+          }
+
+          $ret = $model_languages->postLanguages($ba_languages_array_replaced);	// daten für languages in das model
+          $html_backend_ext .= $ret["content"];
+          $errorstring = $ret["error"];
+
+        } // ba_languages[ba_id][ba_locale]
 
 // *****************************************************************************
 // *** backend POST admin (neu) ***
@@ -881,6 +964,7 @@ class PostController {
           // ba_admin_new[user]
           // ba_admin_new[email]
           // ba_admin_new[full_name]
+          // ba_admin_new[locale]
           // ba_admin_new[role]
 
           $model_admin = new Admin();	// model erstellen
@@ -890,6 +974,7 @@ class PostController {
           $user = trim($ba_admin_new_array["user"]);
           $email = trim($ba_admin_new_array["email"]);
           $full_name = trim($ba_admin_new_array["full_name"]);
+          $locale = trim($ba_admin_new_array["locale"]);
           $role = intval($ba_admin_new_array["role"]);
 
           // zeichen limit
@@ -902,6 +987,9 @@ class PostController {
           if (strlen($full_name) > MAXLEN_FULLNAME) {
             $full_name = substr($full_name, 0, MAXLEN_FULLNAME);
           }
+          if (strlen($locale) > MAXLEN_LOCALE) {
+            $locale = substr($locale, 0, MAXLEN_LOCALE);
+          }
 
           // größe limit
           if ($role > ROLE_ADMIN or $role < ROLE_NONE) {
@@ -909,10 +997,10 @@ class PostController {
           }
 
           // automatisches passwort für email benachrichtigung
-          $tmp_password = $this->gen_password();
+          $tmp_password = $this->gen_password(8);
 
-          $ret = $model_admin->postAdminNew($user, $email, $full_name, $role, $tmp_password);	// daten für admin (neu) in das model
-          $html_backend_ext .= $ret["inhalt"];
+          $ret = $model_admin->postAdminNew($user, $email, $full_name, $locale, $role, $tmp_password);	// daten für admin (neu) in das model
+          $html_backend_ext .= $ret["content"];
           $errorstring = $ret["error"];
 
         } // ba_admin_new[]
@@ -943,7 +1031,7 @@ class PostController {
           }
 
           $ret = $model_admin->postAdmin($ba_admin_array_replaced);	// daten für admin in das model
-          $html_backend_ext .= $ret["inhalt"];
+          $html_backend_ext .= $ret["content"];
           $errorstring = $ret["error"];
 
         } // ba_admin[id][]
@@ -956,10 +1044,10 @@ class PostController {
 
     } // no panic
 
-    if (DEBUG) { $debug_str .= "</p>\n</section>\n"; }
+    if (DEBUG) { $debug_str .= DEBUG_STR_END; }
 
     // setze inhalt, falls string vorhanden, sonst leer
-    $view->setContent("inhalt", isset($html_backend_ext) ? $html_backend_ext : "");
+    $view->setContent("content", isset($html_backend_ext) ? $html_backend_ext : "");
     $view->setContent("error", isset($errorstring) ? $errorstring : "");
     $view->setContent("debug", $debug_str);
 

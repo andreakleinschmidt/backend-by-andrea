@@ -8,8 +8,6 @@
 
 define("STATE_PUBLISHED",3);
 define("MB_ENCODING","UTF-8");
-define("ATOMID","tag:oscilloworld.de,2010:morgana81");
-define("ATUMURL","http://www.oscilloworld.de/morgana81/index.php?action=blog");
 
 class Controller {
 

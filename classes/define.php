@@ -13,6 +13,6 @@ define("STATE_EDITED",1);
 define("STATE_APPROVAL",2);
 define("STATE_PUBLISHED",3);
 define("MB_ENCODING","UTF-8");
-define("MAILADDR","morgana@oscilloworld.de");
+define("DEFAULT_LOCALE","de-DE");	// "de-DE" oder "en-US"
 
 ?>

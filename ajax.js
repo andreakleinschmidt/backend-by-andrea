@@ -14,9 +14,9 @@ function ajax(id,content) {
           var url = "ajax.php?id="+id+"&q="+content+"&request="+randnum;
           var elementid = "suggestion";
           break;
-        case "blogfoto":
-          var url = "ajax.php?id="+id+"&fotoid="+content+"&request="+randnum;
-          var elementid = "foto_"+content;
+        case "blogphoto":
+          var url = "ajax.php?id="+id+"&photoid="+content+"&request="+randnum;
+          var elementid = "photo_"+content;
           break;
         case "details":
           var url = "ajax.php?id="+id+"&filename="+content+"&request="+randnum;
