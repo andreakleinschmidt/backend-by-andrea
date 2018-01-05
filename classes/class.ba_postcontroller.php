@@ -652,7 +652,7 @@ class PostController {
 // *****************************************************************************
 
         elseif (isset($_POST["ba_blog"]) and ($_SESSION["user_role"] >= ROLE_EDITOR)) {
-          // ba_blog[ba_id, ba_userid, ba_date, ba_text, ba_videoid, ba_photoid, ba_catid, ba_tags, ba_state, "delete"]
+          // ba_blog[ba_id, ba_userid, ba_date, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_catid, ba_tags, ba_state, "delete"]
           // ba_id == 0 -> neuer blog eintrag
           // ba_id == 0xffff -> error
 
@@ -664,6 +664,8 @@ class PostController {
 
           // überflüssige leerzeichen entfernen
           $ba_date = trim($ba_blog_array["ba_date"]);
+          $ba_header = trim($ba_blog_array["ba_header"]);
+          $ba_intro = trim($ba_blog_array["ba_intro"]);
           $ba_text = trim($ba_blog_array["ba_text"]);
           $ba_videoid = trim($ba_blog_array["ba_videoid"]);
           $ba_photoid = trim($ba_blog_array["ba_photoid"]);
@@ -676,6 +678,12 @@ class PostController {
           // zeichen limit
           if (strlen($ba_date) > MAXLEN_BLOGDATE) {
             $ba_date = substr($ba_date, 0, MAXLEN_BLOGDATE);
+          }
+          if (strlen($ba_header) > MAXLEN_BLOGHEADER) {
+            $ba_header = substr($ba_header, 0, MAXLEN_BLOGHEADER);
+          }
+          if (strlen($ba_intro) > MAXLEN_BLOGINTRO) {
+            $ba_intro = substr($ba_intro, 0, MAXLEN_BLOGINTRO);
           }
           if (mb_strlen($ba_text, MB_ENCODING) > MAXLEN_BLOGTEXT) {
             $ba_text = mb_substr($ba_text, 0, MAXLEN_BLOGTEXT, MB_ENCODING);
@@ -698,7 +706,7 @@ class PostController {
 
           $ba_delete = in_array("delete", $ba_blog_array);	// in array nach string suchen
 
-          $ret = $model_blog->postBlog($ba_id, $ba_userid, $ba_date, $ba_text, $ba_videoid, $ba_photoid, $ba_catid, $ba_tags, $ba_state, $ba_delete);	// daten für blog in das model
+          $ret = $model_blog->postBlog($ba_id, $ba_userid, $ba_date, $ba_header, $ba_intro, $ba_text, $ba_videoid, $ba_photoid, $ba_catid, $ba_tags, $ba_state, $ba_delete);	// daten für blog in das model
           $html_backend_ext .= $ret["content"];
           $errorstring = $ret["error"];
 

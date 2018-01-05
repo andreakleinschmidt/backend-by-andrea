@@ -157,18 +157,21 @@ class Blog extends Model {
   }
 
   // ausgabe komplette blogzeile
-  private function blog_line($dataset, &$option_array, &$blog_comment_id_array, $query_data, $header_flag, $num_sentences) {
+  private function blog_line($dataset, &$option_array, &$blog_comment_id_array, $query_data, $first_entry, $num_sentences, $diary_mode) {
     $replace = "";
 
     $datum = stripslashes($this->html5specialchars($dataset["ba_date"]));
     $full_name = stripslashes($this->html5specialchars($dataset["full_name"]));
+    $blogheader = stripslashes($this->html5specialchars($dataset["ba_header"]));
+    $blogintro = stripslashes($this->html_tags(nl2br($this->html5specialchars($dataset["ba_intro"])), false));
     $blogtext = stripslashes($this->html_tags(nl2br($this->html5specialchars($dataset["ba_text"])), true));
     $blogtext40 = stripslashes($this->html_tags($this->html5specialchars(mb_substr($dataset["ba_text"], 0, 40, MB_ENCODING)), false));	// substr problem bei trennung umlaute
 
-    if ($header_flag) {
-      $split_array = array_slice(preg_split("/(?<=\!\s|\.\s|\:\s|\?\s)/", $dataset["ba_text"], $num_sentences+1, PREG_SPLIT_NO_EMPTY), 0, $num_sentences);
-      $blogheader = stripslashes($this->html_tags(nl2br($this->html5specialchars(implode($split_array))), false));	// satzendzeichen als trennzeichen, anzahl sätze optional
-      $replace .= "<h1>".$blogheader."</h1>\n";
+    if (!$diary_mode or ($diary_mode and $first_entry)) {
+      if (empty($blogintro)) {
+        $split_array = array_slice(preg_split("/(?<=\!\s|\.\s|\:\s|\?\s)/", $dataset["ba_text"], $num_sentences+1, PREG_SPLIT_NO_EMPTY), 0, $num_sentences);
+        $blogintro = stripslashes($this->html_tags(nl2br($this->html5specialchars(implode($split_array))), false));	// satzendzeichen als trennzeichen, anzahl sätze optional
+      }
     }
 
     // blog id für anker
@@ -179,7 +182,20 @@ class Blog extends Model {
     $minute = substr($datum, 14, 2);
     $jmtsm = "20".$jahr.$monat.$tag.$stunde.$minute."00";
 
-    $replace .= "<p><a name=\"".$jmtsm."\"></a><b>[".$datum."]</b> <span id=\"white\" title=\"".$full_name."\">&#9998;</span> ".$blogtext."</p>\n";
+    if ($diary_mode) {
+      // kein header, intro-text nur für ersten eintrag, full_name verdeckt
+      if ($first_entry) {
+        $replace .= "<h2>".$blogintro."</h2>\n";
+      }
+      $replace .= "<p><a name=\"".$jmtsm."\"></a><b>[".$datum."]</b> <span id=\"white\" title=\"".$full_name."\">&#9998;</span> ".$blogtext."</p>\n";
+    }
+    else {
+      // mit header, full_name sichtbar, intro-text für jeden eintrag
+      $replace .= "<h1>".$blogheader."</h1>\n".
+                  "<p><a name=\"".$jmtsm."\"></a><span id=\"white_small\">[".$datum."] ".$full_name."</span></p>\n".
+                  "<h2>".$blogintro."</h2>\n".
+                  "<p>".$blogtext."</p>\n";
+    }
 
     // optional videos in blog
     if (function_exists("finfo_open")) {
@@ -658,7 +674,8 @@ class Blog extends Model {
 
     // options
     $anzahl_eps = intval($this->getOption_by_name("blog_entries_per_page"));	// anzahl einträge pro seite = 20
-    $num_sentences = intval($this->getOption_by_name("blog_num_sentences_header"));	// anzahl sätze header = 1
+    $num_sentences = intval($this->getOption_by_name("blog_num_sentences_intro"));	// anzahl sätze einleitung = 1
+    $diary_mode = boolval($this->getOption_by_name("blog_diary_mode"));	// tagebuch modus an = 1
 
     // auf leer überprüfen
     if (mb_strlen($blog_query_or_tag, MB_ENCODING) > 0) {
@@ -669,7 +686,7 @@ class Blog extends Model {
       // zugriff auf mysql datenbank (5), in mysql select mit prepare() - sql injections verhindern
       if (!$tagflag) {
         // query
-        $sql = "SELECT ba_id FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_text RLIKE ?)";	// (1) ohne LIMIT
+        $sql = "SELECT ba_id FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND (CONCAT(ba_header, ba_intro, ba_text) RLIKE ?)";	// (1) ohne LIMIT
       }
       else {
         // tag
@@ -722,11 +739,11 @@ class Blog extends Model {
           // zugriff auf mysql datenbank (6), in mysql select mit prepare() - sql injections verhindern
           if (!$tagflag) {
             // query
-            $sql = "SELECT ba_id, ba_date, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_text RLIKE ?) ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;	// (2) mit LIMIT
+            $sql = "SELECT ba_id, ba_date, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND (CONCAT(ba_header, ba_intro, ba_text) RLIKE ?) ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;	// (2) mit LIMIT
           }
           else {
             // tag
-            $sql = "SELECT ba_blog.ba_id, ba_date, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid INNER JOIN ba_blogcategory ON ba_blog.ba_catid = ba_blogcategory.ba_id WHERE ba_state >= ".STATE_PUBLISHED." AND (CONCAT(ba_category, ', ', ba_tags) RLIKE ?) ORDER BY ba_blog.ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;		// (2) mit LIMIT
+            $sql = "SELECT ba_blog.ba_id, ba_date, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid INNER JOIN ba_blogcategory ON ba_blog.ba_catid = ba_blogcategory.ba_id WHERE ba_state >= ".STATE_PUBLISHED." AND (CONCAT(ba_category, ', ', ba_tags) RLIKE ?) ORDER BY ba_blog.ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;		// (2) mit LIMIT
           }
           $stmt = $this->database->prepare($sql);	// liefert mysqli-statement-objekt
           if ($stmt) {
@@ -738,8 +755,8 @@ class Blog extends Model {
 
             $stmt->store_result();
 
-            $stmt->bind_result($dataset["ba_id"],$dataset["ba_date"],$dataset["ba_text"],$dataset["ba_videoid"],$dataset["ba_photoid"],$dataset["full_name"]);
-            // oder ohne array dataset: $stmt->bind_result($ba_id, $ba_date, $ba_text, $ba_videoid, $ba_photoid, $full_name);
+            $stmt->bind_result($dataset["ba_id"],$dataset["ba_date"],$dataset["ba_header"],$dataset["ba_intro"],$dataset["ba_text"],$dataset["ba_videoid"],$dataset["ba_photoid"],$dataset["full_name"]);
+            // oder ohne array dataset: $stmt->bind_result($ba_id, $ba_date, $ba_header, $ba_intro, $ba_text, $ba_videoid, $ba_photoid, $full_name);
             // mysqli-statement-objekt kennt kein fetch_assoc(), nur fetch(), kein array als rückgabe
 
             // suche ausgeben (2), bei mehreren ergebnissen auf mehreren seiten
@@ -763,10 +780,10 @@ class Blog extends Model {
             }
 
             // blog schreiben , ausgabeschleife
-            $header_flag = true;
+            $first_entry = true;
             while ($stmt->fetch()) {	// $dataset = $stmt->fetch_assoc(), fetch_assoc() liefert array, solange nicht NULL (letzter datensatz), hier jetzt nur fetch()
-              $replace .= $this->blog_line($dataset, $option_array, $blog_comment_id_array, $query_data, $header_flag, $num_sentences);
-              $header_flag = false;	// nur erster schleifenaufruf
+              $replace .= $this->blog_line($dataset, $option_array, $blog_comment_id_array, $query_data, $first_entry, $num_sentences, $diary_mode);
+              $first_entry = false;	// nur erster schleifenaufruf
             }
 
             // seitenauswahl mit links und vor/zurück, mehrere suchergebnisse
@@ -822,7 +839,8 @@ class Blog extends Model {
 
     // options
     $anzahl_eps = intval($this->getOption_by_name("blog_entries_per_page"));	// anzahl einträge pro seite = 20
-    $num_sentences = intval($this->getOption_by_name("blog_num_sentences_header"));	// anzahl sätze header = 1
+    $num_sentences = intval($this->getOption_by_name("blog_num_sentences_intro"));	// anzahl sätze einleitung = 1
+    $diary_mode = boolval($this->getOption_by_name("blog_diary_mode"));	// tagebuch modus an = 1
 
     // zugriff auf mysql datenbank (5)
     $sql = "SELECT ba_id FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id != 1";
@@ -916,20 +934,20 @@ class Blog extends Model {
       // zugriff auf mysql datenbank (6)
       $sql = "";	// blog eintrag nr.1 nur auf erster seite, danach alle absteigend 100..99...2 (ohne 1)
       if ($page == 1 or $show_year == true) {
-        $sql .= "SELECT ba_id, ba_date, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id = 1".
+        $sql .= "SELECT ba_id, ba_date, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id = 1".
                 "\nUNION\n";
       }
       if ($show_page == true) {
-        $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id != 1 ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps.")";
+        $sql .= "(SELECT ba_id, ba_date, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id != 1 ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps.")";
       }
       elseif ($show_year == true and $show_month == false) {
-        $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$year." ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
+        $sql .= "(SELECT ba_id, ba_date, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$year." ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
       }
       elseif ($show_year == true and $show_month == true) {
-        $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$year." AND MONTH(ba_datetime) = ".$month." ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
+        $sql .= "(SELECT ba_id, ba_date, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$year." AND MONTH(ba_datetime) = ".$month." ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
       }
       else {
-        $sql .= "(SELECT ba_id, ba_date, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id = 1)";
+        $sql .= "(SELECT ba_id, ba_date, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id = 1)";
       }
       $ret = $this->database->query($sql);	// liefert in return db-objekt
       if ($ret) {
@@ -952,10 +970,10 @@ class Blog extends Model {
         }
 
         // blog schreiben , ausgabeschleife
-        $header_flag = true;
+        $first_entry = true;
         while ($dataset = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
-          $replace .= $this->blog_line($dataset, $option_array, $blog_comment_id_array, $query_data, $header_flag, $num_sentences);
-          $header_flag = false;	// nur erster schleifenaufruf
+          $replace .= $this->blog_line($dataset, $option_array, $blog_comment_id_array, $query_data, $first_entry, $num_sentences, $diary_mode);
+          $first_entry = false;	// nur erster schleifenaufruf
         }
 
         $ret->close();	// db-ojekt schließen

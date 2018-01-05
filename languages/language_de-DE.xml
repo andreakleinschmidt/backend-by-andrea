@@ -104,8 +104,10 @@
   <PROMPT_DATE text="Datum:"/>
   <PROMPT_DELETE text="löschen:"/>
   <PROMPT_DESCENDING text="ab:"/>
+  <PROMPT_INTRO text="Einleitung:"/>
   <PROMPT_FEED text="Feed:"/>
   <PROMPT_FULLNAME text="vollständiger Name:"/>
+  <PROMPT_HEADER text="Überschrift:"/>
   <PROMPT_HIDE text="unsichtbar:"/>
   <PROMPT_IP text="IP:"/>
   <PROMPT_LOCALE text="locale:"/>
@@ -148,8 +150,10 @@
   <TABLE_HD_COMMENT text="Kommentar"/>
   <TABLE_HD_DATE text="Datum"/>
   <TABLE_HD_DELETE text="löschen"/>
+  <TABLE_HD_INTRO text="Einleitung"/>
   <TABLE_HD_FULLNAME text="vollständiger Name"/>
   <TABLE_HD_GID text="G.Id"/>
+  <TABLE_HD_HEADER text="Überschrift"/>
   <TABLE_HD_HIDE text="unsichtbar"/>
   <TABLE_HD_ID text="Id"/>
   <TABLE_HD_LAST_LOGIN text="letzter Login"/>

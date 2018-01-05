@@ -291,9 +291,11 @@ class Model {
   public function html_backend($user_role, $user_name) {
     $roles = array(ROLE_NONE => $this->language["ROLE_NONE"], ROLE_EDITOR => $this->language["ROLE_EDITOR"], ROLE_MASTER => $this->language["ROLE_MASTER"], ROLE_ADMIN => $this->language["ROLE_ADMIN"]);
     $ret = "<nav class=\"sticky\">\n".
-           stripslashes($this->html5specialchars($user_name))." (".$roles[$user_role]."),\n".
-           "<a href=\"backend.php?action=password\">".$this->language["HEADER_PASSWORD"]."</a>\n".
-           "<a href=\"backend.php?action=logout\">".$this->language["HEADER_LOGOUT"]."</a>\n".
+           "<ul>\n".
+           "<li><span>".stripslashes($this->html5specialchars($user_name))." (".$roles[$user_role].")</span></li>\n".
+           "<li><a href=\"backend.php?action=password\">".$this->language["HEADER_PASSWORD"]."</a></li>\n".
+           "<li><a href=\"backend.php?action=logout\">".$this->language["HEADER_LOGOUT"]."</a></li>\n".
+           "</ul>\n".
            "</nav>\n\n";
 
     $ret .= "<aside class=\"sticky\">\n".

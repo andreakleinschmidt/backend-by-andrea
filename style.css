@@ -2,11 +2,11 @@ body {
   background-color:#000000;
   background-image:url(back.jpg);
   background-repeat:no-repeat;
-  background-position:center 85px;
+  background-position:center 90px;
   background-attachment:fixed;
-  font-family:Arial,sans-serif;
+  font-family:Arial,Helvetica,sans-serif;
   color:#993366;
-  font-size:14px;
+  font-size:14.5px;
   line-height:1.25;
   text-align:center;
   margin:0px; padding:0px;
@@ -23,17 +23,23 @@ body {
 }
 
 h1 {
+  font-size:x-large;
+  color:#993366;
+  font-weight:bold;
+}
+
+h2 {
   font-size:medium;
   color:#993366;
   font-weight:bold;
 }
-h1::first-letter { font-size:200%; }
+h2::first-letter { font-size:200%; }
 
-b { font-size:14px; color:#FFFFFF; font-weight:bold; } /* default bold */
-i { font-size:14px; color:#993366; font-style:italic; } /* default italic */
-a:link { font-size:14px; color:#993366; text-decoration:none; }
-a:visited { font-size:14px; color:#993366; text-decoration:none; }
-a:active { font-size:14px; color:#993366; text-decoration:none; }
+b { font-size:14.5px; color:#FFFFFF; font-weight:bold; } /* default bold */
+i { font-size:14.5px; color:#993366; font-style:italic; } /* default italic */
+a:link { font-size:14.5px; color:#993366; text-decoration:none; }
+a:visited { font-size:14.5px; color:#993366; text-decoration:none; }
+a:active { font-size:14.5px; color:#993366; text-decoration:none; }
 div#blogbox a:link { font-size:12px; color:#993366; text-decoration:none; }
 div#blogbox a:visited { font-size:12px; color:#993366; text-decoration:none; }
 div#blogbox a:active { font-size:12px; color:#993366; text-decoration:none; }
@@ -47,14 +53,20 @@ footer a:link { font-size:12px; color:#331122; text-decoration:none; }
 footer a:visited { font-size:12px; color:#331122; text-decoration:none; }
 footer a:active { font-size:12px; color:#331122; text-decoration:none; }
 
-span#white a:link { font-size:14px; color:#FFFFFF; text-decoration:none; }
-span#white a:visited { font-size:14px; color:#FFFFFF; text-decoration:none; }
-span#white a:active { font-size:14px; color:#FFFFFF; text-decoration:none; }
+span#white a:link { font-size:14.5px; color:#FFFFFF; text-decoration:none; }
+span#white a:visited { font-size:14.5px; color:#FFFFFF; text-decoration:none; }
+span#white a:active { font-size:14.5px; color:#FFFFFF; text-decoration:none; }
 
 span#white {
-  font-size:14px;
+  font-size:14.5px;
   color:#FFFFFF;
 }
+
+span#white_small {
+  font-size:12px;
+  color:#FFFFFF;
+}
+
 pre {
   font-family:monospace; /* default */
   font-size:12px;
@@ -63,7 +75,7 @@ pre {
 
 /* Tabelle */
 table {
-  font-size:14px;
+  font-size:14.5px;
   text-align:center;
   margin-left:auto;
   margin-right:auto;
@@ -116,7 +128,7 @@ img {}
 .kante_platz_oben_100 { border:1px solid #000000; margin-top:100px; }
 .kante_platz_oben_5 { border:1px solid #000000; margin-top:5px; }
 .platz_oben_50 { border:0px; margin-top:50px; }
-.kantefarbig { border:2px solid #993366; margin:0.7em; }
+.kantefarbig { border:2px solid #993366; margin:0.675em; }
 .noborder { border:0px; }
 
 div#photos img { max-width:99%; height:auto; }
@@ -132,7 +144,7 @@ li {}
 details {
   width:150px;
 }
-.details_backend { width:100px; }
+.details_backend { width:120px; margin-left:0px; }
 
 details ul {
   margin-top:0px;
@@ -191,7 +203,7 @@ header {
 nav {
   text-align:right;
   width:1200px;
-  height:20px;
+  height:25px;
   overflow:hidden;
 }
 .sticky {
@@ -199,6 +211,29 @@ nav {
   position:sticky;
   top:0px;
   z-index:102;
+}
+
+nav ul {
+  text-align:center;
+  margin:0px; padding:0px;
+  float:right;
+}
+nav li {
+  float:left;
+  list-style:none;
+  margin:0px; padding:0px;
+}
+nav li a, nav li span {
+  background-color:#000000;
+  color:#993366;
+  text-decoration:none;
+  display:block;
+  margin:0px;
+  padding:2px;
+}
+nav li a:focus, nav li a:hover {
+  background-color:#993366;
+  color:#FFFFFF;
 }
 
 aside {
@@ -234,7 +269,7 @@ div#photos {
   color:#331122;
   font-size:12px;
   width:880px;
-  height:665px;
+  height:660px;
   overflow:auto;
 }
 
@@ -242,7 +277,7 @@ div#photostrip {
   float:left;
   text-align:center;
   width:200px;
-  height:625px;
+  height:620px;
   overflow:hidden;
 }
 
@@ -268,9 +303,9 @@ div#blogstrip {
   overflow:hidden;
 }
 
-div#blogstrip p, details { margin-left:25px; }
+div#blogstrip p, div#blogstrip details { margin-left:25px; }
 
-div#blog p, h1 {
+div#blog p, div#blog h1 , div#blog h2 {
   clear:both; /* vorher left, blogtag */
 }
 
@@ -470,7 +505,7 @@ div#input_website { display:none; }
 	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:small; }
         div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:small; }
 	footer a:link, footer a:visited, footer a:active { font-size:small; }
-	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }, span#white_small { font-size:small; }
 	pre { font-size:small; }
 	table { font-size:medium; }
 	.tb_profile { max-width:300px; }
@@ -493,7 +528,7 @@ div#input_website { display:none; }
 	.cols_96_rows_22 { width:19.1em; }
 	main, header { width:320px; }
 	header img { width:100%; height:auto; }
-	nav { width:320px; height:24px; }
+	nav { width:320px; }
 	aside { display:none; }
 	section, div#profile, div#gallery, div#blog, div#blogcommentform { width:320px; }
 	div#blog, div#blogstrip, div#blogcommentform { float:none; }
@@ -527,7 +562,7 @@ div#input_website { display:none; }
 	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:small; }
         div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:small; }
 	footer a:link, footer a:visited, footer a:active { font-size:small; }
-	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }, span#white_small { font-size:small; }
 	pre { font-size:small; }
 	table { font-size:medium; }
 	.tb_profile { max-width:340px; }
@@ -549,7 +584,7 @@ div#input_website { display:none; }
 	.cols_96_rows_22 { width:22.4em; }
 	main, header { width:360px; }
 	header img { width:100%; height:auto; }
-	nav { width:360px; height:24px; }
+	nav { width:360px; }
 	aside { display:none; }
 	section, div#profile, div#gallery, div#blog, div#blogcommentform { width:360px; }
 	div#blog, div#blogstrip, div#blogcommentform { float:none; }
@@ -583,7 +618,7 @@ div#input_website { display:none; }
 	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:small; }
         div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:small; }
 	footer a:link, footer a:visited, footer a:active { font-size:small; }
-	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }, span#white_small { font-size:small; }
 	pre { font-size:small; }
 	table { font-size:medium; }
 	.tb_profile { max-width:340px; }
@@ -605,7 +640,7 @@ div#input_website { display:none; }
 	.cols_96_rows_22 { width:22.4em; }
 	main, header { width:480px; }
 	header img { width:100%; height:auto; }
-	nav { width:480px; height:24px; }
+	nav { width:480px; }
 	section, div#profile, div#gallery, div#blog, div#blogcommentform { width:360px; }
 	div#blog, div#blogstrip, div#blogcommentform { float:none; }
 	video { width:320px; height:180px; }
@@ -638,7 +673,7 @@ div#input_website { display:none; }
 	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:small; }
         div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:small; }
 	footer a:link, footer a:visited, footer a:active { font-size:small; }
-	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }, span#white_small { font-size:small; }
 	pre { font-size:small; }
 	table { font-size:medium; }
 	.tb_profile { max-width:460px; }
@@ -658,7 +693,7 @@ div#input_website { display:none; }
 	.cols_96_rows_22 { width:32.4em; }
 	main, header { width:600px; }
 	header img { width:100%; height:auto; }
-	nav { width:600px; height:24px; }
+	nav { width:600px; }
 	section, div#profile, div#gallery, div#blog, div#blogcommentform { width:480px; }
 	div#blog, div#blogstrip, div#blogcommentform { float:none; }
 	video { width:448px; height:252px; }
@@ -691,7 +726,7 @@ div#input_website { display:none; }
 	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:small; }
         div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:small; }
 	footer a:link, footer a:visited, footer a:active { font-size:small; }
-	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }, span#white_small { font-size:small; }
 	pre { font-size:small; }
 	table { font-size:medium; }
 	.tb_profile { max-width:340px; }
@@ -713,7 +748,7 @@ div#input_website { display:none; }
 	.cols_96_rows_22 { width:22.4em; }
 	main, header { width:480px; }
 	header img { width:100%; height:auto; }
-	nav { width:480px; height:24px; }
+	nav { width:480px; }
 	section, div#profile, div#gallery, div#blog, div#blogcommentform { width:360px; }
 	div#blog, div#blogstrip, div#blogcommentform { float:none; }
 	video { width:320px; height:180px; }
@@ -746,7 +781,7 @@ div#input_website { display:none; }
 	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:small; }
         div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:small; }
 	footer a:link, footer a:visited, footer a:active { font-size:small; }
-	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }, span#white_small { font-size:small; }
 	pre { font-size:small; }
 	table { font-size:medium; }
 	.tb_profile { max-width:393px; }
@@ -768,7 +803,7 @@ div#input_website { display:none; }
 	.cols_96_rows_22 { width:26.8em; }
 	main, header { width:533px; }
 	header img { width:100%; height:auto; }
-	nav { width:533px; height:24px; }
+	nav { width:533px; }
 	section, div#profile, div#gallery, div#blog, div#blogcommentform { width:413px; }
 	div#blog, div#blogstrip, div#blogcommentform { float:none; }
 	video { width:384px; height:216px; }
@@ -801,7 +836,7 @@ div#input_website { display:none; }
 	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:small; }
         div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:small; }
 	footer a:link, footer a:visited, footer a:active { font-size:small; }
-	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }, span#white_small { font-size:small; }
 	pre { font-size:small; }
 	table { font-size:medium; }
 	.tb_profile { max-width:428px; }
@@ -821,7 +856,7 @@ div#input_website { display:none; }
 	.cols_96_rows_22 { width:29.7em; }
 	main, header { width:568px; }
 	header img { width:100%; height:auto; }
-	nav { width:568px; height:24px; }
+	nav { width:568px; }
 	section, div#profile, div#gallery, div#blog, div#blogcommentform { width:448px; }
 	div#blog, div#blogstrip, div#blogcommentform { float:none; }
 	video { width:416px; height:234px; }
@@ -854,7 +889,7 @@ div#input_website { display:none; }
 	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:small; }
         div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:small; }
 	footer a:link, footer a:visited, footer a:active { font-size:small; }
-	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }, span#white_small { font-size:small; }
 	pre { font-size:small; }
 	table { font-size:medium; }
 	.tb_profile { max-width:458px; }
@@ -874,7 +909,7 @@ div#input_website { display:none; }
 	.cols_96_rows_22 { width:32.2em; }
 	main, header { width:598px; }
 	header img { width:100%; height:auto; }
-	nav { width:598px; height:24px; }
+	nav { width:598px; }
 	section, div#profile, div#gallery, div#blog, div#blogcommentform { width:478px; }
 	div#blog, div#blogstrip, div#blogcommentform { float:none; }
 	video { width:448px; height:252px; }
@@ -907,7 +942,7 @@ div#input_website { display:none; }
 	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:small; }
         div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:small; }
 	footer a:link, footer a:visited, footer a:active { font-size:small; }
-	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }, span#white_small { font-size:small; }
 	pre { font-size:small; }
 	table { font-size:medium; }
 	.tb_profile { max-width:500px; }
@@ -927,7 +962,7 @@ div#input_website { display:none; }
 	.cols_96_rows_22 { width:35.7em; }
 	main, header { width:640px; }
 	header img { width:100%; height:auto; }
-	nav { width:640px; height:24px; }
+	nav { width:640px; }
 	section, div#profile, div#gallery, div#blog, div#blogcommentform { width:520px; }
 	div#blog, div#blogstrip, div#blogcommentform { float:none; }
 	video { width:480px; height:270px; }
@@ -960,7 +995,7 @@ div#input_website { display:none; }
 	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:small; }
         div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:small; }
 	footer a:link, footer a:visited, footer a:active { font-size:small; }
-	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }, span#white_small { font-size:small; }
 	pre { font-size:small; }
 	table { font-size:medium; }
 	.tb_profile { max-width:660px; }
@@ -978,7 +1013,7 @@ div#input_website { display:none; }
 	.cols_96_rows_11 { width:49.1em; }
 	.cols_96_rows_22 { width:49.1em; }
 	main, header { width:800px; }
-	nav { width:800px; height:24px; }
+	nav { width:800px; }
 	section, div#profile, div#gallery, div#blog, div#blogcommentform { width:680px; }
 	div#blog, div#blogstrip, div#blogcommentform { float:none; }
         div#blog select { max-width:680px; }
@@ -1010,7 +1045,7 @@ div#input_website { display:none; }
 	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:small; }
         div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:small; }
 	footer a:link, footer a:visited, footer a:active { font-size:small; }
-	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }, span#white_small { font-size:small; }
 	pre { font-size:small; }
 	table { font-size:medium; }
 	ul {}
@@ -1021,7 +1056,7 @@ div#input_website { display:none; }
 	.size_40 { width:27.0em; }
 	.size_96 { width:54.8em; }
 	main, header { width:960px; }
-	nav { width:960px; height:24px; }
+	nav { width:960px; }
 	section, div#profile, div#gallery, div#blog, div#blogcommentform { width:840px; }
 	div#blog, div#blogstrip, div#blogcommentform { float:none; }
         div#blog select { max-width:840px; }
