@@ -130,7 +130,7 @@ class Photos extends Model {
         $imagename = "jpeg/".$id.".jpg";
         if (is_readable($imagename)) {
           $imagesize = getimagesize($imagename);
-          $replace_photo = "<img class=\"kante\" src=\"".$imagename."\" ".$imagesize[3].">";
+          $replace_photo = "<img class=\"border\" src=\"".$imagename."\" ".$imagesize[3].">";
         }
         else {
           $replace_photo = $this->language["FRONTEND_PHOTO"];
@@ -153,7 +153,7 @@ class Photos extends Model {
                   "<br>".$replace_text."\n".
                   "</div>\n".
                   "<div id=\"photostripscroll\">\n".
-                  "<a href=\"#\" onMouseOver=\"scrollup()\" onMouseOut=\"scrollstop()\"><img class=\"kante_platz_oben_5\" src=\"up.gif\" height=\"10\" width=\"50\"></a>\n".
+                  "<a href=\"#\" onMouseOver=\"scrollup()\" onMouseOut=\"scrollstop()\"><img class=\"photos_arrow\" src=\"up.gif\" height=\"10\" width=\"50\"></a>\n".
                   "<noscript>no javascript</noscript>\n".
                   "</div>\n".
                   "<div id=\"photostrip\">\n";
@@ -162,7 +162,7 @@ class Photos extends Model {
         $imagename = "jpeg/".$photoid.".jpg";
         $query_data = array("action" => "photos", "gallery" => $alias, "id" => $photoid);
         if (is_readable($imagename) and $image_str = exif_thumbnail($imagename, $width, $height, $type)) {
-          $replace .= "<p><a href=\"index.php?".$this->html_build_query($query_data)."\"><img class=\"kantefarbig\" src=\"thumbnail.php?image=".$imagename."\" width=\"".$width."\" height=\"".$height."\" title=\"".stripslashes($this->html5specialchars($phototext))."\"></a></p>\n";
+          $replace .= "<p><a href=\"index.php?".$this->html_build_query($query_data)."\"><img class=\"thumbnail\" src=\"thumbnail.php?image=".$imagename."\" width=\"".$width."\" height=\"".$height."\" title=\"".stripslashes($this->html5specialchars($phototext))."\"></a></p>\n";
         }
         else {
           $replace .= "<p><a href=\"index.php?".$this->html_build_query($query_data)."\">Foto</a></p>\n";
@@ -171,7 +171,7 @@ class Photos extends Model {
 
       $replace .= "</div>\n".
                   "<div id=\"photostripscroll\">\n".
-                  "<a href=\"#\" onMouseOver=\"scrolldown()\" onMouseOut=\"scrollstop()\"><img class=\"kante_platz_oben_5\" src=\"down.gif\" height=\"10\" width=\"50\"></a>\n".
+                  "<a href=\"#\" onMouseOver=\"scrolldown()\" onMouseOut=\"scrollstop()\"><img class=\"photos_arrow\" src=\"down.gif\" height=\"10\" width=\"50\"></a>\n".
                   "<noscript>no javascript</noscript>\n".
                   "</div>";
 
@@ -234,8 +234,8 @@ class Photos extends Model {
           $imagename = "jpeg/".$galleries_count[$galleryid]["photoid"].".jpg";
           $replace .= "<td class=\"td_photos\">\n";
           if (is_readable($imagename) and $image_str = exif_thumbnail($imagename, $width, $height, $type)) {
-            // alt      "<a href=\"index.php?action=photos&gallery=".$alias."\"><img class=\"kantefarbig\" src=\"thumbnail.php?image=".$imagename."\" width=\"".$width."\" height=\"".$height."\"></a>\n";
-            $replace .= "<a href=\"photos/".$alias."/\"><img class=\"kantefarbig\" src=\"thumbnail.php?image=".$imagename."\" width=\"".$width."\" height=\"".$height."\"></a>\n";
+            // alt      "<a href=\"index.php?action=photos&gallery=".$alias."\"><img class=\"thumbnail\" src=\"thumbnail.php?image=".$imagename."\" width=\"".$width."\" height=\"".$height."\"></a>\n";
+            $replace .= "<a href=\"photos/".$alias."/\"><img class=\"thumbnail\" src=\"thumbnail.php?image=".$imagename."\" width=\"".$width."\" height=\"".$height."\"></a>\n";
           }
           else {
             // alt      "<a href=\"index.php?action=photos&gallery=".$alias."\">Galerie</a>\n";

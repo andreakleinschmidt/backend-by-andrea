@@ -122,13 +122,13 @@ td {}
 
 /* imgage Platz+Rahmen */
 img {}
-.kante { border:1px solid #000000; }
-.kante_platz_25 { border:1px solid #000000; margin-top:25px; margin-bottom:25px; }
-.kante_platz_unten_25 { border:1px solid #000000; margin-bottom:25px; }
-.kante_platz_oben_100 { border:1px solid #000000; margin-top:100px; }
-.kante_platz_oben_5 { border:1px solid #000000; margin-top:5px; }
-.platz_oben_50 { border:0px; margin-top:50px; }
-.kantefarbig { border:2px solid #993366; margin:0.675em; }
+.border { border:1px solid #000000; }
+.home { border:1px solid #000000; margin-bottom:25px; }
+.profile_small { border:1px solid #000000; margin-top:25px; margin-bottom:25px; }
+.profile_big { border:1px solid #000000; margin-top:100px; }
+.photos_arrow { border:1px solid #000000; margin-top:5px; }
+.aside { border:0px; margin-top:50px; }
+.thumbnail { border:2px solid #993366; margin:0.675em; }
 .noborder { border:0px; }
 
 div#photos img { max-width:99%; height:auto; }
@@ -305,7 +305,7 @@ div#blogstrip {
 
 div#blogstrip p, div#blogstrip details { margin-left:25px; }
 
-div#blog p, div#blog h1 , div#blog h2 {
+div#blog p, div#blog article {
   clear:both; /* vorher left, blogtag */
 }
 

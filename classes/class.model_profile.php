@@ -64,7 +64,7 @@ class Profile extends Model {
         }
 
         $replace .= "</table>\n".
-                    "<p><img class=\"kante_platz_25\" src=\"morgana4.jpg\" height=\"105\" width=\"95\"></p>\n".
+                    "<p><img class=\"profile_small\" src=\"morgana4.jpg\" height=\"105\" width=\"95\"></p>\n".
                     "<table class=\"tb_profile\">\n";
 
         foreach ($profile2 as $spalte1 => $spalte2) {
@@ -75,7 +75,7 @@ class Profile extends Model {
         }
 
         $replace .= "</table>\n".
-                    "<p><img class=\"kante_platz_25\" src=\"morgana2.jpg\" height=\"30\" width=\"180\"></p>\n".
+                    "<p><img class=\"profile_small\" src=\"morgana2.jpg\" height=\"30\" width=\"180\"></p>\n".
                     "<table class=\"tb_profile\">\n";
 
         foreach ($profile3 as $spalte1 => $spalte2) {
@@ -86,7 +86,7 @@ class Profile extends Model {
         }
 
         $replace .= "</table>\n".
-                    "<p><img class=\"kante_platz_25\" src=\"morgana1.jpg\" height=\"150\" width=\"300\"></p>\n".
+                    "<p><img class=\"profile_small\" src=\"morgana1.jpg\" height=\"150\" width=\"300\"></p>\n".
                     "<table class=\"tb_profile\">\n";
 
         foreach ($profile4 as $spalte1 => $spalte2) {
@@ -103,10 +103,10 @@ class Profile extends Model {
                     "<a href=\"profile/de/\">".$this->language["LANGUAGE_GERMAN"]."</a>\n".
                     "<a href=\"profile/en/\">".$this->language["LANGUAGE_ENGLISH"]."</a>\n".
                     "</p>\n".
-                    "<p><img class=\"kante_platz_oben_100\" src=\"morgana6.jpg\" height=\"120\" width=\"80\"></p>\n".
-                    "<p><img class=\"kante_platz_oben_100\" src=\"morgana5.jpg\" height=\"265\" width=\"250\"></p>\n".
-                    "<p><img class=\"kante_platz_oben_100\" src=\"morgana7.jpg\" height=\"320\" width=\"240\"></p>\n".
-                    "<p><img class=\"kante_platz_oben_100\" src=\"flyer.gif\" height=\"360\" width=\"270\"></p>\n".
+                    "<p><img class=\"profile_big\" src=\"morgana6.jpg\" height=\"120\" width=\"80\"></p>\n".
+                    "<p><img class=\"profile_big\" src=\"morgana5.jpg\" height=\"265\" width=\"250\"></p>\n".
+                    "<p><img class=\"profile_big\" src=\"morgana7.jpg\" height=\"320\" width=\"240\"></p>\n".
+                    "<p><img class=\"profile_big\" src=\"flyer.gif\" height=\"360\" width=\"270\"></p>\n".
                     "</div>";
 
         $ret->close();	// db-ojekt schließen

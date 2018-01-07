@@ -6,9 +6,6 @@
 // * - datenweitergabe zum view
 // *****************************************************************************
 
-define("STATE_PUBLISHED",3);
-define("MB_ENCODING","UTF-8");
-
 class Controller {
 
   // konstruktor, controller erstellen

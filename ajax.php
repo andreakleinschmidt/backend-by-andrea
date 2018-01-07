@@ -116,7 +116,7 @@ function details($filename) {
     // vorschaubild
     if ($mime_type == "image/jpeg" or $mime_type == "image/png") {
       if ($thumbnail = exif_thumbnail($filename, $width, $height, $type)) {
-        $ret .= "<img class=\"kantefarbig\" src=\"thumbnail.php?image=".rawurlencode($filename)."\" width=\"".$width."\" height=\"".$height."\">\n";
+        $ret .= "<img class=\"thumbnail\" src=\"thumbnail.php?image=".rawurlencode($filename)."\" width=\"".$width."\" height=\"".$height."\">\n";
       }
       else {
         $ret .= "<p>(no thumbnail)</p>\n";

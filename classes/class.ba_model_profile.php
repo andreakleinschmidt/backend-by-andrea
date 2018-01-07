@@ -9,8 +9,8 @@
 // *** define ***
 // *****************************************************************************
 
-define("MAXLEN_PROFILETAG",64);
-define("MAXLEN_PROFILETEXT",256);
+//define("MAXLEN_PROFILETAG",64);
+//define("MAXLEN_PROFILETEXT",256);
 
 // *****************************************************************************
 // *** error list ***

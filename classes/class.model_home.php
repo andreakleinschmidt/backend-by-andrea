@@ -33,10 +33,10 @@ class Home extends Model {
 
         $replace = "<!-- home -->\n".
                    "<div id=\"home\">\n".
-                   "<p><img class=\"kante_platz_unten_25\" src=\"morgana.jpg\" height=\"330\" width=\"240\"></p>\n".
+                   "<p><img class=\"home\" src=\"morgana.jpg\" height=\"330\" width=\"240\"></p>\n".
                    "<p>".$home1."\n".
                    "<br>".$home2."</p>\n".
-                   "<p><img class=\"kante\" src=\"x1.jpg\" height=\"30\" width=\"60\"><img class=\"kante\" src=\"x2.jpg\" height=\"30\" width=\"60\"><img class=\"kante\" src=\"x3.jpg\" height=\"30\" width=\"60\"><img class=\"kante\" src=\"x4.jpg\" height=\"30\" width=\"60\"></p>\n".
+                   "<p><img class=\"border\" src=\"x1.jpg\" height=\"30\" width=\"60\"><img class=\"border\" src=\"x2.jpg\" height=\"30\" width=\"60\"><img class=\"border\" src=\"x3.jpg\" height=\"30\" width=\"60\"><img class=\"border\" src=\"x4.jpg\" height=\"30\" width=\"60\"></p>\n".
                    "</div>";
 
         $ret->close();	// db-ojekt schließen

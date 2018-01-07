@@ -7,8 +7,9 @@
 // * - daten an controller zurückgeben
 // *****************************************************************************
 
-define("STATE_PUBLISHED",3);
-define("MB_ENCODING","UTF-8");
+//define("STATE_PUBLISHED",3);
+//define("MB_ENCODING","UTF-8");
+//define("DEFAULT_LOCALE","de-DE");	// "de-DE" oder "en-US"
 
 class Model {
 

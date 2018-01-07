@@ -9,10 +9,10 @@
 // *** define ***
 // *****************************************************************************
 
-define("MAXLEN_GALLERYALIAS",16);
-define("MAXLEN_GALLERYTEXT",64);
-define("MAXLEN_PHOTOID",8);
-define("MAXLEN_PHOTOTEXT",64);
+//define("MAXLEN_GALLERYALIAS",16);
+//define("MAXLEN_GALLERYTEXT",64);
+//define("MAXLEN_PHOTOID",8);
+//define("MAXLEN_PHOTOTEXT",64);
 
 // *****************************************************************************
 // *** error list ***

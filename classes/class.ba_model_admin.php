@@ -9,13 +9,13 @@
 // *** define ***
 // *****************************************************************************
 
-define("MAXLEN_USER",32);	// admin form
-define("MAXLEN_EMAIL",64);	// admin form
-define("MAXLEN_FULLNAME",64);	// admin form
-define("ROLE_NONE",0);
-define("ROLE_EDITOR",1);
-define("ROLE_MASTER",2);
-define("ROLE_ADMIN",3);
+//define("MAXLEN_USER",32);	// admin form
+//define("MAXLEN_EMAIL",64);	// admin form
+//define("MAXLEN_FULLNAME",64);	// admin form
+//define("ROLE_NONE",0);
+//define("ROLE_EDITOR",1);
+//define("ROLE_MASTER",2);
+//define("ROLE_ADMIN",3);
 
 // *****************************************************************************
 // *** error list ***

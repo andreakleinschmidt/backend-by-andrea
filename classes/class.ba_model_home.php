@@ -9,7 +9,7 @@
 // *** define ***
 // *****************************************************************************
 
-define("MAXLEN_HOMETEXT",256);	// aus TABLE VARCHAR(xx) , für zeichen limit
+//define("MAXLEN_HOMETEXT",256);	// aus TABLE VARCHAR(xx) , für zeichen limit
 
 // *****************************************************************************
 // *** error list ***

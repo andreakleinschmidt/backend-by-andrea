@@ -4,9 +4,12 @@
 // * model - blog
 // *****************************************************************************
 
-define("STATE_APPROVAL",2);
-define("STATE_PUBLISHED",3);
-define("MB_ENCODING","UTF-8");
+//define("MAXLEN_COMMENTNAME",64);
+//define("MAXLEN_COMMENTMAIL",64);
+//define("MAXLEN_COMMENTURL",128);
+//define("STATE_APPROVAL",2);
+//define("STATE_PUBLISHED",3);
+//define("MB_ENCODING","UTF-8");
 
 class Blog extends Model {
 
@@ -67,6 +70,15 @@ class Blog extends Model {
     } // datenbank
 
     return $value;
+  }
+
+  // division durch null verhindern
+  public function check_zero($num) {
+    $ret = intval($num);
+    if ($ret < 1) {
+      $ret = 1;
+    }
+    return $ret;
   }
 
   // ersetze tag kommandos im blogtext ~cmd{content_str} mit html tags <a>, <b>, <i>
@@ -165,7 +177,6 @@ class Blog extends Model {
     $blogheader = stripslashes($this->html5specialchars($dataset["ba_header"]));
     $blogintro = stripslashes($this->html_tags(nl2br($this->html5specialchars($dataset["ba_intro"])), false));
     $blogtext = stripslashes($this->html_tags(nl2br($this->html5specialchars($dataset["ba_text"])), true));
-    $blogtext40 = stripslashes($this->html_tags($this->html5specialchars(mb_substr($dataset["ba_text"], 0, 40, MB_ENCODING)), false));	// substr problem bei trennung umlaute
 
     if (!$diary_mode or ($diary_mode and $first_entry)) {
       if (empty($blogintro)) {
@@ -174,7 +185,14 @@ class Blog extends Model {
       }
     }
 
-    // blog id für anker
+    if ($diary_mode or empty($blogheader)) {
+      $blogtext40 = stripslashes($this->html_tags($this->html5specialchars(mb_substr($dataset["ba_text"], 0, 40, MB_ENCODING)), false));	// substr problem bei trennung umlaute
+    }
+    else {
+      $blogtext40 = stripslashes($this->html_tags($this->html5specialchars(mb_substr($dataset["ba_header"], 0, 40, MB_ENCODING)), false));	// substr problem bei trennung umlaute
+    }
+
+    // blog id für article
     $jahr   = substr($datum, 6, 2);
     $monat  = substr($datum, 3, 2);
     $tag    = substr($datum, 0, 2);
@@ -182,17 +200,19 @@ class Blog extends Model {
     $minute = substr($datum, 14, 2);
     $jmtsm = "20".$jahr.$monat.$tag.$stunde.$minute."00";
 
+    $replace .= "<article id=\"".$jmtsm."\">\n";
+
     if ($diary_mode) {
       // kein header, intro-text nur für ersten eintrag, full_name verdeckt
       if ($first_entry) {
         $replace .= "<h2>".$blogintro."</h2>\n";
       }
-      $replace .= "<p><a name=\"".$jmtsm."\"></a><b>[".$datum."]</b> <span id=\"white\" title=\"".$full_name."\">&#9998;</span> ".$blogtext."</p>\n";
+      $replace .= "<p><b>[".$datum."]</b> <span id=\"white\" title=\"".$full_name."\">&#9998;</span> ".$blogtext."</p>\n";
     }
     else {
       // mit header, full_name sichtbar, intro-text für jeden eintrag
       $replace .= "<h1>".$blogheader."</h1>\n".
-                  "<p><a name=\"".$jmtsm."\"></a><span id=\"white_small\">[".$datum."] ".$full_name."</span></p>\n".
+                  "<p><span id=\"white_small\">[".$datum."] ".$full_name."</span></p>\n".
                   "<h2>".$blogintro."</h2>\n".
                   "<p>".$blogtext."</p>\n";
     }
@@ -227,7 +247,7 @@ class Blog extends Model {
         $imagename = "jpeg/".$photoid.".jpg";
         if (is_readable($imagename) and $image_str = exif_thumbnail($imagename, $width, $height, $type)) {
           $replace .= "<div id=\"blogphoto\">\n";
-          $replace .= "<a href=\"".$imagename."\" onMouseOver=\"ajax('blogphoto','".$photoid."');\"><img class=\"kantefarbig\" src=\"thumbnail.php?".$this->html_build_query(array("image" => $imagename))."\" width=\"".$width."\" height=\"".$height."\"></a>\n";
+          $replace .= "<a href=\"".$imagename."\" onMouseOver=\"ajax('blogphoto','".$photoid."');\"><img class=\"thumbnail\" src=\"thumbnail.php?".$this->html_build_query(array("image" => $imagename))."\" width=\"".$width."\" height=\"".$height."\"></a>\n";
           $replace .= "<div id=\"photo_".$photoid."\"><noscript>no javascript</noscript></div>\n";
           $replace .= "</div>\n";
         }
@@ -241,6 +261,8 @@ class Blog extends Model {
     if (array_key_exists($blogid, $blog_comment_id_array)) {
       $replace .= "<div id=\"blogcomment\"><a href=\"index.php?".$this->html_build_query($query_data)."#comment".$blog_comment_id_array[$blogid]."\">".$this->language["FRONTEND_COMMENT_LINK"]."</a></div>";
     }
+
+    $replace .= "</article>\n";
 
     return $replace;
   }
@@ -673,8 +695,8 @@ class Blog extends Model {
     }
 
     // options
-    $anzahl_eps = intval($this->getOption_by_name("blog_entries_per_page"));	// anzahl einträge pro seite = 20
-    $num_sentences = intval($this->getOption_by_name("blog_num_sentences_intro"));	// anzahl sätze einleitung = 1
+    $anzahl_eps = $this->check_zero($this->getOption_by_name("blog_entries_per_page"));	// anzahl einträge pro seite = 20
+    $num_sentences = $this->check_zero($this->getOption_by_name("blog_num_sentences_intro"));	// anzahl sätze einleitung = 1
     $diary_mode = boolval($this->getOption_by_name("blog_diary_mode"));	// tagebuch modus an = 1
 
     // auf leer überprüfen
@@ -838,8 +860,8 @@ class Blog extends Model {
     $errorstring = "";
 
     // options
-    $anzahl_eps = intval($this->getOption_by_name("blog_entries_per_page"));	// anzahl einträge pro seite = 20
-    $num_sentences = intval($this->getOption_by_name("blog_num_sentences_intro"));	// anzahl sätze einleitung = 1
+    $anzahl_eps = $this->check_zero($this->getOption_by_name("blog_entries_per_page"));	// anzahl einträge pro seite = 20
+    $num_sentences = $this->check_zero($this->getOption_by_name("blog_num_sentences_intro"));	// anzahl sätze einleitung = 1
     $diary_mode = boolval($this->getOption_by_name("blog_diary_mode"));	// tagebuch modus an = 1
 
     // zugriff auf mysql datenbank (5)
@@ -1004,7 +1026,7 @@ class Blog extends Model {
     $errorstring = "";
 
     // options
-    $anzahl_cps = intval($this->getOption_by_name("blog_comments_per_page"));	// anzahl kommentare pro seite = 20
+    $anzahl_cps = $this->check_zero($this->getOption_by_name("blog_comments_per_page"));	// anzahl kommentare pro seite = 20
 
     $replace .= "<p><a name=\"comment\"></a><b>".$this->language["FRONTEND_COMMENT"]."</b></p>\n";
 

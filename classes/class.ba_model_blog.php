@@ -9,20 +9,20 @@
 // *** define ***
 // *****************************************************************************
 
-define("MAXLEN_BLOGDATE",32);
-define("MAXLEN_BLOGHEADER",128);
-define("MAXLEN_BLOGINTRO",1024);
-define("MAXLEN_BLOGTEXT",8192);
-define("MAXLEN_BLOGVIDEOID",32);
-define("MAXLEN_BLOGPHOTOID",128);
-define("MAXLEN_BLOGTAGS",128);
-define("MAXLEN_BLOGCATEGORY",32);
-define("MAXLEN_FEED",128);	// blogroll
-define("STATE_CREATED",0);
-define("STATE_EDITED",1);
-define("STATE_APPROVAL",2);
-define("STATE_PUBLISHED",3);
-define("MB_ENCODING","UTF-8");
+//define("MAXLEN_BLOGDATE",32);
+//define("MAXLEN_BLOGHEADER",128);
+//define("MAXLEN_BLOGINTRO",1024);
+//define("MAXLEN_BLOGTEXT",8192);
+//define("MAXLEN_BLOGVIDEOID",32);
+//define("MAXLEN_BLOGPHOTOID",128);
+//define("MAXLEN_BLOGTAGS",128);
+//define("MAXLEN_BLOGCATEGORY",32);
+//define("MAXLEN_FEED",128);	// blogroll
+//define("STATE_CREATED",0);
+//define("STATE_EDITED",1);
+//define("STATE_APPROVAL",2);
+//define("STATE_PUBLISHED",3);
+//define("MB_ENCODING","UTF-8");
 
 // *****************************************************************************
 // *** error list ***
@@ -103,6 +103,15 @@ class Blog extends Model {
     } // datenbank
 
     return $value;
+  }
+
+  // division durch null verhindern
+  public function check_zero($num) {
+    $ret = intval($num);
+    if ($ret < 1) {
+      $ret = 1;
+    }
+    return $ret;
   }
 
   private function getHistory($id) {
@@ -212,7 +221,7 @@ class Blog extends Model {
       //                ba_state TINYINT UNSIGNED NOT NULL);
 
       // options
-      $anzahl_eps = intval($this->getOption_by_name("blog_entries_per_page"));	// anzahl einträge pro seite = 20
+      $anzahl_eps = $this->check_zero($this->getOption_by_name("blog_entries_per_page"));	// anzahl einträge pro seite = 20
       $diary_mode = boolval($this->getOption_by_name("blog_diary_mode"));	// tagebuch modus an = 1
 
       // liste mit älteren blog-einträgen
@@ -561,7 +570,7 @@ class Blog extends Model {
                                    "<input type=\"hidden\" name=\"ba_options[".$ba_name."][]\" value=\"str_flag\"/>";
             }
             else {
-              $html_backend_ext .= "<input type=\"number\" name=\"ba_options[".$ba_name."][ba_value]\" class=\"size_4\" min=\"1\" max=\"255\" value=\"".$ba_value."\"/>";
+              $html_backend_ext .= "<input type=\"number\" name=\"ba_options[".$ba_name."][ba_value]\" class=\"size_4\" min=\"0\" max=\"255\" value=\"".$ba_value."\"/>";
             }
             $html_backend_ext .= "</td>\n</tr>\n";
           }
@@ -861,7 +870,7 @@ class Blog extends Model {
 
         // einfügen in datenbank:
         if ($ba_id == 0) {
-          $sql = "INSERT INTO ba_blog (ba_userid, ba_datetime, ba_date, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_catid, ba_tags, ba_state) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+          $sql = "INSERT INTO ba_blog (ba_userid, ba_datetime, ba_date, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_catid, ba_tags, ba_state) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         }
 
         // löschen in datenbank:

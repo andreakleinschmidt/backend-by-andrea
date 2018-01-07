@@ -9,18 +9,18 @@
 // *** define ***
 // *****************************************************************************
 
-define("MAXLEN_COMMENTDATE",20);
-define("MAXLEN_COMMENTIP",48);
-define("MAXLEN_COMMENTNAME",64);
-define("MAXLEN_COMMENTMAIL",64);
-define("MAXLEN_COMMENTBLOGID",8);
-define("MAXLEN_COMMENTTEXT",2048);
-define("MAXLEN_COMMENTCOMMENT",2048);
-define("STATE_CREATED",0);
-define("STATE_EDITED",1);
-define("STATE_APPROVAL",2);
-define("STATE_PUBLISHED",3);
-define("MB_ENCODING","UTF-8");
+//define("MAXLEN_COMMENTDATE",20);
+//define("MAXLEN_COMMENTIP",48);
+//define("MAXLEN_COMMENTNAME",64);
+//define("MAXLEN_COMMENTMAIL",64);
+//define("MAXLEN_COMMENTBLOGID",8);
+//define("MAXLEN_COMMENTTEXT",2048);
+//define("MAXLEN_COMMENTCOMMENT",2048);
+//define("STATE_CREATED",0);
+//define("STATE_EDITED",1);
+//define("STATE_APPROVAL",2);
+//define("STATE_PUBLISHED",3);
+//define("MB_ENCODING","UTF-8");
 
 // *****************************************************************************
 // *** error list ***
@@ -64,7 +64,7 @@ class Comment extends Model {
       //                   ba_state TINYINT UNSIGNED NOT NULL);
 
       // options
-      $anzahl_eps = intval(Blog::getOption_by_name("blog_comments_per_page"));	// anzahl einträge pro seite = 20
+      $anzahl_eps = Blog::check_zero(Blog::getOption_by_name("blog_comments_per_page"));	// anzahl einträge pro seite = 20
 
       // liste mit älteren kommentar-einträgen
       $html_backend_ext .= "<p id=\"commentlist\"><b>".$this->language["HEADER_COMMENT_LIST"]."</b></p>\n\n";
