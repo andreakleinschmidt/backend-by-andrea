@@ -114,6 +114,7 @@ table {
 tr { background-color:transparent; }
 .farbig { background-color:#331122; }
 th { vertical-align:top; }
+.th_profile { padding-right:5px; width:25%; }
 td {}
 .td_photos { vertical-align:top; }
 .td_profile { vertical-align:top; padding-right:5px; width:25%; }
@@ -167,8 +168,7 @@ input[type=text] {}
 .size_20 { width:14.75em; }	/* { width:187px; }	table gbook 1. spalte, blogquery, blog comment */
 .size_32 { width:22.75em; }	/* { width:283px; }	table backend (profile) 1. spalte, (admin, blog, comment, profile) 2. spalte, (photo) 3./4. spalte */
 .size_40 { width:28.1em; }	/* { width:347px; }	table backend (photo) 3. spalte */
-.size_96 { width:65.45em; }	/* { width:795px; }	table backend (profile) 2. spalte */
-.size_128 { width:86.75em; }	/* { width:1051px; }	table backend (home) 2. spalte */
+.size_48 { width:33.45em; }	/* { width:401px; }	table backend (home, profile) 2. spalte */
 
 textarea {}
 .cols_40_rows_8 { width:24.6em; height:11.25em; }	/* { width:299px; height:137px; }	table gbook 2. spalte */
@@ -521,7 +521,7 @@ div#input_website { display:none; }
 	.size_16 { width:11.7em; }
 	.size_32 { width:11.7em; }
 	.size_40 { width:11.7em; }
-	.size_96 { width:11.7em; }
+	.size_48 { width:11.7em; }
 	textarea {}
 	.cols_60_rows_6 { width:26.2em; }
 	.cols_96_rows_11 { width:19.1em; }
@@ -577,7 +577,7 @@ div#input_website { display:none; }
 	.size_12 { width:4.75em; } /* size_5 */
 	.size_32 { width:12.1em; } /* size_16 */
 	.size_40 { width:12.1em; } /* size_16 */
-	.size_96 { width:14.7em; }
+	.size_48 { width:14.7em; }
 	textarea {}
 	.cols_60_rows_6 { width:29.6em; }
 	.cols_96_rows_11 { width:22.4em; }
@@ -633,7 +633,7 @@ div#input_website { display:none; }
 	.size_12 { width:4.75em; } /* size_5 */
 	.size_32 { width:12.1em; } /* size_16 */
 	.size_40 { width:12.1em; } /* size_16 */
-	.size_96 { width:14.7em; }
+	.size_48 { width:14.7em; }
 	textarea {}
 	.cols_60_rows_6 { width:29.6em; }
 	.cols_96_rows_11 { width:22.4em; }
@@ -687,7 +687,7 @@ div#input_website { display:none; }
 	.size_12 { width:4.75em; } /* size_5 */
 	.size_32 { width:12.1em; } /* size_16 */
 	.size_40 { width:12.1em; } /* size_16 */
-	.size_96 { width:24.8em; }
+	.size_48 { width:24.8em; }
 	textarea {}
 	.cols_96_rows_11 { width:32.4em; }
 	.cols_96_rows_22 { width:32.4em; }
@@ -741,7 +741,7 @@ div#input_website { display:none; }
 	.size_12 { width:4.75em; } /* size_5 */
 	.size_32 { width:12.1em; } /* size_16 */
 	.size_40 { width:12.1em; } /* size_16 */
-	.size_96 { width:14.7em; }
+	.size_48 { width:14.7em; }
 	textarea {}
 	.cols_60_rows_6 { width:29.6em; }
 	.cols_96_rows_11 { width:22.4em; }
@@ -796,7 +796,7 @@ div#input_website { display:none; }
 	.size_12 { width:4.75em; } /* size_5 */
 	.size_32 { width:12.1em; } /* size_16 */
 	.size_40 { width:12.1em; } /* size_16 */
-	.size_96 { width:19.1em; }
+	.size_48 { width:19.1em; }
 	textarea {}
 	.cols_60_rows_6 { width:34.0em; }
 	.cols_96_rows_11 { width:26.8em; }
@@ -850,7 +850,7 @@ div#input_website { display:none; }
 	.size_12 { width:4.75em; } /* size_5 */
 	.size_32 { width:12.1em; } /* size_16 */
 	.size_40 { width:12.1em; } /* size_16 */
-	.size_96 { width:22.1em; }
+	.size_48 { width:22.1em; }
 	textarea {}
 	.cols_96_rows_11 { width:29.7em; }
 	.cols_96_rows_22 { width:29.7em; }
@@ -903,7 +903,7 @@ div#input_website { display:none; }
 	.size_12 { width:4.75em; } /* size_5 */
 	.size_32 { width:12.1em; } /* size_16 */
 	.size_40 { width:12.1em; } /* size_16 */
-	.size_96 { width:24.6em; }
+	.size_48 { width:24.6em; }
 	textarea {}
 	.cols_96_rows_11 { width:32.2em; }
 	.cols_96_rows_22 { width:32.2em; }
@@ -956,7 +956,7 @@ div#input_website { display:none; }
 	.size_12 { width:4.75em; } /* size_5 */
 	.size_32 { width:12.1em; } /* size_16 */
 	.size_40 { width:12.1em; } /* size_16 */
-	.size_96 { width:28.1em; }
+	.size_48 { width:28.1em; }
 	textarea {}
 	.cols_96_rows_11 { width:35.7em; }
 	.cols_96_rows_22 { width:35.7em; }
@@ -1008,7 +1008,7 @@ div#input_website { display:none; }
 	input[type=text] {}
 	.size_32 { width:12.1em; } /* size_16 */
 	.size_40 { width:17.0em; }
-	.size_96 { width:41.4em; }
+	.size_48 { width:41.4em; }
 	textarea {}
 	.cols_96_rows_11 { width:49.1em; }
 	.cols_96_rows_22 { width:49.1em; }
@@ -1054,7 +1054,7 @@ div#input_website { display:none; }
 	input[type=text] {}
 	.size_32 { width:12.1em; } /* size_16 */
 	.size_40 { width:27.0em; }
-	.size_96 { width:54.8em; }
+	.size_48 { width:54.8em; }
 	main, header { width:960px; }
 	nav { width:960px; }
 	section, div#profile, div#gallery, div#blog, div#blogcommentform { width:840px; }

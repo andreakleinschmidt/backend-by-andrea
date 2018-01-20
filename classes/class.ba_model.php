@@ -307,11 +307,20 @@ class Model {
     if ($user_role >= ROLE_EDITOR) {
       $ret .= "<details class=\"details_backend\">\n".
               "<summary><a href=\"backend.php?action=home\">".$this->language["HEADER_HOME"]."</a></summary>\n".
+              "<ul>\n".
+              "<li><a href=\"backend.php?action=home#home\">".$this->language["HEADER_HOME"]."</a></li>\n".
+              "<li><a href=\"backend.php?action=home#elements\">".$this->language["HEADER_ELEMENTS"]."</a></li>\n".
+              "</ul>\n".
               "</details>\n";
     }
     if ($user_role >= ROLE_EDITOR) {
       $ret .= "<details class=\"details_backend\">\n".
               "<summary><a href=\"backend.php?action=profile\">".$this->language["HEADER_PROFILE"]."</a></summary>\n".
+              "<ul>\n".
+              "<li><a href=\"backend.php?action=profile#profile\">".$this->language["HEADER_PROFILE"]."</a></li>\n".
+              "<li><a href=\"backend.php?action=profile#tables\">".$this->language["HEADER_TABLES"]."</a></li>\n".
+              "<li><a href=\"backend.php?action=profile#elements\">".$this->language["HEADER_ELEMENTS"]."</a></li>\n".
+              "</ul>\n".
               "</details>\n";
     }
     if ($user_role >= ROLE_EDITOR) {

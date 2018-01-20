@@ -7,6 +7,10 @@
   <BUTTON_SEARCH text="Suche"/>
   <BUTTON_SEND text="senden"/>
   <BUTTON_SET text="ändern"/>
+  <ELEMENT_IMAGE text="Bild"/>
+  <ELEMENT_PARAGRAPH text="Absatz"/>
+  <ELEMENT_TABLE_H text="Tabelle mit Kopfzeile"/>
+  <ELEMENT_TABLE text="Tabelle"/>
   <FRONTEND_ARCHIVE text="Archiv:"/>
   <FRONTEND_BLOGROLL text="Blogroll:"/>
   <FRONTEND_COMMENT_LINK text="Kommentar"/>
@@ -26,7 +30,6 @@
   <FRONTEND_PHOTOS text="Fotos"/>
   <FRONTEND_PHOTOS_TOTAL text="Fotos insgesamt"/>
   <FRONTEND_PHOTO text="Foto"/>
-  <FRONTEND_PROFILE text="Profil:"/>
   <FRONTEND_PROMPT_BLOGENTRY text="Der Blog-Eintrag auf dem sich dein Kommentar bezieht:"/>
   <FRONTEND_PROMPT_COMMENT_MAXLEN text="Kommentar (max. 2048 Zeichen):"/>
   <FRONTEND_RECENT_BLOGENTRIES text="letzte Blogeinträge:"/>
@@ -44,6 +47,7 @@
   <HEADER_COMMENT_LIST text="Kommentar (Liste)"/>
   <HEADER_COMMENT_NEW text="Kommentar (neu)"/>
   <HEADER_COMMENT text="Kommentar"/>
+  <HEADER_ELEMENTS text="Elemente"/>
   <HEADER_GALLERY text="Galerie"/>
   <HEADER_HOME text="Startseite"/>
   <HEADER_LANGUAGES text="Sprachen"/>
@@ -54,6 +58,7 @@
   <HEADER_PASSWORD text="Passwort"/>
   <HEADER_PHOTOS text="Fotos"/>
   <HEADER_PROFILE text="Profil"/>
+  <HEADER_TABLES text="Tabellen"/>
   <HEADER_UPLOAD text="Hochladen"/>
   <HISTORY_AT text="am"/>
   <HISTORY_BY text="von"/>
@@ -84,6 +89,7 @@
   <MSG_COMMENT_NEW text="Kommentar - neu"/>
   <MSG_COMMENT_UPDATE text="Kommentar - geändert"/>
   <MSG_DONE text="erledigt"/>
+  <MSG_ELEMENT_ERROR text="Element Fehler"/>
   <MSG_GALLERY_ERROR text="Galerie Fehler"/>
   <MSG_HELLO text="Hallo"/>
   <MSG_LANGUAGES_ERROR text="Sprachen Fehler"/>
@@ -93,6 +99,7 @@
   <MSG_PHOTO_ERROR text="Foto Fehler"/>
   <MSG_ROWS_CHANGED text="Zeilen geändert"/>
   <MSG_ROWS_DELETED text="Zeilen gelöscht"/>
+  <MSG_ROWS_INSERTED text="Zeilen eingefügt"/>
   <MSG_YOUR_TEMPORARY_PASSWORD_IS text="dein temporäres Passwort ist"/>
   <PAGE_NEXT text="vor"/>
   <PAGE_PREVIOUS text="zurück"/>
@@ -104,18 +111,22 @@
   <PROMPT_DATE text="Datum:"/>
   <PROMPT_DELETE text="löschen:"/>
   <PROMPT_DESCENDING text="ab:"/>
+  <PROMPT_ELEMENTS text="Elemente:"/>
   <PROMPT_INTRO text="Einleitung:"/>
   <PROMPT_FEED text="Feed:"/>
   <PROMPT_FULLNAME text="vollständiger Name:"/>
   <PROMPT_HEADER text="Überschrift:"/>
   <PROMPT_HIDE text="unsichtbar:"/>
   <PROMPT_IP text="IP:"/>
+  <PROMPT_LANGUAGECODES text="Sprachcodes:"/>
   <PROMPT_LOCALE text="locale:"/>
   <PROMPT_MAIL text="Mail:"/>
   <PROMPT_NAME text="Name:"/>
   <PROMPT_NEW_CATEGORY text="neue Rubrik:"/>
+  <PROMPT_NEW_ELEMENT text="neues Element:"/>
   <PROMPT_NEW_FEED text="neuer Feed:"/>
   <PROMPT_NEW_LANGUAGE text="neue Sprache (locale):"/>
+  <PROMPT_NEW_TABLE text="neue Tabelle:"/>
   <PROMPT_NEW text="neu:"/>
   <PROMPT_PASSWORD_NEW_1 text="Passwort neu (1):"/>
   <PROMPT_PASSWORD_NEW_2 text="Passwort neu (2):"/>
@@ -124,10 +135,12 @@
   <PROMPT_QRCODE text="QR-Code:"/>
   <PROMPT_REQUEST_NEW_SECRET text="neuen Schlüssel anfordern"/>
   <PROMPT_ROLE text="Rolle:"/>
+  <PROMPT_ROWSCOLS text="Zeilen, Spalten:"/>
   <PROMPT_SELECTED text="ausgewählt:"/>
   <PROMPT_SHARED_SECRET text="shared secret:"/>
   <PROMPT_STATE text="Zustand:"/>
   <PROMPT_TAGS text="Tags:"/>
+  <PROMPT_TABLENAME text="Tabellenname:"/>
   <PROMPT_TEXT text="Text:"/>
   <PROMPT_TOTAL text="insgesamt:"/>
   <PROMPT_USE_2FA text="2FA benutzen:"/>

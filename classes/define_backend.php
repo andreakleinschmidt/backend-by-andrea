@@ -11,9 +11,12 @@ define("MAXLEN_CODE",8);	// login form
 define("MAXLEN_SHAREDSECRET",64);
 define("MAXLEN_EMAIL",64);	// admin form
 define("MAXLEN_FULLNAME",64);	// admin form
-define("MAXLEN_HOMETEXT",256);	// aus TABLE VARCHAR(xx) , für zeichen limit
-define("MAXLEN_PROFILETAG",64);
-define("MAXLEN_PROFILETEXT",256);
+define("MAXLEN_HPELEMENT",16);
+define("MAXLEN_HPCSS",32);
+define("MAXLEN_HPVALUE",1024);
+define("MAXLEN_PROFILETABLENAME",32);
+define("MAXLEN_PROFILELANGUAGE",2);
+define("MAXLEN_PROFILEVALUE",256);
 define("MAXLEN_GALLERYALIAS",16);
 define("MAXLEN_GALLERYTEXT",64);
 define("MAXLEN_PHOTOID",8);
@@ -45,6 +48,10 @@ define("STATE_CREATED",0);
 define("STATE_EDITED",1);
 define("STATE_APPROVAL",2);
 define("STATE_PUBLISHED",3);
+define("ELEMENT_IMAGE","image");
+define("ELEMENT_PARAGRAPH","paragraph");
+define("ELEMENT_TABLE_H","table+h");
+define("ELEMENT_TABLE","table");
 define("MB_ENCODING","UTF-8");
 define("DEFAULT_LOCALE","de-DE");	// "de-DE" oder "en-US"
 define("DEBUG",false);

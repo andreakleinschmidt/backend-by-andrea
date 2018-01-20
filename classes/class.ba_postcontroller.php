@@ -422,21 +422,25 @@ class PostController {
 // *****************************************************************************
 
         elseif (isset($_POST["ba_home"]) and ($_SESSION["user_role"] >= ROLE_EDITOR)) {
-          // ba_home[ba_id] => ba_text
+          // ba_home[ba_id][ba_css, ba_value]
 
           $model_home = new Home();	// model erstellen
           $ba_home_array = $_POST["ba_home"];
           $ba_home_array_replaced = array();
 
-          foreach ($ba_home_array as $ba_id => $ba_text) {
-            $ba_text = trim($ba_text);	// überflüssige leerzeichen entfernen
+          foreach ($ba_home_array as $ba_id => $ba_array) {
+            $ba_css = trim($ba_array["ba_css"]);	// überflüssige leerzeichen entfernen
+            $ba_value = trim($ba_array["ba_value"]);
 
             // zeichen limit
-            if (mb_strlen($ba_text, MB_ENCODING) > MAXLEN_HOMETEXT) {
-              $ba_text = mb_substr($ba_text, 0, MAXLEN_HOMETEXT, MB_ENCODING);
+            if (mb_strlen($ba_css, MB_ENCODING) > MAXLEN_HPCSS) {
+              $ba_css = mb_substr($ba_css, 0, MAXLEN_HPCSS, MB_ENCODING);
+            }
+            if (mb_strlen($ba_value, MB_ENCODING) > MAXLEN_HPVALUE) {
+              $ba_value = mb_substr($ba_value, 0, MAXLEN_HPVALUE, MB_ENCODING);
             }
 
-            $ba_home_array_replaced[$ba_id] = $ba_text;
+            $ba_home_array_replaced[$ba_id] = array("ba_css" => $ba_css, "ba_value" => $ba_value);
           }
 
           $ret = $model_home->postHome($ba_home_array_replaced);	// daten für home in das model
@@ -446,36 +450,234 @@ class PostController {
         } // ba_home[ba_id]
 
 // *****************************************************************************
+// *** backend POST home elements (neu) ***
+// *****************************************************************************
+
+        elseif (isset($_POST["ba_home_elements_new"]) and ($_SESSION["user_role"] >= ROLE_EDITOR)) {
+          // ba_home_elements_new[element]
+
+          $model_home = new Home();	// model erstellen
+          $ba_home_elements_new_array = $_POST["ba_home_elements_new"];
+
+          // überflüssige leerzeichen entfernen
+          $element = trim($ba_home_elements_new_array["element"]);
+
+          // zeichen limit
+          if (strlen($element) > MAXLEN_HPELEMENT) {
+            $element = substr($element, 0, MAXLEN_HPELEMENT);
+          }
+
+          $ret = $model_home->postElementNew($element);	// daten für elements (neu) in das model
+          $html_backend_ext .= $ret["content"];
+          $errorstring = $ret["error"];
+
+        } // ba_home_elements_new[]
+
+// *****************************************************************************
+// *** backend POST home elements ***
+// *****************************************************************************
+
+        elseif (isset($_POST["ba_home_elements"]) and ($_SESSION["user_role"] >= ROLE_EDITOR)) {
+          // ba_home_elements[ba_id]
+
+          $model_home = new Home();	// model erstellen
+          $ba_home_elements_array = $_POST["ba_home_elements"];
+          $ret = $model_home->postElements($ba_home_elements_array);	// daten für elements in das model
+          $html_backend_ext .= $ret["content"];
+          $errorstring = $ret["error"];
+
+        } // ba_home_elements[]
+
+// *****************************************************************************
 // *** backend POST profile ***
 // *****************************************************************************
 
         elseif (isset($_POST["ba_profile"]) and ($_SESSION["user_role"] >= ROLE_EDITOR)) {
-          // ba_profile[ba_id][ba_tag, ba_text]
+          // ba_profile[ba_id][ba_css, ba_value]
 
           $model_profile = new Profile();	// model erstellen
           $ba_profile_array = $_POST["ba_profile"];
           $ba_profile_array_replaced = array();
 
           foreach ($ba_profile_array as $ba_id => $ba_array) {
-            $ba_tag = trim($ba_array["ba_tag"]);	// überflüssige leerzeichen entfernen
-            $ba_text = trim($ba_array["ba_text"]);
+            $ba_css = trim($ba_array["ba_css"]);	// überflüssige leerzeichen entfernen
+            $ba_value = trim($ba_array["ba_value"]);
 
             // zeichen limit
-            if (mb_strlen($ba_tag, MB_ENCODING) > MAXLEN_PROFILETAG) {
-              $ba_text = mb_substr($ba_tag, 0, MAXLEN_PROFILETAG, MB_ENCODING);
+            if (mb_strlen($ba_css, MB_ENCODING) > MAXLEN_HPCSS) {
+              $ba_css = mb_substr($ba_css, 0, MAXLEN_HPCSS, MB_ENCODING);
             }
-            if (mb_strlen($ba_text, MB_ENCODING) > MAXLEN_PROFILETEXT) {
-              $ba_text = mb_substr($ba_text, 0, MAXLEN_PROFILETEXT, MB_ENCODING);
+            if (mb_strlen($ba_value, MB_ENCODING) > MAXLEN_HPVALUE) {
+              $ba_value = mb_substr($ba_value, 0, MAXLEN_HPVALUE, MB_ENCODING);
             }
 
-            $ba_profile_array_replaced[$ba_id] = array("ba_tag" => $ba_tag, "ba_text" => $ba_text);
+            $ba_profile_array_replaced[$ba_id] = array("ba_css" => $ba_css, "ba_value" => $ba_value);
           }
 
           $ret = $model_profile->postProfile($ba_profile_array_replaced);	// daten für profile in das model
           $html_backend_ext .= $ret["content"];
           $errorstring = $ret["error"];
 
-        } // ba_profile[ba_id][ba_tag, ba_text]
+        } // ba_profile[ba_id][ba_css, ba_value]
+
+// *****************************************************************************
+// *** backend POST profile elements (neu) ***
+// *****************************************************************************
+
+        elseif (isset($_POST["ba_profile_elements_new"]) and ($_SESSION["user_role"] >= ROLE_EDITOR)) {
+          // ba_profile_elements_new[element]
+
+          $model_profile = new Profile();	// model erstellen
+          $ba_profile_elements_new_array = $_POST["ba_profile_elements_new"];
+
+          // überflüssige leerzeichen entfernen
+          $element = trim($ba_profile_elements_new_array["element"]);
+
+          // zeichen limit
+          if (strlen($element) > MAXLEN_HPELEMENT) {
+            $element = substr($element, 0, MAXLEN_HPELEMENT);
+          }
+
+          $ret = $model_profile->postElementNew($element);	// daten für elements (neu) in das model
+          $html_backend_ext .= $ret["content"];
+          $errorstring = $ret["error"];
+
+        } // ba_profile_elements_new[]
+
+// *****************************************************************************
+// *** backend POST profile elements ***
+// *****************************************************************************
+
+        elseif (isset($_POST["ba_profile_elements"]) and ($_SESSION["user_role"] >= ROLE_EDITOR)) {
+          // ba_profile_elements[ba_id]
+
+          $model_profile = new Profile();	// model erstellen
+          $ba_profile_elements_array = $_POST["ba_profile_elements"];
+          $ret = $model_profile->postElements($ba_profile_elements_array);	// daten für elements in das model
+          $html_backend_ext .= $ret["content"];
+          $errorstring = $ret["error"];
+
+        } // ba_profile_elements[]
+
+// *****************************************************************************
+// *** backend POST profile tables (neu) ***
+// *****************************************************************************
+
+        elseif (isset($_POST["ba_profile_tables_new"]) and ($_SESSION["user_role"] >= ROLE_EDITOR)) {
+          // ba_profile_tables_new[element, table_name, rows, cols, language_codes]
+
+          $model_profile = new Profile();	// model erstellen
+          $ba_profile_tables_new_array = $_POST["ba_profile_tables_new"];
+
+          // überflüssige leerzeichen entfernen
+          $element = trim($ba_profile_tables_new_array["element"]);
+          $table_name = trim($ba_profile_tables_new_array["table_name"]);
+
+          // str zu int
+          $rows = intval($ba_profile_tables_new_array["rows"]);
+          $cols = intval($ba_profile_tables_new_array["cols"]);
+
+          // zeichen limit
+          if (strlen($element) > MAXLEN_HPELEMENT) {
+            $element = substr($element, 0, MAXLEN_HPELEMENT);
+          }
+          if (strlen($table_name) > MAXLEN_PROFILETABLENAME) {
+            $table_name = substr($table_name, 0, MAXLEN_PROFILETABLENAME);
+          }
+
+          // werte eingrenzen
+          if ($rows < 1) {
+            $rows = 1;
+          }
+          if ($rows > 255) {
+            $rows = 255;
+          }
+          if ($cols < 1) {
+            $cols = 1;
+          }
+          if ($cols > 255) {
+            $cols = 255;
+          }
+
+          $language_codes = array();
+          foreach ($ba_profile_tables_new_array["language_codes"] as $language_code) {
+            $language_code = trim($language_code);	// überflüssige leerzeichen entfernen
+
+            // zeichen limit
+            if (strlen($language_code) > MAXLEN_PROFILELANGUAGE) {
+              $language_code = substr($language_code, 0, MAXLEN_PROFILELANGUAGE);
+            }
+
+            $language_codes[] = $language_code;
+          }
+
+          $ba_profile_tables_new_array_replaced = array("element" => $element, "table_name" => $table_name, "rows" => $rows, "cols" => $cols, "language_codes" => $language_codes);
+
+          $ret = $model_profile->postTablesNew($ba_profile_tables_new_array_replaced);	// daten für tables (neu) in das model
+          $html_backend_ext .= $ret["content"];
+          $errorstring = $ret["error"];
+
+        } // ba_profile_tables_new[]
+
+// *****************************************************************************
+// *** backend POST profile tables ***
+// *****************************************************************************
+
+        elseif (isset($_POST["ba_profile_tables"]) and ($_SESSION["user_role"] >= ROLE_EDITOR)) {
+          // ba_profile_tables[ba_table_name][ba_row][ba_col][ba_language][ba_value]
+
+          $model_profile = new Profile();	// model erstellen
+          $ba_profile_tables_array = $_POST["ba_profile_tables"];
+
+          $ba_profile_tables_array_replaced = array();
+
+          foreach ($ba_profile_tables_array as $ba_table_name => $rows) {
+            $ba_table_name = trim($ba_table_name);	// überflüssige leerzeichen entfernen
+
+            // zeichen limit
+            if (strlen($ba_table_name) > MAXLEN_PROFILETABLENAME) {
+              $ba_table_name = substr($ba_table_name, 0, MAXLEN_PROFILETABLENAME);
+            }
+
+            $ba_profile_tables_array_replaced[$ba_table_name] = array();
+
+            foreach ($rows as $ba_row => $cols) {
+              $ba_row = intval($ba_row);	// str zu int
+
+              $ba_profile_tables_array_replaced[$ba_table_name][$ba_row] = array();
+
+              foreach ($cols as $ba_col => $languages) {
+                $ba_col = intval($ba_col);	// str zu int
+
+                $ba_profile_tables_array_replaced[$ba_table_name][$ba_row][$ba_col] = array();
+
+                foreach ($languages as $ba_language => $ba_value) {
+                  $ba_language = trim($ba_language);	// überflüssige leerzeichen entfernen
+                  $ba_value = trim($ba_value);
+
+                  // zeichen limit
+                  if (strlen($ba_language) > MAXLEN_PROFILELANGUAGE) {
+                    $ba_language = substr($ba_language, 0, MAXLEN_PROFILELANGUAGE);
+                  }
+                  if (strlen($ba_value) > MAXLEN_PROFILEVALUE) {
+                    $ba_value = substr($ba_value, 0, MAXLEN_PROFILEVALUE);
+                  }
+
+                  $ba_profile_tables_array_replaced[$ba_table_name][$ba_row][$ba_col][$ba_language] = $ba_value;
+
+                } // foreach languages
+
+              } // foreach columns
+
+            } // foreach rows
+
+          } // foreach table names
+
+          $ret = $model_profile->postTables($ba_profile_tables_array_replaced);	// daten für tables in das model
+          $html_backend_ext .= $ret["content"];
+          $errorstring = $ret["error"];
+
+        } // ba_profile_tables[]
 
 // *****************************************************************************
 // *** backend POST gallery (neu) ***
