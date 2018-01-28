@@ -12,7 +12,7 @@
 //define("MAXLEN_BLOGDATE",32);
 //define("MAXLEN_BLOGHEADER",128);
 //define("MAXLEN_BLOGINTRO",1024);
-//define("MAXLEN_BLOGTEXT",8192);
+//define("MAXLEN_BLOGTEXT",11264);
 //define("MAXLEN_BLOGVIDEOID",32);
 //define("MAXLEN_BLOGPHOTOID",128);
 //define("MAXLEN_BLOGTAGS",128);
@@ -213,7 +213,7 @@ class Blog extends Model {
       //                ba_date VARCHAR(32) NOT NULL,
       //                ba_header VARCHAR(128) NOT NULL,
       //                ba_intro VARCHAR(1024) NOT NULL,
-      //                ba_text VARCHAR(8192) NOT NULL,
+      //                ba_text VARCHAR(11264) NOT NULL,
       //                ba_videoid VARCHAR(32) NOT NULL,
       //                ba_photoid VARCHAR(128) NOT NULL,
       //                ba_catid INT UNSIGNED NOT NULL,
@@ -634,7 +634,7 @@ class Blog extends Model {
       //                ba_date VARCHAR(32) NOT NULL,
       //                ba_header VARCHAR(128) NOT NULL,
       //                ba_intro VARCHAR(1024) NOT NULL,
-      //                ba_text VARCHAR(8192) NOT NULL,
+      //                ba_text VARCHAR(11264) NOT NULL,
       //                ba_videoid VARCHAR(32) NOT NULL,
       //                ba_photoid VARCHAR(128) NOT NULL,
       //                ba_catid INT UNSIGNED NOT NULL,
