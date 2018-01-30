@@ -168,13 +168,33 @@ class Comment extends Model {
             $html_backend_ext .= "<a href=\"backend.php?".$this->html_build_query($query_data)."\">".$this->language["PAGE_PREVIOUS"]."</a> \n";	// zurück
           }
 
-          for ($i=1; $i<=$anzahl_s; $i++) {														// seitenauswahl
-            if ($i == $page) {
-              $html_backend_ext .= $i." \n";
+          for ($dec=0; $dec<=floor($anzahl_s/10); $dec++) {												// seitenauswahl (mit zehnergruppen)
+            if ($dec == 0) {
+              $start = 1;
             }
             else {
-              $query_data["page"] = $i;
-              $html_backend_ext .= "<a href=\"backend.php?".$this->html_build_query($query_data)."\">".$i."</a> \n";
+              $start = $dec*10;
+            }
+            if ($dec == floor($anzahl_s/10)) {
+              $ende = $anzahl_s;
+            }
+            else {
+              $ende = ($dec*10)+9;
+            }
+            if ($dec == floor($page/10)) {
+              for ($i=$start; $i<=$ende; $i++) {
+                if ($i == $page) {
+                  $html_backend_ext .= $i." \n";
+                }
+                else {
+                  $query_data["page"] = $i;
+                  $html_backend_ext .= "<a href=\"backend.php?".$this->html_build_query($query_data)."\">".$i."</a> \n";
+                }
+              }
+            }
+            else {
+              $query_data["page"] = $start;
+              $html_backend_ext .= "<a href=\"backend.php?".$this->html_build_query($query_data)."\">[".$start."-".$ende."]</a> \n";
             }
           }
 
