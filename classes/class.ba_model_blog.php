@@ -9,7 +9,7 @@
 // *** define ***
 // *****************************************************************************
 
-//define("MAXLEN_BLOGDATE",32);
+//define("MAXLEN_BLOGDATETIME",20);
 //define("MAXLEN_BLOGHEADER",128);
 //define("MAXLEN_BLOGINTRO",1024);
 //define("MAXLEN_BLOGTEXT",11264);
@@ -114,6 +114,14 @@ class Blog extends Model {
     return $ret;
   }
 
+  // falls year = -0001 (mysql "0000-00-00 00:00:00"), neue datetime mit unix ts 0 "1970-01-01 00:00:00"
+  public function check_datetime($datetime) {
+    if (intval(date_format($datetime, "Y")) < 0) {
+      $datetime = date_create_from_format("U", 0);	// im fehlerfall
+    }
+    return $datetime;
+  }
+
   private function getHistory($id) {
     $html_backend_ext = "";
     $errorstring = "";
@@ -210,7 +218,6 @@ class Blog extends Model {
       // TABLE ba_blog (ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
       //                ba_userid INT UNSIGNED NOT NULL,
       //                ba_datetime DATETIME NOT NULL,
-      //                ba_date VARCHAR(32) NOT NULL,
       //                ba_header VARCHAR(128) NOT NULL,
       //                ba_intro VARCHAR(1024) NOT NULL,
       //                ba_text VARCHAR(11264) NOT NULL,
@@ -257,7 +264,7 @@ class Blog extends Model {
         $lmt_start = ($page-1) * $anzahl_eps;
 
         // zugriff auf mysql datenbank (3)
-        $sql = "SELECT ba_id, ba_date, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_catid, ba_tags, ba_state FROM ba_blog ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;
+        $sql = "SELECT ba_id, ba_datetime, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_catid, ba_tags, ba_state FROM ba_blog ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;
         $ret = $this->database->query($sql);	// liefert in return db-objekt
         if ($ret) {
           // wenn kein fehler 3f
@@ -284,7 +291,8 @@ class Blog extends Model {
           // ausgabeschleife
           while ($dataset = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
 
-            $ba_date = stripslashes($this->html5specialchars($dataset["ba_date"]));
+            $datetime = $this->check_datetime(date_create_from_format("Y-m-d H:i:s", $dataset["ba_datetime"]));	// "YYYY-MM-DD HH:MM:SS"
+            $blogdate = date_format($datetime, $this->language["FORMAT_DATE"]." / ".$this->language["FORMAT_TIME"]);	// "DD.MM.YY / HH:MM"
             $ba_header = stripslashes($this->html5specialchars(mb_substr($dataset["ba_header"], 0, 40, MB_ENCODING)));	// 80 wie blogbox in class.model.php, substr problem bei trennung umlaute
             $ba_intro = stripslashes($this->html5specialchars(mb_substr($dataset["ba_intro"], 0, 40, MB_ENCODING)));	// 80 wie blogbox in class.model.php, substr problem bei trennung umlaute
             $ba_text = stripslashes($this->html5specialchars(mb_substr($dataset["ba_text"], 0, 80, MB_ENCODING)));	// 80 wie blogbox in class.model.php, substr problem bei trennung umlaute
@@ -321,7 +329,7 @@ class Blog extends Model {
             }
 
             $html_backend_ext .= "<tr>\n<td>".
-                                 "<a href=\"backend.php?".$this->html_build_query(array("action" => "blog", "id" => $dataset["ba_id"]))."\">".$ba_date." - ";
+                                 "<a href=\"backend.php?".$this->html_build_query(array("action" => "blog", "id" => $dataset["ba_id"]))."\">".$blogdate." - ";
             if (!$diary_mode) {
               $html_backend_ext .= $ba_header."... / ".$ba_intro."... / ";
             }
@@ -651,7 +659,6 @@ class Blog extends Model {
       // TABLE ba_blog (ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
       //                ba_userid INT UNSIGNED NOT NULL,
       //                ba_datetime DATETIME NOT NULL,
-      //                ba_date VARCHAR(32) NOT NULL,
       //                ba_header VARCHAR(128) NOT NULL,
       //                ba_intro VARCHAR(1024) NOT NULL,
       //                ba_text VARCHAR(11264) NOT NULL,
@@ -668,7 +675,6 @@ class Blog extends Model {
       $ba_id = 0xffff;	// error
       $ba_userid = $_SESSION["user_id"];	// wird immer neu gesetzt
       $ba_datetime = "0000-00-00 00:00:00";
-      $ba_date = "";
       $ba_header = "";
       $ba_intro = "";
       $ba_text = "";
@@ -685,7 +691,7 @@ class Blog extends Model {
         $html_backend_ext .= "<p id=\"blog\"><b>".$this->language["HEADER_BLOG"]."</b></p>\n\n";
 
         // zugriff auf mysql datenbank (1) , select mit prepare() , ($id aus GET)
-        $sql = "SELECT ba_id, ba_datetime, ba_date, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_catid, ba_tags, ba_state FROM ba_blog WHERE ba_id = ?";
+        $sql = "SELECT ba_id, ba_datetime, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_catid, ba_tags, ba_state FROM ba_blog WHERE ba_id = ?";
         $stmt = $this->database->prepare($sql);	// liefert mysqli-statement-objekt
         if ($stmt) {
           // wenn kein fehler 3d
@@ -694,7 +700,7 @@ class Blog extends Model {
           $stmt->bind_param("i", $id);
           $stmt->execute();	// ausführen geänderte zeile
 
-          $stmt->bind_result($dataset["ba_id"],$dataset["ba_datetime"],$dataset["ba_date"],$dataset["ba_header"],$dataset["ba_intro"],$dataset["ba_text"],$dataset["ba_videoid"],$dataset["ba_photoid"],$dataset["ba_catid"],$dataset["ba_tags"],$dataset["ba_state"]);
+          $stmt->bind_result($dataset["ba_id"],$dataset["ba_datetime"],$dataset["ba_header"],$dataset["ba_intro"],$dataset["ba_text"],$dataset["ba_videoid"],$dataset["ba_photoid"],$dataset["ba_catid"],$dataset["ba_tags"],$dataset["ba_state"]);
           // mysqli-statement-objekt kennt kein fetch_assoc(), nur fetch(), kein assoc-array als rückgabe
 
           if ($stmt->fetch()) {
@@ -703,7 +709,6 @@ class Blog extends Model {
             // preset überschreiben
             $ba_id = $dataset["ba_id"];
             $ba_datetime = stripslashes($this->html5specialchars($dataset["ba_datetime"]));
-            $ba_date = stripslashes($this->html5specialchars($dataset["ba_date"]));
             $ba_header = stripslashes($this->html5specialchars($dataset["ba_header"]));
             $ba_intro = stripslashes($this->html5specialchars($dataset["ba_intro"]));
             $ba_text = stripslashes($this->html5specialchars($dataset["ba_text"]));
@@ -735,12 +740,10 @@ class Blog extends Model {
 
         // preset teilweise überschreiben
         $ba_id = 0;
-        $ba_date = date("d.m.y / H:i");	// 18.11.11 / 03:00
-
-        // ba_datetime mit datetime-wert aus ba_date-string 
-        $date = date_create_from_format("d.m.y / H:i|", $ba_date);	// alles ab "|" ist 0
-        $ba_datetime = date_format($date, "Y-m-d H:i:s");	// return string "2014-11-13 23:45:00"
-        if ($date == false or $ba_datetime == false) {
+        $datetime = date_create();
+        date_time_set($datetime, date_format($datetime, "H"), date_format($datetime, "i"), 0);	// ohne sekunden
+        $ba_datetime = date_format($datetime, "Y-m-d H:i:s");	// return string "2014-11-13 23:45:00"
+        if ($datetime == false or $ba_datetime == false) {
           $ba_datetime = "0000-00-00 00:00:00";	// im fehlerfall
         }
 
@@ -748,7 +751,7 @@ class Blog extends Model {
 
       $categories = $this->getCategories();	// return array($category => $catid)
 
-      // formular felder für blog eintrag , GET id oder neu , ba_id und ba_userid in hidden feld , ba_daten aus preset (ohne ba_datetime, hier nur info-anzeige, wird bei POST neu gesetzt)
+      // formular felder für blog eintrag , GET id oder neu , ba_id und ba_userid in hidden feld , ba_daten aus preset
 
       $html_backend_ext .= "<form action=\"backend.php\" method=\"post\">\n".
                            "<table class=\"backend\">\n".
@@ -757,8 +760,7 @@ class Blog extends Model {
                            "</td>\n<td>\n".
                            "<input type=\"hidden\" name=\"ba_blog[ba_id]\" value=\"".$ba_id."\"/>\n".
                            "<input type=\"hidden\" name=\"ba_blog[ba_userid]\" value=\"".$ba_userid."\"/>\n".
-                           "<input type=\"text\" name=\"ba_blog[ba_date]\" class=\"size_32\" maxlength=\"".MAXLEN_BLOGDATE."\" value=\"".$ba_date."\"/>\n".
-                           "(".$ba_datetime.")\n".
+                           "<input type=\"text\" name=\"ba_blog[ba_datetime]\" class=\"size_32\" maxlength=\"".MAXLEN_DATETIME."\" value=\"".$ba_datetime."\"/>\n".
                            "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">";
       if ($diary_mode) {
         $html_backend_ext .= "</td>\n<td>\n".
@@ -868,7 +870,7 @@ class Blog extends Model {
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
-  public function postBlog($ba_id, $ba_userid, $ba_date, $ba_header, $ba_intro, $ba_text, $ba_videoid, $ba_photoid, $ba_catid, $ba_tags, $ba_state, $ba_delete) {
+  public function postBlog($ba_id, $ba_userid, $ba_datetime, $ba_header, $ba_intro, $ba_text, $ba_videoid, $ba_photoid, $ba_catid, $ba_tags, $ba_state, $ba_delete) {
     $html_backend_ext = "";
     $errorstring = "";
 
@@ -881,16 +883,9 @@ class Blog extends Model {
 
         $count = 0;
 
-        // ba_datetime mit datetime-wert aus ba_date-string 
-        $date = date_create_from_format("d.m.y / H:i|", $ba_date);	// alles ab "|" ist 0
-        $ba_datetime = date_format($date, "Y-m-d H:i:s");	// return string "2014-11-13 23:45:00"
-        if ($date == false or $ba_datetime == false) {
-          $ba_datetime = "0000-00-00 00:00:00";	// im fehlerfall
-        }
-
         // einfügen in datenbank:
         if ($ba_id == 0) {
-          $sql = "INSERT INTO ba_blog (ba_userid, ba_datetime, ba_date, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_catid, ba_tags, ba_state) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+          $sql = "INSERT INTO ba_blog (ba_userid, ba_datetime, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_catid, ba_tags, ba_state) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         }
 
         // löschen in datenbank:
@@ -900,7 +895,7 @@ class Blog extends Model {
 
         // update in datenbank:
         else {
-          $sql = "UPDATE ba_blog SET ba_userid = ?, ba_datetime = ?, ba_date = ?, ba_header = ?, ba_intro = ?, ba_text = ?, ba_videoid = ?, ba_photoid = ?, ba_catid = ?, ba_tags = ?, ba_state = ? WHERE ba_id = ?";
+          $sql = "UPDATE ba_blog SET ba_userid = ?, ba_datetime = ?, ba_header = ?, ba_intro = ?, ba_text = ?, ba_videoid = ?, ba_photoid = ?, ba_catid = ?, ba_tags = ?, ba_state = ? WHERE ba_id = ?";
         }
 
         // mit prepare() - sql injections verhindern
@@ -908,9 +903,9 @@ class Blog extends Model {
         if ($stmt) {
           // wenn kein fehler 4e
 
-          // austauschen ???????????, ? oder ???????????? durch string und int
+          // austauschen ??????????, ? oder ??????????? durch string und int
           if ($ba_id == 0) {
-            $stmt->bind_param("isssssssisi", $ba_userid, $ba_datetime, $ba_date, $ba_header, $ba_intro, $ba_text, $ba_videoid, $ba_photoid, $ba_catid, $ba_tags, $ba_state);	// einfügen in datenbank
+            $stmt->bind_param("issssssisi", $ba_userid, $ba_datetime, $ba_header, $ba_intro, $ba_text, $ba_videoid, $ba_photoid, $ba_catid, $ba_tags, $ba_state);	// einfügen in datenbank
             $html_backend_ext .= "<p>".$this->language["MSG_BLOG_NEW"]."</p>\n\n";
           }
           elseif ($ba_delete) {
@@ -918,7 +913,7 @@ class Blog extends Model {
             $html_backend_ext .= "<p>".$this->language["MSG_BLOG_DELETE"]."</p>\n\n";
           }
           else {
-            $stmt->bind_param("isssssssisii", $ba_userid, $ba_datetime, $ba_date, $ba_header, $ba_intro, $ba_text, $ba_videoid, $ba_photoid, $ba_catid, $ba_tags, $ba_state, $ba_id);	// update in datenbank
+            $stmt->bind_param("issssssisii", $ba_userid, $ba_datetime, $ba_header, $ba_intro, $ba_text, $ba_videoid, $ba_photoid, $ba_catid, $ba_tags, $ba_state, $ba_id);	// update in datenbank
             $html_backend_ext .= "<p>".$this->language["MSG_BLOG_UPDATE"]."</p>\n\n";
           }
           $stmt->execute();	// ausführen geänderte zeile

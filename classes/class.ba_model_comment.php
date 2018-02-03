@@ -9,7 +9,7 @@
 // *** define ***
 // *****************************************************************************
 
-//define("MAXLEN_COMMENTDATE",20);
+//define("MAXLEN_DATETIME",20);
 //define("MAXLEN_COMMENTIP",48);
 //define("MAXLEN_COMMENTNAME",64);
 //define("MAXLEN_COMMENTMAIL",64);
@@ -54,7 +54,7 @@ class Comment extends Model {
 
       // TABLE ba_comment (ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
       //                   ba_userid INT UNSIGNED NOT NULL,
-      //                   ba_date DATETIME NOT NULL,
+      //                   ba_datetime DATETIME NOT NULL,
       //                   ba_ip VARCHAR(48) NOT NULL,
       //                   ba_name VARCHAR(64) NOT NULL,
       //                   ba_mail VARCHAR(64) NOT NULL,
@@ -99,7 +99,7 @@ class Comment extends Model {
         $lmt_start = ($page-1) * $anzahl_eps;
 
         // zugriff auf mysql datenbank (3)
-        $sql = "SELECT ba_id, ba_date, ba_name, ba_text, ba_comment, ba_blogid, ba_state FROM ba_comment ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;
+        $sql = "SELECT ba_id, ba_datetime, ba_name, ba_text, ba_comment, ba_blogid, ba_state FROM ba_comment ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;
         $ret = $this->database->query($sql);	// liefert in return db-objekt
         if ($ret) {
           // wenn kein fehler 3i
@@ -118,8 +118,8 @@ class Comment extends Model {
           // ausgabeschleife
           while ($dataset = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
 
-            $date = date_create($dataset["ba_date"]);
-            $ba_date = date_format($date, "d.m.y / H:i");
+            $datetime = Blog::check_datetime(date_create_from_format("Y-m-d H:i:s", $dataset["ba_datetime"]));	// "YYYY-MM-DD HH:MM:SS"
+            $comment_date = date_format($datetime, $this->language["FORMAT_DATE"]." / ".$this->language["FORMAT_TIME"]);	// "DD.MM.YY / HH:MM"
             $ba_name = stripslashes($this->html5specialchars($dataset["ba_name"]));
             $ba_text = stripslashes($this->html5specialchars(mb_substr($dataset["ba_text"], 0, 80, MB_ENCODING)));	// substr problem bei trennung umlaute
             $ba_blogid = intval($dataset["ba_blogid"]);
@@ -148,7 +148,7 @@ class Comment extends Model {
             }
 
             $html_backend_ext .= "<tr>\n<td>".
-                                 "<a href=\"backend.php?".$this->html_build_query(array("action" => "comment", "id" => $dataset["ba_id"]))."\">".$ba_date." - ".$ba_name.": ".$ba_text."...</a>".
+                                 "<a href=\"backend.php?".$this->html_build_query(array("action" => "comment", "id" => $dataset["ba_id"]))."\">".$comment_date." - ".$ba_name.": ".$ba_text."...</a>".
                                  "</td>\n<td>";
             if (mb_strlen($dataset["ba_comment"], MB_ENCODING) > 0) {
               $html_backend_ext .= "x";	// nur wenn vorhanden
@@ -239,7 +239,7 @@ class Comment extends Model {
 
       // TABLE ba_comment (ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
       //                   ba_userid INT UNSIGNED NOT NULL,
-      //                   ba_date DATETIME NOT NULL,
+      //                   ba_datetime DATETIME NOT NULL,
       //                   ba_ip VARCHAR(48) NOT NULL,
       //                   ba_name VARCHAR(64) NOT NULL,
       //                   ba_mail VARCHAR(64) NOT NULL,
@@ -251,7 +251,7 @@ class Comment extends Model {
       // preset
       $ba_id = 0xffff;	// error
       $ba_userid = $_SESSION["user_id"];	// wird immer neu gesetzt
-      $ba_date = "0000-00-00 00:00:00";
+      $ba_datetime = "0000-00-00 00:00:00";
       $ba_ip = "";
       $ba_name = "";
       $ba_mail = "";
@@ -267,7 +267,7 @@ class Comment extends Model {
         $html_backend_ext .= "<p id=\"comment\"><b>".$this->language["HEADER_COMMENT"]."</b></p>\n\n";
 
         // zugriff auf mysql datenbank (1) , select mit prepare() , ($id aus GET)
-        $sql = "SELECT ba_id, ba_date, ba_ip, ba_name, ba_mail, ba_text, ba_comment, ba_blogid, ba_state FROM ba_comment WHERE ba_id = ?";
+        $sql = "SELECT ba_id, ba_datetime, ba_ip, ba_name, ba_mail, ba_text, ba_comment, ba_blogid, ba_state FROM ba_comment WHERE ba_id = ?";
         $stmt = $this->database->prepare($sql);	// liefert mysqli-statement-objekt
         if ($stmt) {
           // wenn kein fehler 3g
@@ -276,7 +276,7 @@ class Comment extends Model {
           $stmt->bind_param("i", $id);
           $stmt->execute();	// ausführen geänderte zeile
 
-          $stmt->bind_result($dataset["ba_id"],$dataset["ba_date"],$dataset["ba_ip"],$dataset["ba_name"],$dataset["ba_mail"],$dataset["ba_text"],$dataset["ba_comment"],$dataset["ba_blogid"],$dataset["ba_state"]);
+          $stmt->bind_result($dataset["ba_id"],$dataset["ba_datetime"],$dataset["ba_ip"],$dataset["ba_name"],$dataset["ba_mail"],$dataset["ba_text"],$dataset["ba_comment"],$dataset["ba_blogid"],$dataset["ba_state"]);
           // mysqli-statement-objekt kennt kein fetch_assoc(), nur fetch(), kein assoc-array als rückgabe
 
           if ($stmt->fetch()) {
@@ -284,7 +284,7 @@ class Comment extends Model {
 
             // preset überschreiben
             $ba_id = intval($dataset["ba_id"]);
-            $ba_date = stripslashes($this->html5specialchars($dataset["ba_date"]));
+            $ba_datetime = stripslashes($this->html5specialchars($dataset["ba_datetime"]));
             $ba_ip = stripslashes($this->html5specialchars($dataset["ba_ip"]));
             $ba_name = stripslashes($this->html5specialchars($dataset["ba_name"]));
             $ba_mail = stripslashes($this->html5specialchars($dataset["ba_mail"]));
@@ -315,7 +315,7 @@ class Comment extends Model {
 
         // preset teilweise überschreiben
         $ba_id = 0;
-        $ba_date = date("Y-m-d H:i:s");	// return string "2015-01-24 15:57:00"
+        $ba_datetime = date("Y-m-d H:i:s");	// return string "2015-01-24 15:57:00"
         $ba_ip = $_SERVER["REMOTE_ADDR"];
         $ba_blogid = 1;
 
@@ -330,7 +330,7 @@ class Comment extends Model {
                            "</td>\n<td>\n".
                            "<input type=\"hidden\" name=\"ba_comment[ba_id]\" value=\"".$ba_id."\"/>\n".
                            "<input type=\"hidden\" name=\"ba_comment[ba_userid]\" value=\"".$ba_userid."\"/>\n".
-                           "<input type=\"text\" name=\"ba_comment[ba_date]\" class=\"size_32\" maxlength=\"".MAXLEN_COMMENTDATE."\" value=\"".$ba_date."\"/>".
+                           "<input type=\"text\" name=\"ba_comment[ba_datetime]\" class=\"size_32\" maxlength=\"".MAXLEN_DATETIME."\" value=\"".$ba_datetime."\"/>".
                            "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">".
                            $this->language["PROMPT_IP"].
                            "</td>\n<td>".
@@ -400,7 +400,7 @@ class Comment extends Model {
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
-  public function postComment($ba_id, $ba_userid, $ba_date, $ba_ip, $ba_name, $ba_mail, $ba_text, $ba_comment, $ba_blogid, $ba_state, $ba_delete) {
+  public function postComment($ba_id, $ba_userid, $ba_datetime, $ba_ip, $ba_name, $ba_mail, $ba_text, $ba_comment, $ba_blogid, $ba_state, $ba_delete) {
     $html_backend_ext = "";
     $errorstring = "";
 
@@ -415,7 +415,7 @@ class Comment extends Model {
 
         // einfügen in datenbank:
         if ($ba_id == 0) {
-          $sql = "INSERT INTO ba_comment (ba_userid, ba_date, ba_ip, ba_name, ba_mail, ba_text, ba_comment, ba_blogid, ba_state) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+          $sql = "INSERT INTO ba_comment (ba_userid, ba_datetime, ba_ip, ba_name, ba_mail, ba_text, ba_comment, ba_blogid, ba_state) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
         }
 
         // löschen in datenbank:
@@ -425,7 +425,7 @@ class Comment extends Model {
 
         // update in datenbank:
         else {
-          $sql = "UPDATE ba_comment SET ba_userid = ?, ba_date = ?, ba_ip = ?, ba_name = ?, ba_mail = ?, ba_text = ?, ba_comment = ?, ba_blogid = ?, ba_state = ? WHERE ba_id = ?";
+          $sql = "UPDATE ba_comment SET ba_userid = ?, ba_datetime = ?, ba_ip = ?, ba_name = ?, ba_mail = ?, ba_text = ?, ba_comment = ?, ba_blogid = ?, ba_state = ? WHERE ba_id = ?";
         }
 
         // mit prepare() - sql injections verhindern
@@ -435,7 +435,7 @@ class Comment extends Model {
 
           // austauschen ?????????, ? oder ?????????? durch string und int
           if ($ba_id == 0) {
-            $stmt->bind_param("sssssssii", $ba_userid, $ba_date, $ba_ip, $ba_name, $ba_mail, $ba_text, $ba_comment, $ba_blogid, $ba_state);	// einfügen in datenbank
+            $stmt->bind_param("sssssssii", $ba_userid, $ba_datetime, $ba_ip, $ba_name, $ba_mail, $ba_text, $ba_comment, $ba_blogid, $ba_state);	// einfügen in datenbank
             $html_backend_ext .= "<p>".$this->language["MSG_COMMENT_NEW"]."</p>\n\n";
           }
           elseif ($ba_delete) {
@@ -443,7 +443,7 @@ class Comment extends Model {
             $html_backend_ext .= "<p>".$this->language["MSG_COMMENT_DELETE"]."</p>\n\n";
           }
           else {
-            $stmt->bind_param("sssssssiii", $ba_userid, $ba_date, $ba_ip, $ba_name, $ba_mail, $ba_text, $ba_comment, $ba_blogid, $ba_state, $ba_id);	// update in datenbank
+            $stmt->bind_param("sssssssiii", $ba_userid, $ba_datetime, $ba_ip, $ba_name, $ba_mail, $ba_text, $ba_comment, $ba_blogid, $ba_state, $ba_id);	// update in datenbank
             $html_backend_ext .= "<p>".$this->language["MSG_COMMENT_UPDATE"]."</p>\n\n";
           }
           $stmt->execute();	// ausführen geänderte zeile

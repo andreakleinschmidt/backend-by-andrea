@@ -11,6 +11,8 @@
   <ELEMENT_PARAGRAPH text="paragraph"/>
   <ELEMENT_TABLE_H text="table with headline"/>
   <ELEMENT_TABLE text="table"/>
+  <FORMAT_DATE text="n/j/y"/>
+  <FORMAT_TIME text="g:i a"/>
   <FRONTEND_ARCHIVE text="archive:"/>
   <FRONTEND_BLOGROLL text="blogroll:"/>
   <FRONTEND_COMMENT_LINK text="comment"/>

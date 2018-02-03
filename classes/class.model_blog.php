@@ -81,6 +81,14 @@ class Blog extends Model {
     return $ret;
   }
 
+  // falls year = -0001 (mysql "0000-00-00 00:00:00"), neue datetime mit unix ts 0 "1970-01-01 00:00:00"
+  public function check_datetime($datetime) {
+    if (intval(date_format($datetime, "Y")) < 0) {
+      $datetime = date_create_from_format("U", 0);	// im fehlerfall
+    }
+    return $datetime;
+  }
+
   // ersetze tag kommandos im blogtext ~cmd{content_str} mit html tags <a>, <b>, <i>
   public function html_tags($text_str, $tag_flag, $encoding="UTF-8") {
     for ($start=0; mb_strpos($text_str, "~", $start, $encoding); $start++) {
@@ -172,7 +180,8 @@ class Blog extends Model {
   private function blog_line($dataset, &$option_array, &$blog_comment_id_array, $query_data, $first_entry, $num_sentences, $diary_mode) {
     $replace = "";
 
-    $datum = stripslashes($this->html5specialchars($dataset["ba_date"]));
+    $datetime = $this->check_datetime(date_create_from_format("Y-m-d H:i:s", $dataset["ba_datetime"]));	// "YYYY-MM-DD HH:MM:SS"
+    $blogdate = date_format($datetime, $this->language["FORMAT_DATE"]." / ".$this->language["FORMAT_TIME"]);	// "DD.MM.YY / HH:MM"
     $full_name = stripslashes($this->html5specialchars($dataset["full_name"]));
     $blogheader = stripslashes($this->html5specialchars($dataset["ba_header"]));
     $blogintro = stripslashes($this->html_tags(nl2br($this->html5specialchars($dataset["ba_intro"])), false));
@@ -192,27 +201,19 @@ class Blog extends Model {
       $blogtext40 = stripslashes($this->html_tags($this->html5specialchars(mb_substr($dataset["ba_header"], 0, 40, MB_ENCODING)), false));	// substr problem bei trennung umlaute
     }
 
-    // blog id für article
-    $jahr   = substr($datum, 6, 2);
-    $monat  = substr($datum, 3, 2);
-    $tag    = substr($datum, 0, 2);
-    $stunde = substr($datum, 11, 2);
-    $minute = substr($datum, 14, 2);
-    $jmtsm = "20".$jahr.$monat.$tag.$stunde.$minute."00";
-
-    $replace .= "<article id=\"".$jmtsm."\">\n";
+    $replace .= "<article id=\"".date_format($datetime, "YmdHis")."\">\n";	// blog id für article
 
     if ($diary_mode) {
       // kein header, intro-text nur für ersten eintrag, full_name verdeckt
       if ($first_entry) {
         $replace .= "<h2>".$blogintro."</h2>\n";
       }
-      $replace .= "<p><b>[".$datum."]</b> <span id=\"white\" title=\"".$full_name."\">&#9998;</span> ".$blogtext."</p>\n";
+      $replace .= "<p><b>[".$blogdate."]</b> <span id=\"white\" title=\"".$full_name."\">&#9998;</span> ".$blogtext."</p>\n";
     }
     else {
       // mit header, full_name sichtbar, intro-text für jeden eintrag
       $replace .= "<h1>".$blogheader."</h1>\n".
-                  "<p><span id=\"white_small\">[".$datum."] ".$full_name."</span></p>\n".
+                  "<p><span id=\"white_small\">[".$blogdate."] ".$full_name."</span></p>\n".
                   "<h2>".$blogintro."</h2>\n".
                   "<p>".$blogtext."</p>\n";
     }
@@ -255,7 +256,7 @@ class Blog extends Model {
     }
 
     $blogid = $dataset["ba_id"];
-    $option_array[$blogid] = "[".$datum."] ".$blogtext40."...";	// für select option in kommentar formular
+    $option_array[$blogid] = "[".$blogdate."] ".$blogtext40."...";	// für select option in kommentar formular
 
     // optional link zu kommentar mit comment-id
     if (array_key_exists($blogid, $blog_comment_id_array)) {
@@ -781,11 +782,11 @@ class Blog extends Model {
           // zugriff auf mysql datenbank (6), in mysql select mit prepare() - sql injections verhindern
           if (!$tagflag) {
             // query
-            $sql = "SELECT ba_id, ba_date, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND (CONCAT(ba_header, ba_intro, ba_text) RLIKE ?) ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;	// (2) mit LIMIT
+            $sql = "SELECT ba_id, ba_datetime, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND (CONCAT(ba_header, ba_intro, ba_text) RLIKE ?) ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;	// (2) mit LIMIT
           }
           else {
             // tag
-            $sql = "SELECT ba_blog.ba_id, ba_date, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid INNER JOIN ba_blogcategory ON ba_blog.ba_catid = ba_blogcategory.ba_id WHERE ba_state >= ".STATE_PUBLISHED." AND (CONCAT(ba_category, ', ', ba_tags) RLIKE ?) ORDER BY ba_blog.ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;		// (2) mit LIMIT
+            $sql = "SELECT ba_blog.ba_id, ba_datetime, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid INNER JOIN ba_blogcategory ON ba_blog.ba_catid = ba_blogcategory.ba_id WHERE ba_state >= ".STATE_PUBLISHED." AND (CONCAT(ba_category, ', ', ba_tags) RLIKE ?) ORDER BY ba_blog.ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;		// (2) mit LIMIT
           }
           $stmt = $this->database->prepare($sql);	// liefert mysqli-statement-objekt
           if ($stmt) {
@@ -797,8 +798,8 @@ class Blog extends Model {
 
             $stmt->store_result();
 
-            $stmt->bind_result($dataset["ba_id"],$dataset["ba_date"],$dataset["ba_header"],$dataset["ba_intro"],$dataset["ba_text"],$dataset["ba_videoid"],$dataset["ba_photoid"],$dataset["full_name"]);
-            // oder ohne array dataset: $stmt->bind_result($ba_id, $ba_date, $ba_header, $ba_intro, $ba_text, $ba_videoid, $ba_photoid, $full_name);
+            $stmt->bind_result($dataset["ba_id"],$dataset["ba_datetime"],$dataset["ba_header"],$dataset["ba_intro"],$dataset["ba_text"],$dataset["ba_videoid"],$dataset["ba_photoid"],$dataset["full_name"]);
+            // oder ohne array dataset: $stmt->bind_result($ba_id, $ba_datetime, $ba_header, $ba_intro, $ba_text, $ba_videoid, $ba_photoid, $full_name);
             // mysqli-statement-objekt kennt kein fetch_assoc(), nur fetch(), kein array als rückgabe
 
             // suche ausgeben (2), bei mehreren ergebnissen auf mehreren seiten
@@ -976,20 +977,20 @@ class Blog extends Model {
       // zugriff auf mysql datenbank (6)
       $sql = "";	// blog eintrag nr.1 nur auf erster seite, danach alle absteigend 100..99...2 (ohne 1)
       if ($page == 1 or $show_year == true) {
-        $sql .= "SELECT ba_id, ba_date, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id = 1".
+        $sql .= "SELECT ba_id, ba_datetime, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id = 1".
                 "\nUNION\n";
       }
       if ($show_page == true) {
-        $sql .= "(SELECT ba_id, ba_date, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id != 1 ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps.")";
+        $sql .= "(SELECT ba_id, ba_datetime, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id != 1 ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps.")";
       }
       elseif ($show_year == true and $show_month == false) {
-        $sql .= "(SELECT ba_id, ba_date, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$year." ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
+        $sql .= "(SELECT ba_id, ba_datetime, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$year." ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
       }
       elseif ($show_year == true and $show_month == true) {
-        $sql .= "(SELECT ba_id, ba_date, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$year." AND MONTH(ba_datetime) = ".$month." ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
+        $sql .= "(SELECT ba_id, ba_datetime, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$year." AND MONTH(ba_datetime) = ".$month." ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
       }
       else {
-        $sql .= "(SELECT ba_id, ba_date, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id = 1)";
+        $sql .= "(SELECT ba_id, ba_datetime, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id = 1)";
       }
       $ret = $this->database->query($sql);	// liefert in return db-objekt
       if ($ret) {
@@ -1100,7 +1101,7 @@ class Blog extends Model {
       $lmt_start = ($compage-1) * $anzahl_cps;
 
       // zugriff auf mysql datenbank (8)
-      $sql = "SELECT ba_id, ba_date, ba_name, ba_mail, ba_text, ba_comment, ba_blogid, IFNULL(full_name,'nobody') FROM ba_comment LEFT JOIN backend ON backend.id = ba_comment.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_blogid = 1 OR ".$sql_part.") ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_cps;
+      $sql = "SELECT ba_id, ba_datetime, ba_name, ba_mail, ba_text, ba_comment, ba_blogid, IFNULL(full_name,'nobody') FROM ba_comment LEFT JOIN backend ON backend.id = ba_comment.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_blogid = 1 OR ".$sql_part.") ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_cps;
       $ret = $this->database->query($sql);	// liefert in return db-objekt
       if ($ret) {
         // wenn kein fehler 8
@@ -1109,8 +1110,8 @@ class Blog extends Model {
         while ($dataset = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
 
           $comment_id = intval($dataset["ba_id"]);
-          $date = date_create($dataset["ba_date"]);
-          $comment_date = date_format($date, "d.m.y / H:i");
+          $datetime = $this->check_datetime(date_create_from_format("Y-m-d H:i:s", $dataset["ba_datetime"]));	// "YYYY-MM-DD HH:MM:SS"
+          $comment_date = date_format($datetime, $this->language["FORMAT_DATE"]." / ".$this->language["FORMAT_TIME"]);	// "DD.MM.YY / HH:MM"
           $comment_name = stripslashes($this->html5specialchars($dataset["ba_name"]));
           $comment_mail = stripslashes($this->html5specialchars($dataset["ba_mail"]));
           $comment_text = stripslashes(nl2br($this->html5specialchars($dataset["ba_text"])));
@@ -1220,7 +1221,7 @@ class Blog extends Model {
       // IP zeitlimit überprüfen
       $comment_ip = $_SERVER["REMOTE_ADDR"];
       $sql = "SELECT ba_ip,
-                     TIMESTAMPDIFF(MINUTE, ba_date, NOW()) AS zeitdifferenz
+                     TIMESTAMPDIFF(MINUTE, ba_datetime, NOW()) AS zeitdifferenz
               FROM ba_comment ORDER BY ba_id DESC LIMIT 1";
       $ret = $this->database->query($sql);	// letzte eingetragene zeile IP und zeitdifferenz auslesen
       $dataset = $ret->fetch_assoc();	// IP und zeitdifferenz auswertbar als array
@@ -1254,7 +1255,7 @@ class Blog extends Model {
               // if not spam
 
               // in mysql einfügen mit prepare() - sql injections verhindern
-              $sql = "INSERT INTO ba_comment(ba_date, ba_ip, ba_name, ba_mail, ba_text, ba_blogid, ba_state) VALUES (NOW(), ?, ?, ?, ?, ?, ?)";
+              $sql = "INSERT INTO ba_comment(ba_datetime, ba_ip, ba_name, ba_mail, ba_text, ba_blogid, ba_state) VALUES (NOW(), ?, ?, ?, ?, ?, ?)";
               $stmt = $this->database->prepare($sql);	// liefert mysqli-statement-objekt
               if ($stmt) {
                 // wenn kein fehler 9

@@ -11,6 +11,8 @@
   <ELEMENT_PARAGRAPH text="Absatz"/>
   <ELEMENT_TABLE_H text="Tabelle mit Kopfzeile"/>
   <ELEMENT_TABLE text="Tabelle"/>
+  <FORMAT_DATE text="d.m.y"/>
+  <FORMAT_TIME text="H:i"/>
   <FRONTEND_ARCHIVE text="Archiv:"/>
   <FRONTEND_BLOGROLL text="Blogroll:"/>
   <FRONTEND_COMMENT_LINK text="Kommentar"/>

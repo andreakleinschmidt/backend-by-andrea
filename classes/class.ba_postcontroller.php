@@ -854,7 +854,7 @@ class PostController {
 // *****************************************************************************
 
         elseif (isset($_POST["ba_blog"]) and ($_SESSION["user_role"] >= ROLE_EDITOR)) {
-          // ba_blog[ba_id, ba_userid, ba_date, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_catid, ba_tags, ba_state, "delete"]
+          // ba_blog[ba_id, ba_userid, ba_datetime, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_catid, ba_tags, ba_state, "delete"]
           // ba_id == 0 -> neuer blog eintrag
           // ba_id == 0xffff -> error
 
@@ -865,7 +865,7 @@ class PostController {
           $ba_userid = $ba_blog_array["ba_userid"];
 
           // überflüssige leerzeichen entfernen
-          $ba_date = trim($ba_blog_array["ba_date"]);
+          $ba_datetime = trim($ba_blog_array["ba_datetime"]);
           $ba_header = trim($ba_blog_array["ba_header"]);
           $ba_intro = trim($ba_blog_array["ba_intro"]);
           $ba_text = trim($ba_blog_array["ba_text"]);
@@ -878,8 +878,8 @@ class PostController {
           $ba_state = intval($ba_blog_array["ba_state"]);
 
           // zeichen limit
-          if (strlen($ba_date) > MAXLEN_BLOGDATE) {
-            $ba_date = substr($ba_date, 0, MAXLEN_BLOGDATE);
+          if (strlen($ba_datetime) > MAXLEN_DATETIME) {
+            $ba_datetime = substr($ba_datetime, 0, MAXLEN_DATETIME);
           }
           if (strlen($ba_header) > MAXLEN_BLOGHEADER) {
             $ba_header = substr($ba_header, 0, MAXLEN_BLOGHEADER);
@@ -908,7 +908,7 @@ class PostController {
 
           $ba_delete = in_array("delete", $ba_blog_array);	// in array nach string suchen
 
-          $ret = $model_blog->postBlog($ba_id, $ba_userid, $ba_date, $ba_header, $ba_intro, $ba_text, $ba_videoid, $ba_photoid, $ba_catid, $ba_tags, $ba_state, $ba_delete);	// daten für blog in das model
+          $ret = $model_blog->postBlog($ba_id, $ba_userid, $ba_datetime, $ba_header, $ba_intro, $ba_text, $ba_videoid, $ba_photoid, $ba_catid, $ba_tags, $ba_state, $ba_delete);	// daten für blog in das model
           $html_backend_ext .= $ret["content"];
           $errorstring = $ret["error"];
 
@@ -1029,7 +1029,7 @@ class PostController {
 // *****************************************************************************
 
         elseif (isset($_POST["ba_comment"]) and ($_SESSION["user_role"] >= ROLE_MASTER)) {
-          // ba_comment[ba_id, ba_userid, ba_date, ba_ip, ba_name, ba_mail, ba_text, ba_comment, ba_blogid, ba_state, "delete"]
+          // ba_comment[ba_id, ba_userid, ba_datetime, ba_ip, ba_name, ba_mail, ba_text, ba_comment, ba_blogid, ba_state, "delete"]
           // ba_id == 0 -> neuer kommentar eintrag
           // ba_id == 0xffff -> error
 
@@ -1040,7 +1040,7 @@ class PostController {
           $ba_userid = $ba_comment_array["ba_userid"];
 
           // überflüssige leerzeichen entfernen, str zu int
-          $ba_date = trim($ba_comment_array["ba_date"]);
+          $ba_datetime = trim($ba_comment_array["ba_datetime"]);
           $ba_ip = trim($ba_comment_array["ba_ip"]);
           $ba_name = trim($ba_comment_array["ba_name"]);
           $ba_mail = trim($ba_comment_array["ba_mail"]);
@@ -1050,8 +1050,8 @@ class PostController {
           $ba_state = intval($ba_comment_array["ba_state"]);
 
           // zeichen limit
-          if (strlen($ba_date) > MAXLEN_COMMENTDATE) {
-            $ba_date = substr($ba_date, 0, MAXLEN_COMMENTDATE);
+          if (strlen($ba_datetime) > MAXLEN_DATETIME) {
+            $ba_datetime = substr($ba_datetime, 0, MAXLEN_DATETIME);
           }
           if (strlen($ba_ip) > MAXLEN_COMMENTIP) {
             $ba_ip = substr($ba_ip, 0, MAXLEN_COMMENTIP);
@@ -1077,7 +1077,7 @@ class PostController {
 
           $ba_delete = in_array("delete", $ba_comment_array);	// in array nach string suchen
 
-          $ret = $model_comment->postComment($ba_id, $ba_userid, $ba_date, $ba_ip, $ba_name, $ba_mail, $ba_text, $ba_comment, $ba_blogid, $ba_state, $ba_delete);	// daten für comment in das model
+          $ret = $model_comment->postComment($ba_id, $ba_userid, $ba_datetime, $ba_ip, $ba_name, $ba_mail, $ba_text, $ba_comment, $ba_blogid, $ba_state, $ba_delete);	// daten für comment in das model
           $html_backend_ext .= $ret["content"];
           $errorstring = $ret["error"];
 

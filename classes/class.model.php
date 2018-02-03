@@ -185,7 +185,7 @@ atom:
       // wenn kein fehler
 
       // zugriff auf mysql datenbank (1)
-      $sql = "SELECT user, ba_date FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid ORDER BY ba_id DESC LIMIT 1";
+      $sql = "SELECT user, ba_datetime FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid ORDER BY ba_id DESC LIMIT 1";
       $ret = $this->database->query($sql);	// liefert in return db-objekt
       if ($ret) {
         // wenn kein fehler 1
@@ -193,10 +193,12 @@ atom:
         // {login} ersetzen mit user und letzten datum-eintrag in blog
         $dataset = $ret->fetch_assoc();	// fetch_assoc() liefert array
         $user = stripslashes($this->html5specialchars($dataset["user"]));
-        $datum = stripslashes($this->html5specialchars($dataset["ba_date"]));
+        $datetime = Blog::check_datetime(date_create_from_format("Y-m-d H:i:s", $dataset["ba_datetime"]));	// "YYYY-MM-DD HH:MM:SS"
+        $date = date_format($datetime, $this->language["FORMAT_DATE"]);	// "DD.MM.YY"
+
         $login = "<p>".$this->language["FRONTEND_LAST_LOGIN"]."</p>\n".
                  "<p>".$user."\n".
-                 "<br>".substr($datum, 0, 8)."</p>";	// nur datum
+                 "<br>".$date."</p>";	// nur datum
 
         $ret->close();	// db-ojekt schließen
         unset($ret);	// referenz löschen
@@ -226,7 +228,7 @@ atom:
     $errorstring = "";
 
     // zugriff auf mysql datenbank (1a)
-    $sql = "SELECT ba_date, ba_text FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." ORDER BY ba_id DESC LIMIT 0,3";
+    $sql = "SELECT ba_datetime, ba_text FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." ORDER BY ba_id DESC LIMIT 0,3";
     $ret = $this->database->query($sql);	// liefert in return db-objekt
     if ($ret) {
       // wenn kein fehler 1a
@@ -239,18 +241,12 @@ atom:
       // ausgabeschleife
       while ($dataset = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
 
-        $datum = stripslashes($this->html5specialchars($dataset["ba_date"]));
+        $datetime = Blog::check_datetime(date_create_from_format("Y-m-d H:i:s", $dataset["ba_datetime"]));	// "YYYY-MM-DD HH:MM:SS"
+        $datetime_anchor = date_format($datetime, "YmdHis");	// blog id für anker
+        $blogdate = date_format($datetime, $this->language["FORMAT_DATE"]." / ".$this->language["FORMAT_TIME"]);	// "DD.MM.YY / HH:MM"
         $blogtext80 = stripslashes(Blog::html_tags($this->html5specialchars(mb_substr($dataset["ba_text"], 0, 80, MB_ENCODING)), false));	// substr problem bei trennung umlaute
 
-        // blog id für anker
-        $jahr   = substr($datum, 6, 2);
-        $monat  = substr($datum, 3, 2);
-        $tag    = substr($datum, 0, 2);
-        $stunde = substr($datum, 11, 2);
-        $minute = substr($datum, 14, 2);
-        $jmtsm = "20".$jahr.$monat.$tag.$stunde.$minute."00";
-
-        $login .= "<br><a href=\"index.php?action=blog#".$jmtsm."\">".$datum."</a>\n".
+        $login .= "<br><a href=\"index.php?action=blog#".$datetime_anchor."\">".$blogdate."</a>\n".
                   "<br>".$blogtext80."...\n";
       }
 
@@ -368,7 +364,7 @@ atom:
         // wenn kein fehler
 
         $dataset = $ret->fetch_assoc();	// fetch_assoc() liefert array
-        $locale = trim($dataset["locale"]);
+        $locale = trim($dataset["ba_locale"]);
 
         $ret->close();	// db-ojekt schließen
         unset($ret);	// referenz löschen

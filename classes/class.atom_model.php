@@ -8,7 +8,6 @@
 // *****************************************************************************
 
 //define("STATE_PUBLISHED",3);
-//define("MB_ENCODING","UTF-8");
 
 class Model {
 
@@ -47,7 +46,7 @@ class Model {
       $feed_url = stripslashes($this->xmlspecialchars(Blog::getOption_by_name("feed_url", true)));	// = "http://www.oscilloworld.de/morgana81/index.php?action=blog"
 
       // zugriff auf mysql datenbank
-      $sql = "SELECT ba_date, ba_header, ba_intro, ba_text FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." ORDER BY ba_id DESC LIMIT 0,".$num_entries;
+      $sql = "SELECT ba_datetime, ba_header, ba_intro, ba_text FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." ORDER BY ba_id DESC LIMIT 0,".$num_entries;
       $ret = $this->database->query($sql);	// liefert in return db-objekt
       if ($ret) {
         // wenn kein fehler 2
@@ -60,24 +59,27 @@ class Model {
         // ausgabeschleife
         while ($dataset = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
 
-          $datum = stripslashes($this->xmlspecialchars($dataset["ba_date"]));
+          $datetime = Blog::check_datetime(date_create_from_format("Y-m-d H:i:s", $dataset["ba_datetime"]));	// "YYYY-MM-DD HH:MM:SS"
           $blogheader = stripslashes($this->xmlspecialchars($dataset["ba_header"]));
           $blogintro = stripslashes(Blog::html_tags($this->xmlspecialchars(nl2br($dataset["ba_intro"])), false));	// <br /> hier als xmlspecialchars()
           $blogtext = stripslashes(Blog::html_tags($this->xmlspecialchars(nl2br($dataset["ba_text"])), false));	// <br /> hier als xmlspecialchars()
 
           if (empty($blogheader)) {
-            $blogtext80 = stripslashes(Blog::html_tags($this->xmlspecialchars(mb_substr($dataset["ba_text"], 0, 80, MB_ENCODING)), false));	// substr problem bei trennung umlaute
+            $to_split = $dataset["ba_text"];
           }
           else {
-            $blogtext80 = stripslashes(Blog::html_tags($this->xmlspecialchars(mb_substr($dataset["ba_header"], 0, 80, MB_ENCODING)), false));	// substr problem bei trennung umlaute
+            $to_split = $dataset["ba_header"];
           }
+          $split_str = preg_split("/(?<=\!\s|\.\s|\:\s|\?\s)/", $to_split, 2, PREG_SPLIT_NO_EMPTY)[0];
+          $blogtitle = stripslashes(Blog::html_tags($this->xmlspecialchars($split_str), false));	// satzendzeichen als trennzeichen, nur erster satz
 
           if (empty($blogintro)) {
-            $split_array = array_slice(preg_split("/(?<=\!\s|\.\s|\:\s|\?\s)/", $dataset["ba_text"], $num_sentences+1, PREG_SPLIT_NO_EMPTY), 0, $num_sentences);
+            $to_split = $dataset["ba_text"];
           }
           else {
-            $split_array = array_slice(preg_split("/(?<=\!\s|\.\s|\:\s|\?\s)/", $dataset["ba_intro"], $num_sentences+1, PREG_SPLIT_NO_EMPTY), 0, $num_sentences);
+            $to_split = $dataset["ba_intro"];
           }
+          $split_array = array_slice(preg_split("/(?<=\!\s|\.\s|\:\s|\?\s)/", $to_split, $num_sentences+1, PREG_SPLIT_NO_EMPTY), 0, $num_sentences);
           $blogtextshort = stripslashes(Blog::html_tags($this->xmlspecialchars(nl2br(implode($split_array))), false));	// satzendzeichen als trennzeichen, anzahl sätze optional
 
           $blogtextcontent_arr = array();
@@ -89,18 +91,11 @@ class Model {
           }
           $blogtextcontent = implode("\n", $blogtextcontent_arr);
 
-          $jahr   = substr($datum, 6, 2);
-          $monat  = substr($datum, 3, 2);
-          $tag    = substr($datum, 0, 2);
-          $stunde = substr($datum, 11, 2);
-          $minute = substr($datum, 14, 2);
-          $jmtsm = "20".$jahr.$monat.$tag.$stunde.$minute."00";
-
-          $atomtitle = $datum." - ".$blogtext80."...";
-          $atomlink = $feed_url."#".$jmtsm;
-          $atomid = $feed_id."-".$jmtsm;
-          $swzeit = date(I) + 1;	// 1 bei sommerzeit, sonst 0
-          $atomupdated = "20".$jahr."-".$monat."-".$tag."T".$stunde.":".$minute.":00+0".$swzeit.":00";
+          $atomtitle = $blogtitle;
+          $datetime_anchor = date_format($datetime, "YmdHis");
+          $atomlink = $feed_url."#".$datetime_anchor;
+          $atomid = $feed_id."-".$datetime_anchor;
+          $atomupdated = date_format($datetime, "Y-m-d\TH:i:sP");	// YYYY-MM-DD'T'HH:MM:SS+0[1,2]:00
           if ($use_summary) {
             // use summary
             $atomsummary = $blogtextshort;
