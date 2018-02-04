@@ -12,7 +12,7 @@
 class View {
 
   private $template;	// name des templates (hier "default" oder "backend")
-  private $content_arr = array();	// array mit variablen (hd_title_ext, login, content, error) für das template
+  private $content_arr = array();	// array mit variablen (hd_title_ext, login, content, error, footer) für das template
 
   // template auswählen
   public function setTemplate($template = "default") {
@@ -24,7 +24,7 @@ class View {
     $this->content_arr[$key] = $value;
   }
 
-  // template laden, enthält {hd_title_ext}, {login}, {content} und {error}, daten ersetzen, template ausgeben
+  // template laden, enthält {hd_title_ext}, {login}, {content}, {error} und {footer}, daten ersetzen, template ausgeben
   public function parseTemplate($backend = false) {
     if (file_exists($this->template)) {
 
@@ -44,6 +44,7 @@ class View {
         $template_out = str_replace("{hd_title_ext}", $this->content_arr["hd_title_ext"], $template_out);
         $template_out = str_replace("{login}", $this->content_arr["login"], $template_out);
         $template_out = str_replace("{content}", $this->content_arr["content"], $template_out);
+        $template_out = str_replace("{footer}", $this->content_arr["footer"], $template_out);
         $template_out = str_replace("{error}", $errorstring, $template_out);
       }
 

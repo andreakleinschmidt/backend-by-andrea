@@ -18,5 +18,6 @@ define("ELEMENT_TABLE_H","table+h");
 define("ELEMENT_TABLE","table");
 define("MB_ENCODING","UTF-8");
 define("DEFAULT_LOCALE","de-DE");	// "de-DE" oder "en-US"
+define("FEED_PNG","feed-icon-14x14.png");	// feed.png
 
 ?>

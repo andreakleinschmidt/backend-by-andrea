@@ -115,7 +115,20 @@ class GetController {
     } // switch
 
     $view->setContent("content", $ret["content"]);
-    $view->setContent("error", $login["error"].$ret["error"]);
+
+    if (!isset($_SESSION["footer"])) {
+      // falls session variable noch nicht existiert
+      $footer = $this->model->getFooter();	// daten für footer aus dem model
+      $_SESSION["footer"] = $footer;	// in SESSION speichern
+    } // neue session variable
+    else {
+      // alte session variable
+      $footer = $_SESSION["footer"];	// aus SESSION lesen
+    }
+
+    $view->setContent("footer", $footer["footer"]);
+
+    $view->setContent("error", $login["error"].$ret["error"].$footer["error"]);
 
     return $view->parseTemplate();	// ausgabe geändertes template
   }

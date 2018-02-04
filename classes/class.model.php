@@ -382,6 +382,96 @@ atom:
     return array("locale" => $locale, "error" => $errorstring);
   }
 
+  // footer mit links (wie blogbox nur ohne blogdate, dafür zweite liste kommentare)
+  public function getFooter() {
+    $footer = "";
+    $errorstring = "";
+
+    if (!$this->database->connect_errno) {
+      // wenn kein fehler
+
+      // options
+      $footer_num_entries = Blog::check_zero(Blog::getOption_by_name("footer_num_entries"));	// anzahl einträge footer = 5
+      $feed_title = stripslashes($this->html5specialchars(Blog::getOption_by_name("feed_title", true)));	// = "morgana81 atom feed"
+
+      $footer .= "<div>\n";
+
+      // schleife zweimal
+      foreach (range(1,2) as $i) {
+        if ($i == 1) {
+          // zugriff auf mysql datenbank (1d)
+          $sql = "SELECT ba_datetime, ba_text FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." ORDER BY ba_id DESC LIMIT 0,".$footer_num_entries;
+          $header = $this->language["FRONTEND_RECENT_POSTS"];
+          $errornumber = "1d";
+        }
+        else {
+          // zugriff auf mysql datenbank (1e)
+          $sql = "SELECT ba_comment.ba_id AS ba_commentid, ba_comment.ba_name AS ba_name, ba_comment.ba_mail AS ba_mail, ba_comment.ba_blogid AS ba_blogid, ba_blog.ba_datetime AS ba_datetime, ba_blog.ba_text AS ba_text FROM ba_comment INNER JOIN ba_blog ON ba_comment.ba_blogid = ba_blog.ba_id WHERE ba_comment.ba_state >= ".STATE_PUBLISHED." ORDER BY ba_comment.ba_id DESC LIMIT 0,".$footer_num_entries;
+          $header = $this->language["FRONTEND_RECENT_COMMENTS"];
+          $errornumber = "1e";
+        }
+        $ret = $this->database->query($sql);	// liefert in return db-objekt
+        if ($ret) {
+          // wenn kein fehler 1d oder 1e
+
+          // {footer} erweitern mit ersten 5 einträgen aus blog bzw. kommentar
+          $footer .= "<ul>\n".
+                     "<li><h3>".$header."</h3></li>\n";
+
+          // ausgabeschleife
+          while ($dataset = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
+            $datetime = Blog::check_datetime(date_create_from_format("Y-m-d H:i:s", $dataset["ba_datetime"]));	// "YYYY-MM-DD HH:MM:SS"
+            $datetime_anchor = date_format($datetime, "YmdHis");	// blog id für anker
+            $blogtext40 = stripslashes(Blog::html_tags($this->html5specialchars(mb_substr($dataset["ba_text"], 0, 40, MB_ENCODING)), false));	// substr problem bei trennung umlaute
+            if ($i == 1) {
+              $footer .= "<li><a href=\"index.php?action=blog#".$datetime_anchor."\">".$blogtext40."</a>...</li>\n";
+            }
+            else {
+              $ba_commentid = $dataset["ba_commentid"];
+              $ba_name = stripslashes($this->html5specialchars($dataset["ba_name"]));
+              $ba_mail = stripslashes($this->html5specialchars($dataset["ba_mail"]));
+              $ba_blogid = $dataset["ba_blogid"];
+              if ($ba_mail != "") {
+                $commenter .= "<a href=\"mailto:".$ba_mail."\">".$ba_name."</a>";
+              }
+              else {
+                $commenter .= $ba_name;
+              }
+              $footer .= "<li>".$commenter;
+              if ($ba_blogid > 1) {
+                $footer .= " ".$this->language["FRONTEND_ON"]." <a href=\"index.php?action=blog#comment".$ba_commentid."\">".$blogtext40."</a>...";
+              }
+              $footer .= "</li>\n";
+            }
+          }
+
+          $footer .= "</ul>\n";
+
+          $ret->close();	// db-ojekt schließen
+          unset($ret);	// referenz löschen
+
+        }
+        else {
+          $errorstring .= "<br>db error ".$errornumber."\n";
+        }
+
+      } // schleife zweimal
+
+      // follow blog (nur atom feed)
+      $footer .= "<ul>\n".
+                 "<li><h3>".$this->language["FRONTEND_SUBSCRIBE_BLOG"]."</h3></li>\n".
+                 "<li><a href=\"atom.php\" type=\"application/atom+xml\" title=\"".$feed_title."\"><img class=\"noborder\" src=\"".FEED_PNG."\" height=\"14\" width=\"14\"> Atom Feed</a></li>\n".
+                 "</ul>\n".
+                 "</div>";
+
+    } // datenbank
+    else {
+      $errorstring .= "<br>db error\n";
+    }
+
+    return array("footer" => $footer, "error" => $errorstring);
+  }
+
 }
 
 ?>
