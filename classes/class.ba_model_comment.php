@@ -45,7 +45,7 @@ class Comment extends Model {
       // $this->language
   }
 
-  private function getCommentlist($page) {
+  private function getCommentlist($page, $date) {
     $html_backend_ext = "";
     $errorstring = "";
 
@@ -69,6 +69,19 @@ class Comment extends Model {
       // liste mit älteren kommentar-einträgen
       $html_backend_ext .= "<p id=\"commentlist\"><b>".$this->language["HEADER_COMMENT_LIST"]."</b></p>\n\n";
 
+      // suche nach datum
+      $html_backend_ext .= "<form action=\"backend.php\" method=\"get\">\n".
+                           "<table class=\"backend\">\n".
+                           "<tr>\n<td class=\"td_backend\">".
+                           $this->language["PROMPT_DATE"].
+                           "</td>\n<td>\n".
+                           "<input type=\"hidden\" name=\"action\" value=\"comment\"/>\n".
+                           "<input type=\"date\" name=\"date\"/>\n".
+                           "<input type=\"submit\" value=\"".$this->language["BUTTON_SEARCH"]."\" />\n".
+                           "</td>\n</tr>\n".
+                           "</table>\n".
+                           "</form>\n\n";
+
       // zugriff auf mysql datenbank (2)
       $sql = "SELECT ba_id FROM ba_comment";
       $ret = $this->database->query($sql);	// liefert in return db-objekt
@@ -77,6 +90,14 @@ class Comment extends Model {
 
         $anzahl_e = $ret->num_rows;	// anzahl einträge in ba_comment
         $anzahl_s = ceil($anzahl_e/$anzahl_eps);	// anzahl seiten in ba_blog, ceil() rundet auf
+
+        $ret->close();	// db-ojekt schließen
+        unset($ret);	// referenz löschen
+
+        // init
+        $show_page = false;
+        $show_date = false;
+        //$page = 1;
 
         // GET page auslesen
         if (isset($page) and is_numeric($page)) {
@@ -90,16 +111,37 @@ class Comment extends Model {
             $page = $anzahl_s;
           }
 
+          $show_page = true;
         }
+
+        // GET date auslesen
+        elseif (isset($date) and date_create_from_format("Y-m-d|", $date)) {
+          // date als datum-string vorhanden und nicht NULL
+
+          // datum validieren
+          $datetime = date_create_from_format("Y-m-d|", $date);	// alles ab "|" ist 0
+          $date = date_format($datetime, "Y-m-d H:i:s");	// return string "2018-02-09 00:00:00"
+
+          $show_date = true;
+        }
+
         else {
+          // init
           $page = 1;
+
+          $show_page = true;
         }
 
         // LIMIT für sql berechnen
         $lmt_start = ($page-1) * $anzahl_eps;
 
         // zugriff auf mysql datenbank (3)
-        $sql = "SELECT ba_id, ba_datetime, ba_name, ba_text, ba_comment, ba_blogid, ba_state FROM ba_comment ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;
+        if ($show_page == true) {
+          $sql = "SELECT ba_id, ba_datetime, ba_name, ba_text, ba_comment, ba_blogid, ba_state FROM ba_comment ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;
+        }
+        elseif ($show_date == true) {
+          $sql = "SELECT ba_id, ba_datetime, ba_name, ba_text, ba_comment, ba_blogid, ba_state FROM ba_comment WHERE ba_datetime >= '".$date."' AND ba_datetime < '".$date."' + INTERVAL 1 DAY ORDER BY ba_id DESC LIMIT 0,".$anzahl_e;	// funktioniert nur mit limit
+        }
         $ret = $this->database->query($sql);	// liefert in return db-objekt
         if ($ret) {
           // wenn kein fehler 3i
@@ -228,7 +270,7 @@ class Comment extends Model {
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
-  public function getComment($id, $page) {
+  public function getComment($id, $page, $date) {
     $html_backend_ext = "";
     $errorstring = "";
 
@@ -386,7 +428,7 @@ class Comment extends Model {
                            "</form>\n\n";
 
       // liste mit älteren kommentar-einträgen
-      $commentlist = $this->getCommentlist($page);
+      $commentlist = $this->getCommentlist($page, $date);
       $html_backend_ext .= $commentlist["content"];
       $errorstring .= $commentlist["error"];
 

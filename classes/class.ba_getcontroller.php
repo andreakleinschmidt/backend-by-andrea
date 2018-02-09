@@ -21,6 +21,7 @@ class GetController {
     $this->galleryid = !empty($_GET["gallery"]) ? (is_numeric($_GET["gallery"]) ? intval($_GET["gallery"]) : NULL) : NULL;	// GET gallery auslesen, string in int umwandeln
     $this->id = !empty($_GET["id"]) ? (is_numeric($_GET["id"]) ? intval($_GET["id"]) : NULL) : NULL;	// GET id auslesen, string in int umwandeln
     $this->page = !empty($_GET["page"]) ? (is_numeric($_GET["page"]) ? intval($_GET["page"]) : NULL) : NULL;	// GET page auslesen, string in int umwandeln
+    $this->date = !empty($_GET["date"]) ? substr(trim($_GET["date"]), 0, 10) : NULL;	// GET auslesen, überflüssige leerzeichen entfernen, zu langes GET abschneiden
     $this->session = new Session();	// session funktionen
     $this->model = new Model();	// model erstellen
   }
@@ -154,7 +155,7 @@ class GetController {
             if ($_SESSION["user_role"] >= ROLE_EDITOR) {
 
               $model_blog = new Blog();	// model erstellen
-              $ret = $model_blog->getBlog($this->id, $this->page);	// daten für blog aus dem model
+              $ret = $model_blog->getBlog($this->id, $this->page, $this->date);	// daten für blog aus dem model
               $html_backend_ext .= $ret["content"];
               $errorstring = $ret["error"];
 
@@ -172,7 +173,7 @@ class GetController {
             if ($_SESSION["user_role"] >= ROLE_MASTER) {
 
               $model_comment = new Comment();	// model erstellen
-              $ret = $model_comment->getComment($this->id, $this->page);	// daten für comment aus dem model
+              $ret = $model_comment->getComment($this->id, $this->page, $this->date);	// daten für comment aus dem model
               $html_backend_ext .= $ret["content"];
               $errorstring = $ret["error"];
 
