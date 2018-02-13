@@ -11,6 +11,8 @@ define("MAXLEN_CODE",8);	// login form
 define("MAXLEN_SHAREDSECRET",64);
 define("MAXLEN_EMAIL",64);	// admin form
 define("MAXLEN_FULLNAME",64);	// admin form
+define("MAXLEN_BASETITLE",32);
+define("MAXLEN_BASELINKS",256);
 define("MAXLEN_HPELEMENT",16);
 define("MAXLEN_HPCSS",32);
 define("MAXLEN_HPVALUE",1024);
@@ -39,6 +41,17 @@ define("MAXLEN_COMMENTTEXT",2048);
 define("MAXLEN_COMMENTCOMMENT",2048);
 define("MAXSIZE_FILEUPLOAD",2097152);	// 2048*1024 (2 MB default)
 define("MAXLEN_LOCALE",8);
+define("ACTION_BASE","base");
+define("ACTION_HOME","home");
+define("ACTION_PROFILE","profile");
+define("ACTION_PHOTOS","photos");
+define("ACTION_BLOG","blog");
+define("ACTION_COMMENT","comment");
+define("ACTION_UPLOAD","upload");
+define("ACTION_LANGUAGES","lang");
+define("ACTION_ADMIN","admin");
+define("ACTION_PASSWORD","password");
+define("ACTION_LOGOUT","logout");
 define("ROLE_NONE",0);
 define("ROLE_EDITOR",1);
 define("ROLE_MASTER",2);

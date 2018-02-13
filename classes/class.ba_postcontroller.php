@@ -418,6 +418,53 @@ class PostController {
         } // base64_secret, request_new_secret und use_2fa in POST
 
 // *****************************************************************************
+// *** backend POST base ***
+// *****************************************************************************
+
+        elseif (isset($_POST["ba_base"]) and ($_SESSION["user_role"] >= ROLE_EDITOR)) {
+          // ba_base[ba_title, ba_nav, ba_nav_links, ba_startpage]
+
+          $model_base = new Base();	// model erstellen
+          $ba_base_array = $_POST["ba_base"];
+
+          // überflüssige leerzeichen entfernen
+          $ba_title = trim($ba_base_array["ba_title"]);
+          $ba_nav_links = trim($ba_base_array["ba_nav_links"]);
+          $ba_startpage = trim($ba_base_array["ba_startpage"]);
+
+          // zeichen limit
+          if (strlen($ba_title) > MAXLEN_BASETITLE) {
+            $ba_title = substr($ba_title, 0, MAXLEN_BASETITLE);
+          }
+          if (strlen($ba_nav_links) > MAXLEN_BASELINKS) {
+            $ba_nav_links = substr($ba_nav_links, 0, MAXLEN_BASELINKS);
+          }
+
+          $ba_nav_arr = $ba_base_array["ba_nav"];
+          $ba_nav_arr_new = array();
+
+          // nur definierte werte
+          $actions = array(ACTION_HOME, ACTION_PROFILE, ACTION_PHOTOS, ACTION_BLOG);
+          foreach ($ba_nav_arr as $action) {
+            $action = trim($action);	// überflüssige leerzeichen entfernen
+            if (in_array($action, $actions)) {
+              $ba_nav_arr_new[] = $action;
+            }
+          }
+
+          $ba_nav = implode(",", $ba_nav_arr_new);
+
+          if (!in_array($ba_startpage, $actions)) {
+            $ba_startpage = ACTION_HOME;	// default
+          }
+
+          $ret = $model_base->postBase($ba_title, $ba_nav, $ba_nav_links, $ba_startpage);	// daten für basis in das model
+          $html_backend_ext .= $ret["content"];
+          $errorstring = $ret["error"];
+
+        } // ba_base[]
+
+// *****************************************************************************
 // *** backend POST home ***
 // *****************************************************************************
 

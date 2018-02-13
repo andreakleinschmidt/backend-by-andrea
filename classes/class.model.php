@@ -177,6 +177,134 @@ atom:
 // * funktionen für speichern, ändern,löschen in db
 // *****************************************************************************
 
+  // werte aus der basis
+  public function getBase($name) {
+    $value = "";
+    $errorstring = "";
+
+    if (!$this->database->connect_errno) {
+      // wenn kein fehler
+
+      switch($name) {
+
+        case "title": {
+          $ba_name = "ba_title";
+          break;
+        }
+
+        case "nav": {
+          $ba_name = "ba_nav";
+          break;
+        }
+
+        case "links": {
+          $ba_name = "ba_nav_links";
+          break;
+        }
+
+        case "startpage": {
+          // default startpage
+          $ba_name = "ba_startpage";
+          break;
+        }
+
+        default: {
+          // nichts
+          $ba_name = "''";	// empty string
+        }
+
+      } // switch
+
+      // zugriff auf mysql datenbank (1b)
+      $sql = "SELECT ".$ba_name." FROM ba_base LIMIT 1";
+      $ret = $this->database->query($sql);	// liefert in return db-objekt
+      if ($ret) {
+        // wenn kein fehler 1b
+
+        $dataset = $ret->fetch_assoc();	// fetch_assoc() liefert array
+        $value = trim($dataset[$ba_name]);
+
+        if ($name == "title") {
+          $value = stripslashes($this->html5specialchars($value));
+        }
+
+        $ret->close();	// db-ojekt schließen
+        unset($ret);	// referenz löschen
+
+      }
+      else {
+        $errorstring .= "<br>db error 1b\n";
+      }
+
+    } // datenbank
+    else {
+      $errorstring .= "<br>db error\n";
+    }
+
+    return array($name => $value, "error" => $errorstring);
+  }
+
+  // menue-liste
+  public function getMenue() {
+    $menue = "";
+    $errorstring = "";
+
+    if (!$this->database->connect_errno) {
+      // wenn kein fehler
+
+      // daten aus der basis
+      $ret_array = $this->getBase("nav");
+      $nav_str = $ret_array["nav"];
+      $errorstring .= $ret_array["error"];
+
+      $ret_array = $this->getBase("links");
+      $links_str = $ret_array["links"];
+      $errorstring .= $ret_array["error"];
+
+      $menue .= "<ul>\n";
+
+      $key_home = ACTION_HOME;
+      $key_profile = ACTION_PROFILE;
+      $key_photos = ACTION_PHOTOS;
+      $key_blog = ACTION_BLOG;
+      $translate = array($key_home => $this->language["FRONTEND_NAV_HOME"], $key_profile => $this->language["FRONTEND_NAV_PROFILE"], $key_photos => $this->language["FRONTEND_NAV_PHOTOS"], $key_blog => $this->language["FRONTEND_NAV_BLOG"]);
+
+      $nav_arr = explode(",", $nav_str);
+      foreach ($nav_arr as $action) {
+        $menue .= "<li><a href=\"".$action."/\">".$translate[$action]."</a></li>\n";
+      }
+
+      $links_arr = explode(",", $links_str);
+      foreach ($links_arr as $link_str) {
+        $link = explode("|", $link_str);
+        $path = implode("/", array_map("rawurlencode", explode("/", $link[0])));
+        if (count($link) == 2) {
+          $menue .= "<li><a href=\"".$path."\" target=\"blank\">".stripslashes($this->html5specialchars($link[1]))."</a></li>\n";
+        }
+        else {
+          $menue .= "<li><a href=\"".$path."\" target=\"blank\">".stripslashes($this->html5specialchars($link[0]))."</a></li>\n";
+        }
+      }
+
+      // mail kontakt
+      $contact_mail = stripslashes(Blog::getOption_by_name("contact_mail", true));	// als string
+      $menue .= "<li><a href=\"mailto:".$contact_mail."\">".$this->language["FRONTEND_NAV_CONTACT"]."</a></li>\n";
+
+      // feed icon
+      $feed_title = stripslashes($this->html5specialchars(Blog::getOption_by_name("feed_title", true)));	// = "morgana81 atom feed"
+      $menue .= "<li><a href=\"atom.php\" type=\"application/atom+xml\" title=\"".$feed_title."\"><img class=\"noborder\" src=\"".FEED_PNG."\" height=\"14\" width=\"14\"></a></li>\n";
+
+      $menue .= "</ul>";
+
+    } // datenbank
+    else {
+      $errorstring .= "<br>db error\n";
+    }
+
+    return array("menue" => $menue, "error" => $errorstring);
+  }
+
+  // letzter login + extension
   public function getLogin($extension_array=array()) {
     $login = "login";
     $errorstring = "";
@@ -184,11 +312,11 @@ atom:
     if (!$this->database->connect_errno) {
       // wenn kein fehler
 
-      // zugriff auf mysql datenbank (1)
+      // zugriff auf mysql datenbank (1l)
       $sql = "SELECT user, ba_datetime FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid ORDER BY ba_id DESC LIMIT 1";
       $ret = $this->database->query($sql);	// liefert in return db-objekt
       if ($ret) {
-        // wenn kein fehler 1
+        // wenn kein fehler 1l
 
         // {login} ersetzen mit user und letzten datum-eintrag in blog
         $dataset = $ret->fetch_assoc();	// fetch_assoc() liefert array
@@ -205,7 +333,7 @@ atom:
 
       }
       else {
-        $errorstring .= "<br>db error 1\n";
+        $errorstring .= "<br>db error 1l\n";
       }
 
       // {login} erweitern mit blogroll oder blogbox
@@ -227,11 +355,11 @@ atom:
     $login = "";
     $errorstring = "";
 
-    // zugriff auf mysql datenbank (1a)
+    // zugriff auf mysql datenbank (1x)
     $sql = "SELECT ba_datetime, ba_text FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." ORDER BY ba_id DESC LIMIT 0,3";
     $ret = $this->database->query($sql);	// liefert in return db-objekt
     if ($ret) {
-      // wenn kein fehler 1a
+      // wenn kein fehler 1x
 
       // {login} erweitern mit blogbox (ersten 3 einträge aus blog)
       $login .= "\n<!-- blogbox -->\n".
@@ -257,7 +385,7 @@ atom:
 
     }
     else {
-      $errorstring .= "<br>db error 1a\n";
+      $errorstring .= "<br>db error 1x\n";
     }
 
     return array("login" => $login, "error" => $errorstring);
@@ -268,11 +396,11 @@ atom:
     $login = "";
     $errorstring = "";
 
-    // zugriff auf mysql datenbank (1b)
+    // zugriff auf mysql datenbank (1r)
     $sql = "SELECT ba_id, ba_feed FROM ba_blogroll ORDER BY ba_id ASC LIMIT 5";
     $ret = $this->database->query($sql);	// liefert in return db-objekt
     if ($ret) {
-      // wenn kein fehler 1b
+      // wenn kein fehler 1r
 
       // {login} erweitern mit blogroll (nur 5 einträge)
       $login .= "\n<!-- blogroll -->\n".
@@ -343,7 +471,7 @@ atom:
 
     }
     else {
-      $errorstring .= "<br>db error 1b\n";
+      $errorstring .= "<br>db error 1r\n";
     }
 
     return array("login" => $login, "error" => $errorstring);
@@ -355,9 +483,9 @@ atom:
     $errorstring = "";
 
     if (!$this->database->connect_errno) {
-      // wenn kein fehler
+      // wenn kein fehler 1o
 
-      // zugriff auf mysql datenbank (1c)
+      // zugriff auf mysql datenbank (1o)
       $sql = "SELECT ba_locale FROM ba_languages WHERE ba_selected = 1 LIMIT 1";
       $ret = $this->database->query($sql);	// liefert in return db-objekt
       if ($ret) {
@@ -371,7 +499,7 @@ atom:
 
       }
       else {
-        $errorstring .= "<br>db error 1c\n";
+        $errorstring .= "<br>db error 1o\n";
       }
 
     } // datenbank
@@ -399,20 +527,20 @@ atom:
       // schleife zweimal
       foreach (range(1,2) as $i) {
         if ($i == 1) {
-          // zugriff auf mysql datenbank (1d)
+          // zugriff auf mysql datenbank (1p)
           $sql = "SELECT ba_datetime, ba_text FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." ORDER BY ba_id DESC LIMIT 0,".$footer_num_entries;
           $header = $this->language["FRONTEND_RECENT_POSTS"];
-          $errornumber = "1d";
+          $errornumber = "1p";
         }
         else {
-          // zugriff auf mysql datenbank (1e)
+          // zugriff auf mysql datenbank (1c)
           $sql = "SELECT ba_comment.ba_id AS ba_commentid, ba_comment.ba_name AS ba_name, ba_comment.ba_mail AS ba_mail, ba_comment.ba_blogid AS ba_blogid, ba_blog.ba_datetime AS ba_datetime, ba_blog.ba_text AS ba_text FROM ba_comment INNER JOIN ba_blog ON ba_comment.ba_blogid = ba_blog.ba_id WHERE ba_comment.ba_state >= ".STATE_PUBLISHED." ORDER BY ba_comment.ba_id DESC LIMIT 0,".$footer_num_entries;
           $header = $this->language["FRONTEND_RECENT_COMMENTS"];
-          $errornumber = "1e";
+          $errornumber = "1c";
         }
         $ret = $this->database->query($sql);	// liefert in return db-objekt
         if ($ret) {
-          // wenn kein fehler 1d oder 1e
+          // wenn kein fehler 1p oder 1c
 
           // {footer} erweitern mit ersten 5 einträgen aus blog bzw. kommentar
           $footer .= "<ul>\n".

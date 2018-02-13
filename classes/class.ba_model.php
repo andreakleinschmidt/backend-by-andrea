@@ -306,6 +306,14 @@ class Model {
             "</details>\n";
     if ($user_role >= ROLE_EDITOR) {
       $ret .= "<details class=\"details_backend\">\n".
+              "<summary><a href=\"backend.php?action=base\">".$this->language["HEADER_BASE"]."</a></summary>\n".
+              "<ul>\n".
+              "<li><a href=\"backend.php?action=base#base\">".$this->language["HEADER_BASE"]."</a></li>\n".
+              "</ul>\n".
+              "</details>\n";
+    }
+    if ($user_role >= ROLE_EDITOR) {
+      $ret .= "<details class=\"details_backend\">\n".
               "<summary><a href=\"backend.php?action=home\">".$this->language["HEADER_HOME"]."</a></summary>\n".
               "<ul>\n".
               "<li><a href=\"backend.php?action=home#home\">".$this->language["HEADER_HOME"]."</a></li>\n".
@@ -436,7 +444,7 @@ class Model {
       else {
         $errorstring .=  "<p>db error 2a</p>\n\n";
       }
-echo $this->database->error;
+
     } // datenbank
     else {
       $errorstring .= "<br>db error 1\n";

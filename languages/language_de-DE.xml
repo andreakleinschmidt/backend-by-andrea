@@ -28,6 +28,11 @@
   <FRONTEND_MSG_RETURN_TO_BLOG text="Zurück zum Blog"/>
   <FRONTEND_MSG_SPAMFILTER text="Spamfilter"/>
   <FRONTEND_MSG_TIMELIMIT_MINUTES text="Zeit-Limit 1 Minute"/>
+  <FRONTEND_NAV_HOME text="home"/>
+  <FRONTEND_NAV_PROFILE text="profil"/>
+  <FRONTEND_NAV_PHOTOS text="fotos"/>
+  <FRONTEND_NAV_BLOG text="blog"/>
+  <FRONTEND_NAV_CONTACT text="kontakt"/>
   <FRONTEND_NONE text="keiner"/>
   <FRONTEND_ON text="zu"/>
   <FRONTEND_PHOTOS text="Fotos"/>
@@ -45,6 +50,7 @@
   <HEADER_2FA text="Zwei-Faktor-Authentifizierung"/>
   <HEADER_ADMINISTRATION text="Admin"/>
   <HEADER_BACKEND text="Backend"/>
+  <HEADER_BASE text="Basis"/>
   <HEADER_BLOG_LIST text="Blog (Liste)"/>
   <HEADER_BLOG_NEW text="Blog (neu)"/>
   <HEADER_BLOGROLL text="Blogroll"/>
@@ -128,6 +134,8 @@
   <PROMPT_LOCALE text="locale:"/>
   <PROMPT_MAIL text="Mail:"/>
   <PROMPT_NAME text="Name:"/>
+  <PROMPT_NAVIGATION text="Navigation:"/>
+  <PROMPT_NAV_LINKS text="Externe Links:"/>
   <PROMPT_NEW_CATEGORY text="neue Rubrik:"/>
   <PROMPT_NEW_ELEMENT text="neues Element:"/>
   <PROMPT_NEW_FEED text="neuer Feed:"/>
@@ -144,10 +152,12 @@
   <PROMPT_ROWSCOLS text="Zeilen, Spalten:"/>
   <PROMPT_SELECTED text="ausgewählt:"/>
   <PROMPT_SHARED_SECRET text="shared secret:"/>
+  <PROMPT_STARTPAGE text="Startseite:"/>
   <PROMPT_STATE text="Zustand:"/>
   <PROMPT_TAGS text="Tags:"/>
   <PROMPT_TABLENAME text="Tabellenname:"/>
   <PROMPT_TEXT text="Text:"/>
+  <PROMPT_TITLE text="Seitentitel:"/>
   <PROMPT_TOTAL text="insgesamt:"/>
   <PROMPT_USE_2FA text="2FA benutzen:"/>
   <PROMPT_USER text="Benutzer:"/>

@@ -83,7 +83,7 @@ class GetController {
 
         // action überprüfen
 
-        $actions = array("home", "profile", "photos", "blog", "comment", "upload", "lang", "admin", "password", "logout");
+        $actions = array(ACTION_BASE, ACTION_HOME, ACTION_PROFILE, ACTION_PHOTOS, ACTION_BLOG, ACTION_COMMENT, ACTION_UPLOAD, ACTION_LANGUAGES, ACTION_ADMIN, ACTION_PASSWORD, ACTION_LOGOUT);
         if (!in_array($this->action, $actions)) {
           $this->action = "default";
         }
@@ -93,10 +93,28 @@ class GetController {
         switch($this->action) {
 
 // *****************************************************************************
+// *** backend GET base ***
+// *****************************************************************************
+
+          case ACTION_BASE: {
+
+            if ($_SESSION["user_role"] >= ROLE_EDITOR) {
+
+              $model_base = new Base();	// model erstellen
+              $ret = $model_base->getBase();	// daten für basis aus dem model
+              $html_backend_ext .= $ret["content"];
+              $errorstring = $ret["error"];
+
+            } // ROLE_EDITOR
+
+              break;
+          }
+
+// *****************************************************************************
 // *** backend GET home ***
 // *****************************************************************************
 
-          case "home": {
+          case ACTION_HOME: {
 
             if ($_SESSION["user_role"] >= ROLE_EDITOR) {
 
@@ -114,7 +132,7 @@ class GetController {
 // *** backend GET profile ***
 // *****************************************************************************
 
-          case "profile": {
+          case ACTION_PROFILE: {
 
             if ($_SESSION["user_role"] >= ROLE_EDITOR) {
 
@@ -132,7 +150,7 @@ class GetController {
 // *** backend GET photos ***
 // *****************************************************************************
 
-          case "photos": {
+          case ACTION_PHOTOS: {
 
             if ($_SESSION["user_role"] >= ROLE_EDITOR) {
 
@@ -150,7 +168,7 @@ class GetController {
 // *** backend GET blog ***
 // *****************************************************************************
 
-          case "blog": {
+          case ACTION_BLOG: {
 
             if ($_SESSION["user_role"] >= ROLE_EDITOR) {
 
@@ -168,7 +186,7 @@ class GetController {
 // *** backend GET comment ***
 // *****************************************************************************
 
-          case "comment": {
+          case ACTION_COMMENT: {
 
             if ($_SESSION["user_role"] >= ROLE_MASTER) {
 
@@ -186,7 +204,7 @@ class GetController {
 // *** backend GET upload ***
 // *****************************************************************************
 
-          case "upload": {
+          case ACTION_UPLOAD: {
 
             if ($_SESSION["user_role"] >= ROLE_MASTER) {
 
@@ -203,7 +221,7 @@ class GetController {
 // *** backend GET languages ***
 // *****************************************************************************
 
-          case "lang": {
+          case ACTION_LANGUAGES: {
 
             if ($_SESSION["user_role"] >= ROLE_MASTER) {
 
@@ -221,7 +239,7 @@ class GetController {
 // *** backend GET admin ***
 // *****************************************************************************
 
-          case "admin": {
+          case ACTION_ADMIN: {
 
             if ($_SESSION["user_role"] >= ROLE_ADMIN) {
 
@@ -239,7 +257,7 @@ class GetController {
 // *** backend GET password ***
 // *****************************************************************************
 
-          case "password": {
+          case ACTION_PASSWORD: {
 
             // passwort ändern formular
             // - alt (zur überprüfung)
@@ -262,7 +280,7 @@ class GetController {
 // *** backend GET logout ***
 // *****************************************************************************
 
-          case "logout": {
+          case ACTION_LOGOUT: {
 
             $html_backend_ext = "<p>logout</p>\n\n";
 

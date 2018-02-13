@@ -150,6 +150,11 @@ class Profile extends Model {
       $last_text_id = $this->get_last_text_id();
       $languages_list = $this->get_languages_list();
 
+      // language überprüfen
+      if (!in_array($language, $languages_list)) {
+        $language = substr(DEFAULT_LOCALE, 0, 2);
+      }
+
       // zugriff auf mysql datenbank (3)
       $sql = "SELECT ba_id, ba_element, ba_css, ba_value FROM ba_profile";
       $ret = $this->database->query($sql);	// liefert in return db-objekt

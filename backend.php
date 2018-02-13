@@ -16,6 +16,7 @@ require_once("classes/class.ba_session.php");
 require_once("classes/class.ba_getcontroller.php");
 require_once("classes/class.ba_postcontroller.php");
 require_once("classes/class.ba_model.php");	// login, password, logout
+require_once("classes/class.ba_model_base.php");
 require_once("classes/class.ba_model_home.php");
 require_once("classes/class.ba_model_profile.php");
 require_once("classes/class.ba_model_photos.php");

@@ -23,8 +23,8 @@ class GetController {
 
   // konstruktor, controller erstellen
   public function __construct() {
-    $this->action = !empty($_GET["action"]) ? substr(trim($_GET["action"]), 0, 8) : "home";	// GET auslesen, überflüssige leerzeichen entfernen, zu langes GET abschneiden
-    $this->language = !empty($_GET["lang"]) ? substr(trim($_GET["lang"]), 0, 4) : "de";	// GET auslesen, überflüssige leerzeichen entfernen, zu langes GET abschneiden
+    $this->action = !empty($_GET["action"]) ? substr(trim($_GET["action"]), 0, 8) : "default";	// GET auslesen, überflüssige leerzeichen entfernen, zu langes GET abschneiden
+    $this->language = !empty($_GET["lang"]) ? substr(trim($_GET["lang"]), 0, 2) : substr(DEFAULT_LOCALE, 0, 2);	// GET auslesen, überflüssige leerzeichen entfernen, zu langes GET abschneiden
     $this->gallery = !empty($_GET["gallery"]) ? substr(trim($_GET["gallery"]), 0, 16) : NULL;	// GET gallery auslesen, überflüssige leerzeichen entfernen, zu langen alias abschneiden
     $this->id = !empty($_GET["id"]) ? substr(trim($_GET["id"]), 0, 8) : NULL;	// GET id auslesen, überflüssige leerzeichen entfernen, zu lange photoid abschneiden
     $this->q = !empty($_GET["q"]) ? mb_substr(trim($_GET["q"]), 0, 64, MB_ENCODING) : NULL;	// GET q auslesen, überflüssige leerzeichen entfernen, zu langes GET abschneiden
@@ -41,7 +41,27 @@ class GetController {
     $view = new View();	// view erstellen
     $view->setTemplate("default");	// template "tpl_default.htm" laden
 
-    if ($this->action == "blog") {
+    // seitentitel
+    if (!isset($_SESSION["hd_title"])) {
+      // falls session variable noch nicht existiert
+      $base = $this->model->getBase("title");	// ba_title aus tabelle ba_base
+      $_SESSION["hd_title"] = $base["title"];	// in SESSION speichern
+    } // neue session variable
+
+    // menue im nav-tag
+    if (!isset($_SESSION["menue"])) {
+      // falls session variable noch nicht existiert
+      $menue = $this->model->getMenue();	// daten für menue aus dem model
+      $_SESSION["menue"] = $menue;	// in SESSION speichern
+    } // neue session variable
+    else {
+      // alte session variable
+      $menue = $_SESSION["menue"];	// aus SESSION lesen
+    }
+
+    $view->setContent("menue", $menue["menue"]);
+
+    if ($this->action == ACTION_BLOG) {
       if (!isset($_SESSION["blogroll"])) {
         // falls session variable noch nicht existiert
         $ret_array = $this->model->blogroll();	// login erweitern mit blogroll
@@ -70,45 +90,46 @@ class GetController {
     $ret = null;	// ["content","error"]
 
     // action überprüfen
-    $actions = array("home", "profile", "photos", "blog");
+    $actions = array(ACTION_HOME, ACTION_PROFILE, ACTION_PHOTOS, ACTION_BLOG);
     if (!in_array($this->action, $actions)) {
-      $this->action = "home";
+      $base = $this->model->getBase("startpage");
+      if (!empty($base["startpage"])) {
+        $this->action = $base["startpage"];
+      }
+      else {
+        $this->action = ACTION_HOME;	// default
+      }
     }
 
-    // language überprüfen
-    if ($this->language != "de" and $this->language != "en") {
-      $this->language = "de";
-    }
-
-    // switch anweisung, {hd_title_ext} und {content} ersetzen je nach GET-action
+    // switch anweisung, {hd_title} und {content} ersetzen je nach GET-action
 
     switch($this->action) {
 
-      case "home": {
+      case ACTION_HOME: {
         $model_home = new Home();	// model erstellen
         $ret = $model_home->getHome();	// daten für home aus dem model
-        //$view->setContent("hd_title_ext", " home");
+        $view->setContent("hd_title", $_SESSION["hd_title"]);	// ." home"
         break;
       }
 
-      case "profile": {
+      case ACTION_PROFILE: {
         $model_profile = new Profile();	// model erstellen
         $ret = $model_profile->getProfile($this->language);	// daten für profile aus dem model
-        $view->setContent("hd_title_ext", " profile");
+        $view->setContent("hd_title", $_SESSION["hd_title"]." profile");
         break;
       }
 
-      case "photos": {
+      case ACTION_PHOTOS: {
         $model_photos = new Photos();	// model erstellen
         $ret = $model_photos->getPhotos($this->gallery, $this->id);	// daten für photos aus dem model
-        $view->setContent("hd_title_ext", " photos".$ret["hd_title_ext"]);
+        $view->setContent("hd_title", $_SESSION["hd_title"]." photos".$ret["hd_title_ext"]);
         break;
       }
 
-      case "blog": {
+      case ACTION_BLOG: {
         $model_blog = new Blog();	// model erstellen
         $ret = $model_blog->getBlog($this->q, $this->tag, $this->page, $this->year, $this->month, $this->compage);	// daten für blog aus dem model
-        $view->setContent("hd_title_ext", " blog".$ret["hd_title_ext"]);
+        $view->setContent("hd_title", $_SESSION["hd_title"]." blog".$ret["hd_title_ext"]);
         break;
       }
 
@@ -128,7 +149,7 @@ class GetController {
 
     $view->setContent("footer", $footer["footer"]);
 
-    $view->setContent("error", $login["error"].$ret["error"].$footer["error"]);
+    $view->setContent("error", $menue["error"].$login["error"].$ret["error"].$footer["error"]);
 
     return $view->parseTemplate();	// ausgabe geändertes template
   }
