@@ -24,7 +24,7 @@ class View {
     $this->content_arr[$key] = $value;
   }
 
-  // template laden, enthält {hd_title}, {menue}, {login}, {content}, {error} und {footer}, daten ersetzen, template ausgeben
+  // template laden, enthält {hd_title}, {hd_description}, {hd_author}, {feed_title}, {menue}, {login}, {content}, {error} und {footer}, daten ersetzen, template ausgeben
   public function parseTemplate($backend = false) {
     if (file_exists($this->template)) {
 
@@ -42,6 +42,9 @@ class View {
       }
       else {
         $template_out = str_replace("{hd_title}", $this->content_arr["hd_title"], $template_out);
+        $template_out = str_replace("{hd_description}", $this->content_arr["hd_description"], $template_out);
+        $template_out = str_replace("{hd_author}", $this->content_arr["hd_author"], $template_out);
+        $template_out = str_replace("{feed_title}", $this->content_arr["feed_title"], $template_out);
         $template_out = str_replace("{menue}", $this->content_arr["menue"], $template_out);
         $template_out = str_replace("{login}", $this->content_arr["login"], $template_out);
         $template_out = str_replace("{content}", $this->content_arr["content"], $template_out);

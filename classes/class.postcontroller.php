@@ -20,6 +20,34 @@ class PostController {
     $view = new View();	// view erstellen
     $view->setTemplate("default");	// template "tpl_default.htm" laden
 
+    // html head
+    if (!isset($_SESSION["head"])) {
+      // falls session variable noch nicht existiert
+      $head = $this->model->getHead();	// ba_title, ba_description, ba_author aus tabelle ba_base, feed_title aus ba_options_str
+      $_SESSION["head"] = $head;	// in SESSION speichern
+    } // neue session variable
+    else {
+      // alte session variable
+      $head = $_SESSION["head"];	// aus SESSION lesen
+    }
+
+    $view->setContent("hd_description", $head["hd_description"]);
+    $view->setContent("hd_author", $head["hd_author"]);
+    $view->setContent("feed_title", $head["feed_title"]);
+
+    // menue im nav-tag
+    if (!isset($_SESSION["menue"])) {
+      // falls session variable noch nicht existiert
+      $menue = $this->model->getMenue();	// daten für menue aus dem model
+      $_SESSION["menue"] = $menue;	// in SESSION speichern
+    } // neue session variable
+    else {
+      // alte session variable
+      $menue = $_SESSION["menue"];	// aus SESSION lesen
+    }
+
+    $view->setContent("menue", $menue["menue"]);
+
     $login = $this->model->getLogin();	// daten für login aus dem model
     $view->setContent("login", $login["login"]);
 
@@ -54,7 +82,7 @@ class PostController {
       }
 
       $ret = $model_blog->postComment($comment_name, $comment_mail, $comment_website, $comment_blogid, $comment_text);	// daten für comment in das model
-      $view->setContent("hd_title_ext", " blog (comment)");
+      $view->setContent("hd_title", $head["hd_title"]." blog (comment)");
 
     } // comment[]
 
@@ -81,7 +109,7 @@ class PostController {
 
     $view->setContent("footer", $footer["footer"]);
 
-    $view->setContent("error", $login["error"].$ret["error"].$footer["error"]);
+    $view->setContent("error", $head["error"].$menue["error"].$login["error"].$ret["error"].$footer["error"]);
 
     return $view->parseTemplate();	// ausgabe geändertes template
   }

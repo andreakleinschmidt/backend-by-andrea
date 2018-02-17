@@ -116,6 +116,7 @@
   <PAGE_NEXT text="next"/>
   <PAGE_PREVIOUS text="previous"/>
   <PROMPT_ASCENDING text="asc:"/>
+  <PROMPT_AUTHOR text="author:"/>
   <PROMPT_BLOGID text="blogid:"/>
   <PROMPT_CATEGORY text="category:"/>
   <PROMPT_CODE text="code:"/>
@@ -123,6 +124,7 @@
   <PROMPT_DATE text="date:"/>
   <PROMPT_DELETE text="delete:"/>
   <PROMPT_DESCENDING text="desc:"/>
+  <PROMPT_DESCRIPTION text="description:"/>
   <PROMPT_ELEMENTS text="elements:"/>
   <PROMPT_INTRO text="intro:"/>
   <PROMPT_FEED text="feed:"/>

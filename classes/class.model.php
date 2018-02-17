@@ -187,11 +187,6 @@ atom:
 
       switch($name) {
 
-        case "title": {
-          $ba_name = "ba_title";
-          break;
-        }
-
         case "nav": {
           $ba_name = "ba_nav";
           break;
@@ -224,10 +219,6 @@ atom:
         $dataset = $ret->fetch_assoc();	// fetch_assoc() liefert array
         $value = trim($dataset[$ba_name]);
 
-        if ($name == "title") {
-          $value = stripslashes($this->html5specialchars($value));
-        }
-
         $ret->close();	// db-ojekt schließen
         unset($ret);	// referenz löschen
 
@@ -242,6 +233,47 @@ atom:
     }
 
     return array($name => $value, "error" => $errorstring);
+  }
+
+  // html head
+  public function getHead() {
+    $hd_title = "";
+    $hd_description = "";
+    $hd_author = "";
+    $feed_title = "";
+    $errorstring = "";
+
+    if (!$this->database->connect_errno) {
+      // wenn kein fehler
+
+      // options
+      $feed_title = stripslashes($this->html5specialchars(Blog::getOption_by_name("feed_title", true)));	// als string
+
+      // zugriff auf mysql datenbank (1h)
+      $sql = "SELECT ba_title, ba_description, ba_author FROM ba_base LIMIT 1";
+      $ret = $this->database->query($sql);	// liefert in return db-objekt
+      if ($ret) {
+        // wenn kein fehler 1h
+
+        $dataset = $ret->fetch_assoc();	// fetch_assoc() liefert array
+        $hd_title = stripslashes($this->html5specialchars($dataset["ba_title"]));
+        $hd_description = stripslashes($this->html5specialchars($dataset["ba_description"]));
+        $hd_author = stripslashes($this->html5specialchars($dataset["ba_author"]));
+
+        $ret->close();	// db-ojekt schließen
+        unset($ret);	// referenz löschen
+
+      }
+      else {
+        $errorstring .= "<br>db error 1h\n";
+      }
+
+    } // datenbank
+    else {
+      $errorstring .= "<br>db error\n";
+    }
+
+    return array("hd_title" => $hd_title, "hd_description" => $hd_description, "hd_author" => $hd_author, "feed_title" => $feed_title, "error" => $errorstring);
   }
 
   // menue-liste
@@ -291,7 +323,7 @@ atom:
       $menue .= "<li><a href=\"mailto:".$contact_mail."\">".$this->language["FRONTEND_NAV_CONTACT"]."</a></li>\n";
 
       // feed icon
-      $feed_title = stripslashes($this->html5specialchars(Blog::getOption_by_name("feed_title", true)));	// = "morgana81 atom feed"
+      $feed_title = stripslashes($this->html5specialchars(Blog::getOption_by_name("feed_title", true)));	// als string
       $menue .= "<li><a href=\"atom.php\" type=\"application/atom+xml\" title=\"".$feed_title."\"><img class=\"noborder\" src=\"".FEED_PNG."\" height=\"14\" width=\"14\"></a></li>\n";
 
       $menue .= "</ul>";
@@ -520,7 +552,7 @@ atom:
 
       // options
       $footer_num_entries = Blog::check_zero(Blog::getOption_by_name("footer_num_entries"));	// anzahl einträge footer = 5
-      $feed_title = stripslashes($this->html5specialchars(Blog::getOption_by_name("feed_title", true)));	// = "morgana81 atom feed"
+      $feed_title = stripslashes($this->html5specialchars(Blog::getOption_by_name("feed_title", true)));	// als string
 
       $footer .= "<div>\n";
 

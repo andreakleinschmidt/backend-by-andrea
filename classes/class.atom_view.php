@@ -45,13 +45,40 @@ class View {
       if ($root_node->tagName == "feed") {
 
         $feed = $this->content_arr["feed"];
-        // $feed = array("updated" => $atomupdated, "entry" => array(20))
+        // $feed = array("id", "url", "title", "subtitle", "author", "updated" => $atomupdated, "entry" => array(20))
         // array(20) => array("title" => $atomtitle,
         //                    "link" => $atomlink,
         //                    "id" => $atomid,
         //                    "updated" => $atomupdated,
         //                    "summary" => $atomsummary,
         //                    "content" => $atomcontent)
+
+        // <title type="text"></title>
+        $node = $this->addTag($xml_tree, $root_node, "title", $feed["title"]);
+        $node->setAttribute("type", "text");
+
+        // <subtitle type="text"></subtitle>
+        $node = $this->addTag($xml_tree, $root_node, "subtitle", $feed["subtitle"]);
+        $node->setAttribute("type", "text");
+
+        // <link href="" rel="alternate"/>
+        $node = $this->addTag($xml_tree, $root_node, "link");
+        $node->setAttribute("href", $feed["url"]);
+        $node->setAttribute("rel", "alternate");
+
+        // <link href="" rel="self"/>
+        $node = $this->addTag($xml_tree, $root_node, "link");
+        $node->setAttribute("href", "http://".$_SERVER["SERVER_NAME"].$_SERVER["PHP_SELF"]);	// atom.php
+        $node->setAttribute("rel", "self");
+
+        // <id></id>
+        $this->addTag($xml_tree, $root_node, "id", $feed["id"]);
+
+        // <author></author>
+        $author_node = $this->addTag($xml_tree, $root_node, "author");
+
+        // <name></name>
+        $this->addTag($xml_tree, $author_node, "name", $feed["author"]);
 
         // <updated></updated>
         $this->addTag($xml_tree, $root_node, "updated", $feed["updated"]);

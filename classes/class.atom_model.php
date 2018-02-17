@@ -42,8 +42,11 @@ class Model {
       $num_entries = Blog::check_zero(Blog::getOption_by_name("feed_num_entries"));	// = 20
       $use_summary = boolval(Blog::getOption_by_name("feed_use_summary"));	// = 0 (use content)
       $num_sentences = Blog::check_zero(Blog::getOption_by_name("feed_num_sentences_summary"));	// = 3
-      $feed_id =  stripslashes($this->xmlspecialchars(Blog::getOption_by_name("feed_id", true)));	// = "tag:oscilloworld.de,2010:morgana81"
-      $feed_url = stripslashes($this->xmlspecialchars(Blog::getOption_by_name("feed_url", true)));	// = "http://www.oscilloworld.de/morgana81/index.php?action=blog"
+      $feed["id"] = stripslashes($this->xmlspecialchars(Blog::getOption_by_name("feed_id", true)));	// als string
+      $feed["url"] = stripslashes($this->xmlspecialchars(Blog::getOption_by_name("feed_url", true)));	// als string
+      $feed["title"] = stripslashes($this->xmlspecialchars(Blog::getOption_by_name("feed_title", true)));	// als string
+      $feed["subtitle"] = stripslashes($this->xmlspecialchars(Blog::getOption_by_name("feed_subtitle", true)));	// als string
+      $feed["author"] = stripslashes($this->xmlspecialchars(Blog::getOption_by_name("feed_author", true)));	// als string
 
       // zugriff auf mysql datenbank
       $sql = "SELECT ba_datetime, ba_header, ba_intro, ba_text FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." ORDER BY ba_id DESC LIMIT 0,".$num_entries;
@@ -93,8 +96,8 @@ class Model {
 
           $atomtitle = $blogtitle;
           $datetime_anchor = date_format($datetime, "YmdHis");
-          $atomlink = $feed_url."#".$datetime_anchor;
-          $atomid = $feed_id."-".$datetime_anchor;
+          $atomlink = $feed["url"]."#".$datetime_anchor;
+          $atomid = $feed["id"]."-".$datetime_anchor;
           $atomupdated = date_format($datetime, "Y-m-d\TH:i:sP");	// YYYY-MM-DD'T'HH:MM:SS+0[1,2]:00
           if ($use_summary) {
             // use summary

@@ -12,6 +12,8 @@ define("MAXLEN_SHAREDSECRET",64);
 define("MAXLEN_EMAIL",64);	// admin form
 define("MAXLEN_FULLNAME",64);	// admin form
 define("MAXLEN_BASETITLE",32);
+define("MAXLEN_BASEDESCRIPTION",128);
+define("MAXLEN_BASEAUTHOR",64);
 define("MAXLEN_BASELINKS",256);
 define("MAXLEN_HPELEMENT",16);
 define("MAXLEN_HPCSS",32);

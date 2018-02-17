@@ -10,6 +10,8 @@
 // *****************************************************************************
 
 //define("MAXLEN_BASETITLE",32);
+//define("MAXLEN_BASEDESCRIPTION",128);
+//define("MAXLEN_BASEAUTHOR",64);
 //define("MAXLEN_BASELINKS",256);
 
 // *****************************************************************************
@@ -41,6 +43,8 @@ class Base extends Model {
 
       // TABLE ba_base (ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
       //                ba_title VARCHAR(32) NOT NULL,
+      //                ba_description VARCHAR(128) NOT NULL,
+      //                ba_author VARCHAR(64) NOT NULL,
       //                ba_nav VARCHAR(32) NOT NULL,
       //                ba_nav_links VARCHAR(256) NOT NULL,
       //                ba_startpage VARCHAR(8) NOT NULL);
@@ -48,7 +52,7 @@ class Base extends Model {
       $html_backend_ext .= "<p id=\"base\"><b>".$this->language["HEADER_BASE"]."</b></p>\n\n";
 
       // zugriff auf mysql datenbank (1)
-      $sql = "SELECT ba_title, ba_nav, ba_nav_links, ba_startpage FROM ba_base LIMIT 1";
+      $sql = "SELECT ba_title, ba_description, ba_author, ba_nav, ba_nav_links, ba_startpage FROM ba_base LIMIT 1";
       $ret = $this->database->query($sql);	// liefert in return db-objekt
       if ($ret) {
         // wenn kein fehler 3
@@ -58,17 +62,26 @@ class Base extends Model {
 
         $dataset = $ret->fetch_assoc();	// fetch_assoc() liefert array
         $ba_title = stripslashes($this->html5specialchars($dataset["ba_title"]));
+        $ba_description = stripslashes($this->html5specialchars($dataset["ba_description"]));
+        $ba_author = stripslashes($this->html5specialchars($dataset["ba_author"]));
         $ba_nav = trim($dataset["ba_nav"]);
         $ba_nav_links = trim($dataset["ba_nav_links"]);
         $ba_startpage = trim($dataset["ba_startpage"]);
 
         $ba_nav_arr = explode(",", $ba_nav);
 
-
         $html_backend_ext .= "<tr>\n<td class=\"td_backend\">".
                              $this->language["PROMPT_TITLE"].
                              "</td>\n<td>".
                              "<input type=\"text\" name=\"ba_base[ba_title]\" class=\"size_32\" maxlength=\"".MAXLEN_BASETITLE."\" value=\"".$ba_title."\"/>".
+                             "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">".
+                             $this->language["PROMPT_DESCRIPTION"].
+                             "</td>\n<td>".
+                             "<input type=\"text\" name=\"ba_base[ba_description]\" class=\"size_32\" maxlength=\"".MAXLEN_BASEDESCRIPTION."\" value=\"".$ba_description."\"/>".
+                             "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">".
+                             $this->language["PROMPT_AUTHOR"].
+                             "</td>\n<td>".
+                             "<input type=\"text\" name=\"ba_base[ba_author]\" class=\"size_32\" maxlength=\"".MAXLEN_BASEAUTHOR."\" value=\"".$ba_author."\"/>".
                              "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">".
                              $this->language["PROMPT_NAVIGATION"].
                              "</td>\n<td>\n".
@@ -143,7 +156,7 @@ class Base extends Model {
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
-  public function postBase($ba_title, $ba_nav, $ba_nav_links, $ba_startpage) {
+  public function postBase($ba_title, $ba_description, $ba_author, $ba_nav, $ba_nav_links, $ba_startpage) {
     $html_backend_ext = "";
     $errorstring = "";
 
@@ -155,13 +168,13 @@ class Base extends Model {
       $count = 0;
 
       // update in datenbank , mit prepare() - sql injections verhindern
-      $sql = "UPDATE ba_base SET ba_title = ?, ba_nav = ?, ba_nav_links = ?, ba_startpage = ? WHERE ba_id = 1";
+      $sql = "UPDATE ba_base SET ba_title = ?, ba_description = ?, ba_author = ?, ba_nav = ?, ba_nav_links = ?, ba_startpage = ? WHERE ba_id = 1";
       $stmt = $this->database->prepare($sql);	// liefert mysqli-statement-objekt
       if ($stmt) {
         // wenn kein fehler 4
 
-        // austauschen ???? durch strings
-        $stmt->bind_param("ssss", $ba_title, $ba_nav, $ba_nav_links, $ba_startpage);
+        // austauschen ?????? durch strings
+        $stmt->bind_param("ssssss", $ba_title, $ba_description, $ba_author, $ba_nav, $ba_nav_links, $ba_startpage);
         $stmt->execute();	// ausführen geänderte zeile
         $count += $stmt->affected_rows;
         $stmt->close();

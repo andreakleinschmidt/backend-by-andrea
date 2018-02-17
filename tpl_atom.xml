@@ -1,11 +1,2 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom">
-  <title type="text">morgana81 atom feed</title>
-  <subtitle type="text">gothic transgender morgana81 - profile, photos and blog</subtitle>
-  <link href="http://www.oscilloworld.de/morgana81" rel="alternate"/>
-  <link href="http://www.oscilloworld.de/morgana81/atom.php" rel="self"/>
-  <id>tag:oscilloworld.de,2010:morgana81</id>
-  <author>
-    <name>Morgana LaGoth</name>
-  </author>
-</feed>
+<feed xmlns="http://www.w3.org/2005/Atom"/>

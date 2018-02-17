@@ -41,12 +41,20 @@ class GetController {
     $view = new View();	// view erstellen
     $view->setTemplate("default");	// template "tpl_default.htm" laden
 
-    // seitentitel
-    if (!isset($_SESSION["hd_title"])) {
+    // html head
+    if (!isset($_SESSION["head"])) {
       // falls session variable noch nicht existiert
-      $base = $this->model->getBase("title");	// ba_title aus tabelle ba_base
-      $_SESSION["hd_title"] = $base["title"];	// in SESSION speichern
+      $head = $this->model->getHead();	// ba_title, ba_description, ba_author aus tabelle ba_base, feed_title aus ba_options_str
+      $_SESSION["head"] = $head;	// in SESSION speichern
     } // neue session variable
+    else {
+      // alte session variable
+      $head = $_SESSION["head"];	// aus SESSION lesen
+    }
+
+    $view->setContent("hd_description", $head["hd_description"]);
+    $view->setContent("hd_author", $head["hd_author"]);
+    $view->setContent("feed_title", $head["feed_title"]);
 
     // menue im nav-tag
     if (!isset($_SESSION["menue"])) {
@@ -108,28 +116,28 @@ class GetController {
       case ACTION_HOME: {
         $model_home = new Home();	// model erstellen
         $ret = $model_home->getHome();	// daten für home aus dem model
-        $view->setContent("hd_title", $_SESSION["hd_title"]);	// ." home"
+        $view->setContent("hd_title", $head["hd_title"]);	// ." home"
         break;
       }
 
       case ACTION_PROFILE: {
         $model_profile = new Profile();	// model erstellen
         $ret = $model_profile->getProfile($this->language);	// daten für profile aus dem model
-        $view->setContent("hd_title", $_SESSION["hd_title"]." profile");
+        $view->setContent("hd_title", $head["hd_title"]." profile");
         break;
       }
 
       case ACTION_PHOTOS: {
         $model_photos = new Photos();	// model erstellen
         $ret = $model_photos->getPhotos($this->gallery, $this->id);	// daten für photos aus dem model
-        $view->setContent("hd_title", $_SESSION["hd_title"]." photos".$ret["hd_title_ext"]);
+        $view->setContent("hd_title", $head["hd_title"]." photos".$ret["hd_title_ext"]);
         break;
       }
 
       case ACTION_BLOG: {
         $model_blog = new Blog();	// model erstellen
         $ret = $model_blog->getBlog($this->q, $this->tag, $this->page, $this->year, $this->month, $this->compage);	// daten für blog aus dem model
-        $view->setContent("hd_title", $_SESSION["hd_title"]." blog".$ret["hd_title_ext"]);
+        $view->setContent("hd_title", $head["hd_title"]." blog".$ret["hd_title_ext"]);
         break;
       }
 
@@ -149,7 +157,7 @@ class GetController {
 
     $view->setContent("footer", $footer["footer"]);
 
-    $view->setContent("error", $menue["error"].$login["error"].$ret["error"].$footer["error"]);
+    $view->setContent("error", $head["error"].$menue["error"].$login["error"].$ret["error"].$footer["error"]);
 
     return $view->parseTemplate();	// ausgabe geändertes template
   }

@@ -422,19 +422,27 @@ class PostController {
 // *****************************************************************************
 
         elseif (isset($_POST["ba_base"]) and ($_SESSION["user_role"] >= ROLE_EDITOR)) {
-          // ba_base[ba_title, ba_nav, ba_nav_links, ba_startpage]
+          // ba_base[ba_title, ba_description, ba_author, ba_nav, ba_nav_links, ba_startpage]
 
           $model_base = new Base();	// model erstellen
           $ba_base_array = $_POST["ba_base"];
 
           // überflüssige leerzeichen entfernen
           $ba_title = trim($ba_base_array["ba_title"]);
+          $ba_description = trim($ba_base_array["ba_description"]);
+          $ba_author = trim($ba_base_array["ba_author"]);
           $ba_nav_links = trim($ba_base_array["ba_nav_links"]);
           $ba_startpage = trim($ba_base_array["ba_startpage"]);
 
           // zeichen limit
           if (strlen($ba_title) > MAXLEN_BASETITLE) {
             $ba_title = substr($ba_title, 0, MAXLEN_BASETITLE);
+          }
+          if (strlen($ba_description) > MAXLEN_BASEDESCRIPTION) {
+            $ba_description = substr($ba_description, 0, MAXLEN_BASEDESCRIPTION);
+          }
+          if (strlen($ba_author) > MAXLEN_BASEAUTHOR) {
+            $ba_author = substr($ba_author, 0, MAXLEN_BASEAUTHOR);
           }
           if (strlen($ba_nav_links) > MAXLEN_BASELINKS) {
             $ba_nav_links = substr($ba_nav_links, 0, MAXLEN_BASELINKS);
@@ -458,7 +466,7 @@ class PostController {
             $ba_startpage = ACTION_HOME;	// default
           }
 
-          $ret = $model_base->postBase($ba_title, $ba_nav, $ba_nav_links, $ba_startpage);	// daten für basis in das model
+          $ret = $model_base->postBase($ba_title, $ba_description, $ba_author, $ba_nav, $ba_nav_links, $ba_startpage);	// daten für basis in das model
           $html_backend_ext .= $ret["content"];
           $errorstring = $ret["error"];
 
