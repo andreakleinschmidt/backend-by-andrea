@@ -37,8 +37,6 @@ class Model {
   public $database;
   public $language;
 
-  private static $AES_SALT = "6c788f893313da8bfe78ef85f76caee3";	// shell: openssl rand -hex 16
-
   // konstruktor
   public function __construct() {
     // datenbank:
@@ -418,7 +416,7 @@ class Model {
       //                base64_secret VARBINARY(64) NOT NULL;
 
       // mit prepare() - sql injections verhindern
-      $sql = "SELECT id, role, user, password, locale, use_2fa, last_code, AES_DECRYPT(base64_secret, UNHEX('".self::$AES_SALT."')) AS base64_secret FROM backend WHERE user = ?";
+      $sql = "SELECT id, role, user, password, locale, use_2fa, last_code, AES_DECRYPT(base64_secret, UNHEX('".Database::$AES_KEY."')) AS base64_secret FROM backend WHERE user = ?";
       $stmt = $this->database->prepare($sql);	// liefert mysqli-statement-objekt
       if ($stmt) {
         // wenn kein fehler 2a
@@ -593,7 +591,7 @@ class Model {
       // wenn kein fehler
 
       // mit prepare() - sql injections verhindern
-      $sql_select = "SELECT use_2fa, AES_DECRYPT(base64_secret, UNHEX('".self::$AES_SALT."')) AS base64_secret FROM backend WHERE id = ?";
+      $sql_select = "SELECT use_2fa, AES_DECRYPT(base64_secret, UNHEX('".Database::$AES_KEY."')) AS base64_secret FROM backend WHERE id = ?";
       $stmt_select = $this->database->prepare($sql_select);	// liefert mysqli-statement-objekt
       if ($stmt_select) {
         // wenn kein fehler 2b3
@@ -643,7 +641,7 @@ class Model {
       $html_backend_ext .= "<section>\n\n";
 
       // mit prepare() - sql injections verhindern
-      $sql_update = "UPDATE backend SET use_2fa = ?, base64_secret = AES_ENCRYPT(?, UNHEX('".self::$AES_SALT."')) WHERE id = ?";
+      $sql_update = "UPDATE backend SET use_2fa = ?, base64_secret = AES_ENCRYPT(?, UNHEX('".Database::$AES_KEY."')) WHERE id = ?";
       $stmt_update = $this->database->prepare($sql_update);	// liefert mysqli-statement-objekt
       if ($stmt_update) {
         // wenn kein fehler 2b4
