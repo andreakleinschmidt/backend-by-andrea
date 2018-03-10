@@ -1,0 +1,745 @@
+'backend
+     by andrea'
+
+CMS & blog software with frontend / backend
+
+Document last modified: 2018-03-13
+
+
+Abstract
+
+'backend by andrea'  is one of thousands of Content Management Systems out there
+on the Internet.  Started as a simple blog software written in PHP 2010,  it was
+growing more and  more.  Over the years,  several new features were implemented,
+very early a  MySQL database for storing all data,  a  gallery and photo module,
+multi user  2FA  login and  roles with  privileges -  and  of  course some fancy
+gadgets for the blog (e.g.  feed,  tags),  the heart of the software. Everything
+controllable by a functional lightweight backend.
+
+
+Table of Contents
+
+1. License
+2. Requirements
+3. Files
+4. Tables
+5. Contact
+6. Credits
+7. Appendix
+
+
+1. License
+
+This program is distributed under GNU GPL 3
+Copyright (C) 2010-2018 Andrea Kleinschmidt <ak81 at oscilloworld dot de>
+
+This program includes a MERGED version of PHP QR Code library
+PHP QR Code is distributed under LGPL 3
+Copyright (C) 2010 Dominik Dzienia <deltalab at poczta dot fm>
+
+This program is  free software:  you can redistribute it  and/or modify it under
+the terms of  the GNU General Public License as  published by  the Free Software
+Foundation,  either version 3  of  the License,  or  (at your option)  any later
+version.
+
+This program is distributed in the hope that it will be useful,  but WITHOUT ANY
+WARRANTY;  without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU General Public License for more details.
+
+You  should have received a  copy of  the  GNU General Public License along with
+this program. If not, see <http://www.gnu.org/licenses/>.
+
+
+2. Requirements
+
+'backend by  andrea'  is  running on  PHP Version 5.6 with following extensions:
+curl,  date,  dom,  exif, fileinfo, gd,  hash, mbstring, mysql, mysqli, mysqlnd,
+openssl, pcre, session, SimpleXML, zlib - and MySQL Version 5.5.
+
+
+3. Files
+
+The repository contains following files (with notes):
+
+/
+.htaccess	(change RewriteBase)
+COPYING
+README
+ajax.js
+ajax.php
+atom.php
+backend.php
+feed-icon-14x14.png
+index.php
+phpqrcode.php	(MERGED version of PHP QR Code library)
+qrcode.php
+scroll.js
+style.css	(feel free to modify colors, pixels, etc.)
+suggest.txt	(fill with your own word list)
+thumbnail.php
+tpl_atom.xml
+tpl_backend.htm
+tpl_default.htm	(change theme by your needs but keep the {module} placeholders)
+version.php	(contains software version number before last commit)
+
+classes/
+.htaccess
+class.atom_controller.php
+class.atom_model.php
+class.atom_view.php
+class.ba_getcontroller.php
+class.ba_model.php
+class.ba_model_admin.php
+class.ba_model_base.php
+class.ba_model_blog.php
+class.ba_model_comment.php
+class.ba_model_home.php
+class.ba_model_languages.php
+class.ba_model_photos.php
+class.ba_model_profile.php
+class.ba_model_upload.php
+class.ba_postcontroller.php
+class.ba_session.php
+class.database.php	(change path to database.ini)
+class.getcontroller.php
+class.model.php
+class.model_blog.php
+class.model_home.php
+class.model_photos.php
+class.model_profile.php
+class.postcontroller.php
+class.view.php
+define.php		(choose default locale for frontend)
+define_backend.php	(choose default locale for backend)
+
+languages/
+.htaccess
+language_de-DE.xml
+language_en-US.xml
+
+Create a file called 'database.ini' with your login data for mysql database:
+
+--- start file database.ini ---
+[database]
+host = ""
+user = ""
+pass = ""
+name = ""
+aes_key = ""
+; create aes key with shell: openssl rand -hex 16
+; store ini file in a safe space (better outside www-root)
+--- end file database.ini ---
+
+Create folder 'jpeg'  and 'video'  for images and videos linked in blog entries.
+Create folder 'cache' for zipped feeds, protect with '.htaccess' file.
+
+
+4. Tables
+
+First, a MySQL database is needed:
+
+mysql> CREATE DATABASE backend_db;
+
+Database Collation is utf8_general_ci
+All tables with TABLE_COLLATION = utf8_general_ci
+
+4.1 ba_base
+
+Contains data about the  website,  elements of  the  navigation bar  and default
+start page.
+
+mysql> CREATE TABLE ba_base (
+ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+ba_title VARCHAR(32) NOT NULL,
+ba_description VARCHAR(128) NOT NULL,
+ba_author VARCHAR(64) NOT NULL,
+ba_nav VARCHAR(32) NOT NULL,
+ba_nav_links VARCHAR(256) NOT NULL,
+ba_startpage VARCHAR(8) NOT NULL);
+
++----------------+------------------+------+-----+---------+----------------+
+| Field          | Type             | Null | Key | Default | Extra          |
++----------------+------------------+------+-----+---------+----------------+
+| ba_id          | int(10) unsigned | NO   | PRI | NULL    | auto_increment |
+| ba_title       | varchar(32)      | NO   |     | NULL    |                |
+| ba_description | varchar(128)     | NO   |     | NULL    |                |
+| ba_author      | varchar(64)      | NO   |     | NULL    |                |
+| ba_nav         | varchar(32)      | NO   |     | NULL    |                |
+| ba_nav_links   | varchar(256)     | NO   |     | NULL    |                |
+| ba_startpage   | varchar(8)       | NO   |     | NULL    |                |
++----------------+------------------+------+-----+---------+----------------+
+
+mysql> INSERT INTO ba_base (ba_title, ba_description, ba_author, ba_nav,
+ba_nav_links, ba_startpage) VALUES ("user", "description", "Jane Doe",
+"home,profile,photos,blog", "url|link_1,url|link_2", "home");
+
++-------+----------+----------------+-----------+--------------------------+-
+| ba_id | ba_title | ba_description | ba_author | ba_nav                   | 
++-------+----------+----------------+-----------+--------------------------+-
+|     1 | user     | description    | Jane Doe  | home,profile,photos,blog | 
++-------+----------+----------------+-----------+--------------------------+-
+-+-----------------------+--------------+
+ | ba_nav_links          | ba_startpage |
+-+-----------------------+--------------+
+ | url|link_1,url|link_2 | home         |
+-+-----------------------+--------------+
+
+Column ba_nav contains a  comma separated list of  the software modules.  Column
+ba_nav_links contains an  optional comma separated list  of  links with  pattern
+'url|link_text' used for HTML <a href="url">link_text</a>
+
+4.2 ba_blog
+
+The blog,  contains all entries and additional data (category, tags, etc). First
+entry is  used  as  an  intro text  and  is  connected to  all  comments without
+relation.
+
+mysql> CREATE TABLE ba_blog (
+ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+ba_userid INT UNSIGNED NOT NULL,
+ba_datetime DATETIME NOT NULL,
+ba_header VARCHAR(128) NOT NULL,
+ba_intro VARCHAR(1024) NOT NULL,
+ba_text VARCHAR(11264) NOT NULL,
+ba_videoid VARCHAR(32) NOT NULL,
+ba_photoid VARCHAR(128) NOT NULL,
+ba_catid INT UNSIGNED NOT NULL,
+ba_tags VARCHAR(128) NOT NULL,
+ba_state TINYINT UNSIGNED NOT NULL);
+
++-------------+---------------------+------+-----+---------+----------------+
+| Field       | Type                | Null | Key | Default | Extra          |
++-------------+---------------------+------+-----+---------+----------------+
+| ba_id       | int(10) unsigned    | NO   | PRI | NULL    | auto_increment |
+| ba_userid   | int(10) unsigned    | NO   |     | NULL    |                |
+| ba_datetime | datetime            | NO   |     | NULL    |                |
+| ba_header   | varchar(128)        | NO   |     | NULL    |                |
+| ba_intro    | varchar(1024)       | NO   |     | NULL    |                |
+| ba_text     | varchar(11264)      | NO   |     | NULL    |                |
+| ba_videoid  | varchar(32)         | NO   |     | NULL    |                |
+| ba_photoid  | varchar(128)        | NO   |     | NULL    |                |
+| ba_catid    | int(10) unsigned    | NO   |     | NULL    |                |
+| ba_tags     | varchar(128)        | NO   |     | NULL    |                |
+| ba_state    | tinyint(3) unsigned | NO   |     | NULL    |                |
++-------------+---------------------+------+-----+---------+----------------+
+
+Blog entries can have four states:
+- CREATED
+- EDITED
+- APPROVAL
+- PUBLISHED
+
+Only published entries will be shown on frontend.
+
+Blog text can be formatted by the following syntax:
+~bold{text}
+~italic{text}
+~link{url|text}
+and will lead to an equivalent HTML output with inline tags <b>, <i> and <a>.
+
+4.3 ba_blog_history
+
+Each trigger for  INSERT,  UPDATE,  DELETE in  the  table ba_blog will write the
+datetime (when) and the userid (who) to the history table of the blog.
+
+mysql> CREATE TABLE ba_blog_history (
+history_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+history_datetime DATETIME NOT NULL,
+history_info VARCHAR(8) NOT NULL,
+ba_blogid INT UNSIGNED NOT NULL,
+ba_userid INT UNSIGNED NOT NULL);
+
++------------------+------------------+------+-----+---------+----------------+
+| Field            | Type             | Null | Key | Default | Extra          |
++------------------+------------------+------+-----+---------+----------------+
+| history_id       | int(10) unsigned | NO   | PRI | NULL    | auto_increment |
+| history_datetime | datetime         | NO   |     | NULL    |                |
+| history_info     | varchar(8)       | NO   |     | NULL    |                |
+| ba_blogid        | int(10) unsigned | NO   |     | NULL    |                |
+| ba_userid        | int(10) unsigned | NO   |     | NULL    |                |
++------------------+------------------+------+-----+---------+----------------+
+
+mysql> CREATE TRIGGER trigger_ba_blog_insert
+AFTER INSERT ON ba_blog
+INSERT INTO ba_blog_history
+(history_datetime, history_info, ba_blogid, ba_userid)
+VALUES (NOW(), "created", NEW.ba_id, NEW.ba_userid);
+
+mysql> CREATE TRIGGER trigger_ba_blog_update
+AFTER UPDATE ON ba_blog
+INSERT INTO ba_blog_history
+(history_datetime, history_info, ba_blogid, ba_userid)
+VALUES (NOW(), "modifed", NEW.ba_id, NEW.ba_userid);
+
+mysql> CREATE TRIGGER trigger_ba_blog_delete
+BEFORE DELETE ON ba_blog
+INSERT INTO ba_blog_history
+(history_datetime, history_info, ba_blogid, ba_userid)
+VALUES (NOW(), "deleted", OLD.ba_id, OLD.ba_userid);
+
++------------------------+--------+---------+-----------------------------#
+| Trigger                | Event  | Table   | Statement                   #
++------------------------+--------+---------+-----------------------------#
+| trigger_ba_blog_insert | INSERT | ba_blog | INSERT INTO ba_blog_history #
+| trigger_ba_blog_update | UPDATE | ba_blog | INSERT INTO ba_blog_history #
+| trigger_ba_blog_delete | DELETE | ba_blog | INSERT INTO ba_blog_history #
++------------------------+--------+---------+-----------------------------#
+#----------------------------------------------------------------------#
+#                                                                      #
+#----------------------------------------------------------------------#
+# (history_datetime, history_info, ba_blogid, ba_userid) VALUES(NOW(), #
+# (history_datetime, history_info, ba_blogid, ba_userid) VALUES(NOW(), #
+# (history_datetime, history_info, ba_blogid, ba_userid) VALUES(NOW(), #
+#----------------------------------------------------------------------#
+#--------------------------------------+--------+
+#                                      | Timing |
+#--------------------------------------+--------+
+# "created", NEW.ba_id, NEW.ba_userid) | AFTER  |
+# "modifed", NEW.ba_id, NEW.ba_userid) | AFTER  |
+# "deleted", OLD.ba_id, OLD.ba_userid) | BEFORE |
+#--------------------------------------+--------+
+
+4.4 ba_blogcategory
+
+Contains the categories relating to the tags.
+
+mysql> CREATE TABLE ba_blogcategory (
+ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+ba_category VARCHAR(32) NOT NULL);
+
++-------------+------------------+------+-----+---------+----------------+
+| Field       | Type             | Null | Key | Default | Extra          |
++-------------+------------------+------+-----+---------+----------------+
+| ba_id       | int(10) unsigned | NO   | PRI | NULL    | auto_increment |
+| ba_category | varchar(32)      | NO   |     | NULL    |                |
++-------------+------------------+------+-----+---------+----------------+
+
+4.5 ba_blogroll
+
+Contains the feed URLs for the blog roll.
+
+mysql> CREATE TABLE ba_blogroll (
+ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+ba_feed VARCHAR(128) NOT NULL);
+
++---------+------------------+------+-----+---------+----------------+
+| Field   | Type             | Null | Key | Default | Extra          |
++---------+------------------+------+-----+---------+----------------+
+| ba_id   | int(10) unsigned | NO   | PRI | NULL    | auto_increment |
+| ba_feed | varchar(128)     | NO   |     | NULL    |                |
++---------+------------------+------+-----+---------+----------------+
+
+4.6 ba_comment
+
+Contains all comments related to the blog entries.
+
+mysql> CREATE TABLE ba_comment (
+ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+ba_userid INT UNSIGNED NOT NULL,
+ba_datetime DATETIME NOT NULL,
+ba_ip VARCHAR(48) NOT NULL,
+ba_name VARCHAR(64) NOT NULL,
+ba_mail VARCHAR(64) NOT NULL,
+ba_text VARCHAR(2048) NOT NULL,
+ba_comment VARCHAR(2048) NOT NULL,
+ba_blogid INT UNSIGNED NOT NULL,
+ba_state TINYINT UNSIGNED NOT NULL);
+
++-------------+---------------------+------+-----+---------+----------------+
+| Field       | Type                | Null | Key | Default | Extra          |
++-------------+---------------------+------+-----+---------+----------------+
+| ba_id       | int(10) unsigned    | NO   | PRI | NULL    | auto_increment |
+| ba_userid   | int(10) unsigned    | NO   |     | NULL    |                |
+| ba_datetime | datetime            | NO   |     | NULL    |                |
+| ba_ip       | varchar(48)         | NO   |     | NULL    |                |
+| ba_name     | varchar(64)         | NO   |     | NULL    |                |
+| ba_mail     | varchar(64)         | NO   |     | NULL    |                |
+| ba_text     | varchar(2048)       | NO   |     | NULL    |                |
+| ba_comment  | varchar(2048)       | NO   |     | NULL    |                |
+| ba_blogid   | int(10) unsigned    | NO   |     | NULL    |                |
+| ba_state    | tinyint(3) unsigned | NO   |     | NULL    |                |
++-------------+---------------------+------+-----+---------+----------------+
+
+Comments can have four states (similar to blog entries):
+- CREATED
+- EDITED
+- APPROVAL
+- PUBLISHED
+
+Only published and checked comments will be shown on frontend.
+
+4.7 ba_gallery
+
+Contains the galleries, their description and an alias for URLs.
+
+mysql> CREATE TABLE ba_gallery (
+ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+ba_alias VARCHAR(16) NOT NULL,
+ba_text VARCHAR(64) NOT NULL,
+ba_order VARCHAR(4) NOT NULL);
+
++----------+------------------+------+-----+---------+----------------+
+| Field    | Type             | Null | Key | Default | Extra          |
++----------+------------------+------+-----+---------+----------------+
+| ba_id    | int(10) unsigned | NO   | PRI | NULL    | auto_increment |
+| ba_alias | varchar(16)      | NO   |     | NULL    |                |
+| ba_text  | varchar(64)      | NO   |     | NULL    |                |
+| ba_order | varchar(4)       | NO   |     | NULL    |                |
++----------+------------------+------+-----+---------+----------------+
+
+4.8 ba_home
+
+Start page with elements for images and paragraphs.
+
+mysql> CREATE TABLE ba_home (
+ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+ba_element VARCHAR(16) NOT NULL,
+ba_css VARCHAR(32) NOT NULL,
+ba_value VARCHAR(1024) NOT NULL);
+
++------------+------------------+------+-----+---------+----------------+
+| Field      | Type             | Null | Key | Default | Extra          |
++------------+------------------+------+-----+---------+----------------+
+| ba_id      | int(10) unsigned | NO   | PRI | NULL    | auto_increment |
+| ba_element | varchar(16)      | NO   |     | NULL    |                |
+| ba_css     | varchar(32)      | NO   |     | NULL    |                |
+| ba_value   | varchar(1024)    | NO   |     | NULL    |                |
++------------+------------------+------+-----+---------+----------------+
+
+4.9 ba_languages
+
+Lists the locales for the xml files in folder 'language'.
+
+mysql> CREATE TABLE ba_languages (
+ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+ba_locale VARCHAR(8) NOT NULL,
+ba_selected TINYINT UNSIGNED NOT NULL);
+
++-------------+---------------------+------+-----+---------+----------------+
+| Field       | Type                | Null | Key | Default | Extra          |
++-------------+---------------------+------+-----+---------+----------------+
+| ba_id       | int(10) unsigned    | NO   | PRI | NULL    | auto_increment |
+| ba_locale   | varchar(8)          | NO   |     | NULL    |                |
+| ba_selected | tinyint(3) unsigned | NO   |     | NULL    |                |
++-------------+---------------------+------+-----+---------+----------------+
+
+mysql> INSERT INTO ba_languages (ba_locale, ba_selected) VALUES ("de-DE", 1);
+
+mysql> INSERT INTO ba_languages (ba_locale, ba_selected) VALUES ("en-US", 0);
+
++-------+-----------+-------------+
+| ba_id | ba_locale | ba_selected |
++-------+-----------+-------------+
+|     1 | de-DE     |           1 |
+|     2 | en-US     |           0 |
++-------+-----------+-------------+
+
+Change value in column ba_selected by your needs, first with '1' is selected.
+
+4.10 ba_options
+
+Contains the options for blog and feed.
+
+mysql> CREATE TABLE ba_options (
+ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+ba_name VARCHAR(32) NOT NULL,
+ba_value TINYINT UNSIGNED NOT NULL);
+
++----------+---------------------+------+-----+---------+----------------+
+| Field    | Type                | Null | Key | Default | Extra          |
++----------+---------------------+------+-----+---------+----------------+
+| ba_id    | int(10) unsigned    | NO   | PRI | NULL    | auto_increment |
+| ba_name  | varchar(32)         | NO   |     | NULL    |                |
+| ba_value | tinyint(3) unsigned | NO   |     | NULL    |                |
++----------+---------------------+------+-----+---------+----------------+
+
+mysql> INSERT INTO ba_options (ba_name, ba_value) VALUES
+("blog_entries_per_page", 20);
+
+mysql> INSERT INTO ba_options (ba_name, ba_value) VALUES
+("blog_comments_per_page", 20);
+
+mysql> INSERT INTO ba_options (ba_name, ba_value) VALUES
+("feed_num_entries", 20);
+
+mysql> INSERT INTO ba_options (ba_name, ba_value) VALUES
+("feed_use_summary", 0);
+
+mysql> INSERT INTO ba_options (ba_name, ba_value) VALUES
+("blog_num_sentences_intro", 1);
+
+mysql> INSERT INTO ba_options (ba_name, ba_value) VALUES
+("feed_num_sentences_summary", 3);
+
+mysql> INSERT INTO ba_options (ba_name, ba_value) VALUES
+("blog_diary_mode", 1);
+
+mysql> INSERT INTO ba_options (ba_name, ba_value) VALUES
+("footer_num_entries", 5);
+
++-------+----------------------------+----------+
+| ba_id | ba_name                    | ba_value |
++-------+----------------------------+----------+
+|     1 | blog_entries_per_page      |       20 |
+|     2 | blog_comments_per_page     |       20 |
+|     3 | feed_num_entries           |       20 |
+|     4 | feed_use_summary           |        0 |
+|     5 | blog_num_sentences_intro   |        1 |
+|     6 | feed_num_sentences_summary |        3 |
+|     7 | blog_diary_mode            |        1 |
+|     8 | footer_num_entries         |        5 |
++-------+----------------------------+----------+
+
+Value in  column feed_use_summary and blog_diary_mode are interpreted as boolean
+(1: true, 0: false).
+
+The blog can be  run in  two modes:  diary-mode without header /  intro text and
+short date in  one  line or  non-diary-mode with header,  intro text and  date /
+author in one extra line.
+
+4.11 ba_options_str
+
+Contains the options for blog and feed, string type.
+
+mysql> CREATE TABLE ba_options_str (
+ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+ba_name VARCHAR(32) NOT NULL,
+ba_value VARCHAR(64) NOT NULL);
+
++----------+------------------+------+-----+---------+----------------+
+| Field    | Type             | Null | Key | Default | Extra          |
++----------+------------------+------+-----+---------+----------------+
+| ba_id    | int(10) unsigned | NO   | PRI | NULL    | auto_increment |
+| ba_name  | varchar(32)      | NO   |     | NULL    |                |
+| ba_value | varchar(64)      | NO   |     | NULL    |                |
++----------+------------------+------+-----+---------+----------------+
+
+mysql> INSERT INTO ba_options_str (ba_name, ba_value) VALUES
+("contact_mail", "user@example.org");
+
+mysql> INSERT INTO ba_options_str (ba_name, ba_value) VALUES
+("feed_id", "tag:example.org,2010:user");
+
+mysql> INSERT INTO ba_options_str (ba_name, ba_value) VALUES
+("feed_url", "http://www.example.org/blog/");
+
+mysql> INSERT INTO ba_options_str (ba_name, ba_value) VALUES
+("feed_title", "user atom feed");
+
+mysql> INSERT INTO ba_options_str (ba_name, ba_value) VALUES
+("feed_subtitle", "description");
+
+mysql> INSERT INTO ba_options_str (ba_name, ba_value) VALUES
+("feed_author", "Jane Doe");
+
++-------+---------------+------------------------------+
+| ba_id | ba_name       | ba_value                     |
++-------+---------------+------------------------------+
+|     1 | contact_mail  | user@example.org             |
+|     2 | feed_id       | tag:example.org,2010:user    |
+|     3 | feed_url      | http://www.example.org/blog/ |
+|     4 | feed_title    | user atom feed               |
+|     5 | feed_subtitle | description                  |
+|     6 | feed_author   | Jane Doe                     |
++-------+---------------+------------------------------+
+
+Feel free to change the string values in column ba_value.
+
+4.12 ba_photos
+
+Contains a  list of  all photos in  folder 'jpeg',  with description and related
+gallery.  Photo  id  is  also  eight-char-filename without  extension in  folder
+'jpeg'.
+
+mysql> CREATE TABLE ba_photos (
+ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+ba_galleryid INT UNSIGNED NOT NULL,
+ba_photoid VARCHAR(8) NOT NULL,
+ba_text VARCHAR(64) NOT NULL,
+ba_hide TINYINT UNSIGNED NOT NULL);
+
++--------------+---------------------+------+-----+---------+----------------+
+| Field        | Type                | Null | Key | Default | Extra          |
++--------------+---------------------+------+-----+---------+----------------+
+| ba_id        | int(10) unsigned    | NO   | PRI | NULL    | auto_increment |
+| ba_galleryid | int(10) unsigned    | NO   |     | NULL    |                |
+| ba_photoid   | varchar(8)          | NO   |     | NULL    |                |
+| ba_text      | varchar(64)         | NO   |     | NULL    |                |
+| ba_hide      | tinyint(3) unsigned | NO   |     | NULL    |                |
++--------------+---------------------+------+-----+---------+----------------+
+
+4.13 ba_profile
+
+Profile  page  with  elements  for  images  and  paragraphs  (see  ba_home)  and
+additional tables or tables with header.
+
+mysql> CREATE TABLE ba_profile (
+ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+ba_element VARCHAR(16) NOT NULL,
+ba_css VARCHAR(32) NOT NULL,
+ba_value VARCHAR(1024) NOT NULL);
+
++------------+------------------+------+-----+---------+----------------+
+| Field      | Type             | Null | Key | Default | Extra          |
++------------+------------------+------+-----+---------+----------------+
+| ba_id      | int(10) unsigned | NO   | PRI | NULL    | auto_increment |
+| ba_element | varchar(16)      | NO   |     | NULL    |                |
+| ba_css     | varchar(32)      | NO   |     | NULL    |                |
+| ba_value   | varchar(1024)    | NO   |     | NULL    |                |
++------------+------------------+------+-----+---------+----------------+
+
+4.14 ba_profile_tables
+
+Contains the HTML tables for ba_profile and related language code.
+
+mysql> CREATE TABLE ba_profile_tables (
+ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+ba_table_name VARCHAR(32) NOT NULL,
+ba_row INT UNSIGNED NOT NULL,
+ba_col INT UNSIGNED NOT NULL,
+ba_language VARCHAR(2) NOT NULL,
+ba_value VARCHAR(256) NOT NULL);
+
++---------------+------------------+------+-----+---------+----------------+
+| Field         | Type             | Null | Key | Default | Extra          |
++---------------+------------------+------+-----+---------+----------------+
+| ba_id         | int(10) unsigned | NO   | PRI | NULL    | auto_increment |
+| ba_table_name | varchar(32)      | NO   |     | NULL    |                |
+| ba_row        | int(10) unsigned | NO   |     | NULL    |                |
+| ba_col        | int(10) unsigned | NO   |     | NULL    |                |
+| ba_language   | varchar(2)       | NO   |     | NULL    |                |
+| ba_value      | varchar(256)     | NO   |     | NULL    |                |
++---------------+------------------+------+-----+---------+----------------+
+
+4.15 backend
+
+The core table, contains all users, their role,  password and more.  Password is
+encrypted with blowfish hash and random salt.
+
+If  two factor authentication is  used,  table backend contains the last entered
+code and  the  secret for  calculating the code,  see RFC 6238 TOTP:  Time-Based
+One-Time Password Algorithm for more information. The secret can be scanned as a
+QR  Code  and  used by  a  smartphone (for example 'Google Authenticator').  The
+secret is stored AES-encrypted in the table.
+
+mysql> CREATE TABLE backend (
+id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+role TINYINT UNSIGNED NOT NULL,
+user VARCHAR(32) NOT NULL,
+password VARCHAR(64) NOT NULL,
+email VARCHAR(64) NOT NULL,
+full_name VARCHAR(64) NOT NULL,
+locale VARCHAR(8) NOT NULL,
+last_login DATETIME NOT NULL,
+use_2fa TINYINT UNSIGNED NOT NULL,
+last_code INT UNSIGNED NOT NULL,
+base64_secret VARBINARY(64) NOT NULL);
+
++---------------+---------------------+------+-----+---------+----------------+
+| Field         | Type                | Null | Key | Default | Extra          |
++---------------+---------------------+------+-----+---------+----------------+
+| id            | int(10) unsigned    | NO   | PRI | NULL    | auto_increment |
+| role          | tinyint(3) unsigned | NO   |     | NULL    |                |
+| user          | varchar(32)         | NO   |     | NULL    |                |
+| password      | varchar(64)         | NO   |     | NULL    |                |
+| email         | varchar(64)         | NO   |     | NULL    |                |
+| full_name     | varchar(64)         | NO   |     | NULL    |                |
+| locale        | varchar(8)          | NO   |     | NULL    |                |
+| last_login    | datetime            | NO   |     | NULL    |                |
+| use_2fa       | tinyint(3) unsigned | NO   |     | NULL    |                |
+| last_code     | int(10) unsigned    | NO   |     | NULL    |                |
+| base64_secret | varbinary(64)       | NO   |     | NULL    |                |
++---------------+---------------------+------+-----+---------+----------------+
+
+Users can have one of four roles:
+- NONE
+- EDITOR
+- MASTER
+- ADMIN
+
+Add an admin and a user for daily work with corresponding privileges.
+
+Use PHP to get an initial password hash:
+$password_hash = password_hash("fancy_password", PASSWORD_BCRYPT);
+(of course ... choose another password string).
+
+mysql> INSERT INTO backend (role, user, password, email, full_name, locale,
+use_2fa) VALUES (3, "admin", "$2y$10$[32]", "user@example.org", "Jane Doe",
+"de-DE", 0);
+
+mysql> INSERT INTO backend (role, user, password, email, full_name, locale,
+use_2fa) VALUES (2, "user1", "$2y$10$[32]", "user@example.org", "Jane Doe",
+"de-DE", 0);
+
++----+------+-------+-------------+------------------+-----------+--------+-
+| id | role | user  | password    | email            | full_name | locale | 
++----+------+-------+-------------+------------------+-----------+--------+-
+|  1 |    3 | admin | $2y$10$[32] | user@example.org | Jane Doe  | de-DE  | 
+|  2 |    2 | user1 | $2y$10$[32] | user@example.org | Jane Doe  | de-DE  | 
++----+------+-------+-------------+------------------+-----------+--------+-
+-+---------------------+---------+
+ | last_login          | use_2fa |
+-+---------------------+---------+
+ | 0000-00-00 00:00:00 |       0 |
+ | 0000-00-00 00:00:00 |       0 |
+-+---------------------+---------+
+
+Again, feel free to change the string values.
+
+After  first  login  in  backend,  go  to  password (upper right corner),  check
+use_2fa, request secret, scan QR Code with your favorite 2FA smartphone app.
+
+
+5. Contact
+
+For  further questions or  contribution send  a  mail  to:  Andrea  Kleinschmidt
+<ak81@oscilloworld.de>
+
+
+6. Credits
+
+The tutorial on the web,  which inspired me (or where I  have stolen everything)
+to implement the MVC architecture pattern:
+http://tutorials.lemme.at/mvc-mit-php/
+
+
+7. Appendix
+
+Backend left side HTML Menu with links to the modules and their necessary role:
+
+NONE:
+|___backend
+
+EDITOR:
+|___base
+| |___base
+|___home
+| |___home
+| |___elements
+|___profile
+| |___profile
+| |___tables
+| |___elements
+|___photos
+| |___gallery
+| |___photos
+|___blog
+  |___blog (new)
+  |___blog (list)
+  |___blogroll
+  |___categories
+  |___options
+
+MASTER:
+|___comment
+| |___comment (new)
+| |___comment (list)
+|___upload
+| |___upload
+| |___media
+|___languages
+
+ADMIN:
+|___admin
+  |___admin
+  |___new user
