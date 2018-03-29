@@ -117,10 +117,10 @@ class Blog extends Model {
     return $datetime;
   }
 
-  // ersetze tag kommandos im blogtext ~cmd{content_str} mit html tags <a>, <b>, <i>
+  // ersetze tag kommandos im blogtext ~cmd{content_str} mit html tags <a>, <b>, <i>, <img>
   public function html_tags($text_str, $tag_flag, $encoding="UTF-8") {
-    for ($start=0; mb_strpos($text_str, "~", $start, $encoding); $start++) {
-      // suche tilde, abbruch der schleife wenn keine tilde mehr in text_str vorhanden (strpos return false)
+    for ($start=0; mb_strpos($text_str, "~", $start, $encoding) !== false; $start++) {
+      // suche tilde, abbruch der schleife wenn keine tilde mehr in text_str vorhanden (strpos return bool(false))
 
       $start   = mb_strpos($text_str, "~", $start, $encoding);
       $brace   = mb_strpos($text_str, "{", $start, $encoding);
@@ -178,6 +178,26 @@ class Blog extends Model {
             }
             elseif (mb_strlen($content_str, $encoding) > 0 and !$tag_flag) {
               $tag_str = $content_str;
+            }
+            else {
+              $tag_str = "";
+            }
+            break;
+
+          case "image":
+
+            if (mb_strlen($content_str, $encoding) > 0 and $tag_flag) {
+              $imagename = "jpeg/".$content_str.".jpg";
+              if (is_readable($imagename)) {
+                $imagesize = getimagesize($imagename);
+                $tag_str = "<img class=\"floating\" src=\"".$imagename."\" ".$imagesize[3].">";
+              }
+              else {
+                $tag_str = "[".$content_str."]";
+              }
+            }
+            elseif (mb_strlen($content_str, $encoding) > 0 and !$tag_flag) {
+              $tag_str = "[".$content_str."]";
             }
             else {
               $tag_str = "";

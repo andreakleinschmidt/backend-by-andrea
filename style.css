@@ -137,6 +137,7 @@ img {}
 .aside { border:0px; margin-top:50px; }
 .thumbnail { border:2px solid #993366; margin:0.675em; }
 .noborder { border:0px; }
+.floating { float:left; border:1px solid #000000; margin:5px 10px 5px 5px; max-width:95%; height:auto; }
 
 div#photos img { max-width:99%; height:auto; }
 

@@ -3,7 +3,7 @@
 
 CMS & blog software with frontend / backend
 
-Document last modified: 2018-03-13
+Document last modified: 2018-03-29
 
 
 Abstract
@@ -235,7 +235,10 @@ Blog text can be formatted by the following syntax:
 ~bold{text}
 ~italic{text}
 ~link{url|text}
-and will lead to an equivalent HTML output with inline tags <b>, <i> and <a>.
+~image{name}
+and will lead to an equivalent HTML output with inline tags <b>,  <i>,  <a>  and
+<img>.  Image name is  the  file name of  the  image in  the jpeg folder without
+".jpg" extension.
 
 4.3 ba_blog_history
 
