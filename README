@@ -3,7 +3,7 @@
 
 CMS & blog software with frontend / backend
 
-Document last modified: 2018-03-29
+Document last modified: 2018-04-01
 
 
 Abstract
@@ -237,8 +237,8 @@ Blog text can be formatted by the following syntax:
 ~link{url|text}
 ~image{name}
 and will lead to an equivalent HTML output with inline tags <b>,  <i>,  <a>  and
-<img>.  Image name is  the  file name of  the  image in  the jpeg folder without
-".jpg" extension.
+<img>.  Image name is  the filename of  the image in  the 'jpeg'  folder without
+'.jpg' extension.
 
 4.3 ba_blog_history
 
