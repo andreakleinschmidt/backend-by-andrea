@@ -204,6 +204,7 @@ blick
 blicke
 block
 blog
+blogsoftware
 blowjob
 blut
 blutabnahme
@@ -256,6 +257,7 @@ city
 club
 clubkeller
 clubs
+cms
 cola
 cold
 coldwave
@@ -293,6 +295,7 @@ depressionen
 design
 designerlabels
 dessous
+details
 deutschen
 deutschland
 diagnose
@@ -305,6 +308,7 @@ dinge
 disco
 disconacht
 discothek
+discounter
 discoveranstaltung
 disko
 doc martens
@@ -412,6 +416,7 @@ feta
 feuchtigkeitscreme
 feuerwerk
 ficus
+filiale
 film
 finger
 fingern
@@ -461,6 +466,7 @@ fuß
 fußboden
 füße
 füßen
+fußgänger
 fußgängerzone
 fußmarsch
 futon
@@ -475,6 +481,7 @@ garten
 gärten
 gartenabteilung
 gartens
+gasse
 gassen
 gast
 gäste
@@ -524,6 +531,7 @@ gewürze
 giardino
 girl
 glas
+gläser
 glück
 glückshormone
 glühbirne
@@ -674,11 +682,13 @@ kaufhaus
 kaufhäuser
 keller
 kellerräumen
+kellner
 kerl
 kette
 kilo
 kilometer
 kilos
+kinder
 kinn
 kirche
 kissen
@@ -719,6 +729,7 @@ kopfsteinpflaster
 kopftuch
 kopie
 koran
+korb
 körbchen
 koriander
 körper
@@ -962,6 +973,7 @@ operation
 operationsmethode
 op-indikation
 option
+orangensaft
 ordnung
 oregano
 orientteppich
@@ -1081,6 +1093,7 @@ rolle
 rollen
 rom
 rotlichtviertel
+rotwein
 rücken
 rückfahrt
 rückkehr
@@ -1225,6 +1238,7 @@ station
 stationen
 statuen
 stau
+stein
 stelle
 stellen
 stellung
@@ -1352,6 +1366,7 @@ transfrau
 transsexualität
 transsexuelle
 traum
+traumata
 treffen
 treffpunkt
 trennung
@@ -1376,6 +1391,7 @@ typen
 u-bahn
 u-bahn-station
 überdosis
+übergriff
 ufer
 uhr
 uhrzeit
@@ -1418,6 +1434,7 @@ videos
 viertel
 viktualienmarkt
 villa
+virus
 vitrinen
 vögel
 vollbart

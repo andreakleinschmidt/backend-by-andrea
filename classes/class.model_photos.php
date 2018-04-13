@@ -41,6 +41,41 @@ class Photos extends Model {
       // $this->language
   }
 
+  // text zu photoid
+  public function getText($photoid) {
+    $ret = "";
+
+    if (!$this->database->connect_errno) {
+      // wenn kein fehler
+
+      // zugriff auf mysql datenbank
+      $sql = "SELECT ba_text FROM ba_photos WHERE ba_photoid = ?";
+      $stmt = $this->database->prepare($sql);	// liefert mysqli-statement-objekt
+      if ($stmt) {
+        // wenn kein fehler
+
+        // austauschen ? durch string
+        $stmt->bind_param("s", $photoid);
+        $stmt->execute();	// ausführen geänderte zeile
+
+        $stmt->bind_result($dataset["ba_text"]);
+        // mysqli-statement-objekt kennt kein fetch_assoc(), nur fetch(), kein assoc-array als rückgabe
+
+        if ($stmt->fetch()) {
+          // wenn kein fehler (text nicht vorhanden, datensatz leer)
+          $ret = stripslashes($this->html5specialchars($dataset["ba_text"]));
+        }
+
+        $stmt->close();
+        unset($stmt);	// referenz löschen
+
+      } // stmt
+
+    } // datenbank
+
+    return $ret;
+  }
+
   public function getPhotos($alias, $id) {
     $hd_title_str = "";
     $replace = "";
@@ -165,20 +200,20 @@ class Photos extends Model {
         }
         $replace_text = $photos[$id];
 
+        $replace_figure = "<figure>\n".
+                          $replace_photo."\n".
+                          "<figcaption>".$replace_text."</figcaption>\n".
+                          "</figure>\n";
       }
-
       else {
         // keine id
 
         $hd_title_str .= " - ".$galleries[$galleryid]["alias"];
 
-        $replace_photo = "";
-        $replace_text = "";
-
+        $replace_figure = "";
       }
 
-      $replace .= $replace_photo."\n".
-                  "<br>".$replace_text."\n".
+      $replace .= $replace_figure.
                   "</div>\n".
                   "<div id=\"photostripscroll\">\n".
                   "<a href=\"#\" onMouseOver=\"scrollup()\" onMouseOut=\"scrollstop()\"><img class=\"photos_arrow\" src=\"up.gif\" height=\"10\" width=\"50\"></a>\n".

@@ -190,7 +190,11 @@ class Blog extends Model {
               $imagename = "jpeg/".$content_str.".jpg";
               if (is_readable($imagename)) {
                 $imagesize = getimagesize($imagename);
-                $tag_str = "<img class=\"floating\" src=\"".$imagename."\" ".$imagesize[3].">";
+                $caption = Photo::getText($content_str);	// imagename als photoid, return caption text
+                $tag_str = "<figure class=\"floating\">".
+                           "<img class=\"border\" src=\"".$imagename."\" ".$imagesize[3].">".
+                           "<figcaption class=\"floating_caption\">".$caption."</figcaption>".
+                           "</figure>";
               }
               else {
                 $tag_str = "[".$content_str."]";
@@ -358,7 +362,7 @@ class Blog extends Model {
       $replace .= "<a href=\"index.php?".$this->html_build_query($query_data).$anchor."\">".$this->language["PAGE_PREVIOUS"]."</a> \n";	// zurück
     }
 
-    for ($dec=0; $dec<=floor($anzahl_s/10); $dec++) {												// seitenauswahl (mit zehnergruppen)
+    for ($dec=0; $dec<=floor($anzahl_s/10); $dec++) {											// seitenauswahl (mit zehnergruppen)
       if ($dec == 0) {
         $start = 1;
       }
@@ -834,7 +838,7 @@ class Blog extends Model {
           }
           else {
             // tag
-            $sql = "SELECT ba_blog.ba_id, ba_datetime, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid INNER JOIN ba_blogcategory ON ba_blog.ba_catid = ba_blogcategory.ba_id WHERE ba_state >= ".STATE_PUBLISHED." AND (CONCAT(ba_category, ', ', ba_tags) RLIKE ?) ORDER BY ba_blog.ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;		// (2) mit LIMIT
+            $sql = "SELECT ba_blog.ba_id, ba_datetime, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid INNER JOIN ba_blogcategory ON ba_blog.ba_catid = ba_blogcategory.ba_id WHERE ba_state >= ".STATE_PUBLISHED." AND (CONCAT(ba_category, ', ', ba_tags) RLIKE ?) ORDER BY ba_blog.ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;	// (2) mit LIMIT
           }
           $stmt = $this->database->prepare($sql);	// liefert mysqli-statement-objekt
           if ($stmt) {
