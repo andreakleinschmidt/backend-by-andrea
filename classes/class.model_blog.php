@@ -235,6 +235,7 @@ class Blog extends Model {
     $datetime = $this->check_datetime(date_create_from_format("Y-m-d H:i:s", $dataset["ba_datetime"]));	// "YYYY-MM-DD HH:MM:SS"
     $blogdate = date_format($datetime, $this->language["FORMAT_DATE"]." / ".$this->language["FORMAT_TIME"]);	// "DD.MM.YY / HH:MM"
     $full_name = stripslashes($this->html5specialchars($dataset["full_name"]));
+    $blogalias = trim(rawurlencode($dataset["ba_alias"]));
     $blogheader = stripslashes($this->html5specialchars($dataset["ba_header"]));
     $blogintro = stripslashes($this->html_tags(nl2br($this->html5specialchars($dataset["ba_intro"])), false));
     $blogtext = stripslashes($this->html_tags(nl2br($this->html5specialchars($dataset["ba_text"])), true));
@@ -255,17 +256,19 @@ class Blog extends Model {
 
     $replace .= "<article id=\"".date_format($datetime, "YmdHis")."\">\n";	// blog id für article
 
+    $permalink = date_format($datetime, "Y/m/").$blogalias;
+
     if ($diary_mode) {
       // kein header, intro-text nur für ersten eintrag, full_name verdeckt
       if ($first_entry) {
         $replace .= "<h2>".$blogintro."</h2>\n";
       }
-      $replace .= "<p><b>[".$blogdate."]</b> <span id=\"white\" title=\"".$full_name."\">&#9998;</span> ".$blogtext."</p>\n";
+      $replace .= "<p><span id=\"white_bold\"><a href=\"blog/".$permalink."/\">[".$blogdate."]</a></span> <span id=\"white\" title=\"".$full_name."\">&#9998;</span> ".$blogtext."</p>\n";
     }
     else {
       // mit header, full_name sichtbar, intro-text für jeden eintrag
       $replace .= "<h1>".$blogheader."</h1>\n".
-                  "<p><span id=\"white_small\">[".$blogdate."] ".$full_name."</span></p>\n".
+                  "<p><span id=\"white_small\"><a href=\"blog/".$permalink."/\">[".$blogdate."]</a> ".$full_name."</span></p>\n".
                   "<h2>".$blogintro."</h2>\n".
                   "<p>".$blogtext."</p>\n";
     }
@@ -608,7 +611,41 @@ class Blog extends Model {
     return $blog_comment_id_array;
   }
 
-  public function getBlog($blog_query, $tag, $page, $year, $month, $compage) {
+  // return alias aus db oder ""
+  private function check_alias($alias) {
+    $ba_alias = "";
+
+    if (!$this->database->connect_errno) {
+      // wenn kein fehler
+
+      $sql = "SELECT ba_alias FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND ba_alias RLIKE ? LIMIT 1";
+      $stmt = $this->database->prepare($sql);	// liefert mysqli-statement-objekt
+      if ($stmt) {
+        // wenn kein fehler
+
+        // austauschen ? durch string (s)
+        $stmt->bind_param("s", $alias);
+        $stmt->execute();	// ausführen geänderte zeile
+
+        $stmt->bind_result($dataset["ba_alias"]);
+        // mysqli-statement-objekt kennt kein fetch_assoc(), nur fetch(), kein array als rückgabe
+
+        if ($stmt->fetch()) {
+          // wenn kein fehler (alias nicht vorhanden, datensatz leer)
+          $ba_alias = trim($dataset["ba_alias"]);
+        }
+
+        $stmt->close();	// stmt-ojekt schließen
+        unset($stmt);	// referenz löschen
+
+      } // stmt
+
+    } // datenbank
+
+    return $ba_alias;
+  }
+
+  public function getBlog($blog_query, $tag, $page, $year, $month, $alias, $compage) {
     $hd_title_str = "";
     $replace = "";
     $errorstring = "";
@@ -705,7 +742,7 @@ class Blog extends Model {
       else {
         // anzeigen
 
-        $ret_array = $this->getEntry($page, $year, $month, $parameter_array, $option_array, $blog_comment_id_array);
+        $ret_array = $this->getEntry($page, $year, $month, $alias, $parameter_array, $option_array, $blog_comment_id_array);
         $hd_title_str = $ret_array["hd_title_ext"];
 
       } // suche oder anzeigen
@@ -834,11 +871,11 @@ class Blog extends Model {
           // zugriff auf mysql datenbank (6), in mysql select mit prepare() - sql injections verhindern
           if (!$tagflag) {
             // query
-            $sql = "SELECT ba_id, ba_datetime, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND (CONCAT(ba_header, ba_intro, ba_text) RLIKE ?) ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;	// (2) mit LIMIT
+            $sql = "SELECT ba_id, ba_datetime, ba_alias, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND (CONCAT(ba_header, ba_intro, ba_text) RLIKE ?) ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;	// (2) mit LIMIT
           }
           else {
             // tag
-            $sql = "SELECT ba_blog.ba_id, ba_datetime, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid INNER JOIN ba_blogcategory ON ba_blog.ba_catid = ba_blogcategory.ba_id WHERE ba_state >= ".STATE_PUBLISHED." AND (CONCAT(ba_category, ', ', ba_tags) RLIKE ?) ORDER BY ba_blog.ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;	// (2) mit LIMIT
+            $sql = "SELECT ba_blog.ba_id, ba_datetime, ba_alias, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid INNER JOIN ba_blogcategory ON ba_blog.ba_catid = ba_blogcategory.ba_id WHERE ba_state >= ".STATE_PUBLISHED." AND (CONCAT(ba_category, ', ', ba_tags) RLIKE ?) ORDER BY ba_blog.ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;	// (2) mit LIMIT
           }
           $stmt = $this->database->prepare($sql);	// liefert mysqli-statement-objekt
           if ($stmt) {
@@ -850,8 +887,8 @@ class Blog extends Model {
 
             $stmt->store_result();
 
-            $stmt->bind_result($dataset["ba_id"],$dataset["ba_datetime"],$dataset["ba_header"],$dataset["ba_intro"],$dataset["ba_text"],$dataset["ba_videoid"],$dataset["ba_photoid"],$dataset["full_name"]);
-            // oder ohne array dataset: $stmt->bind_result($ba_id, $ba_datetime, $ba_header, $ba_intro, $ba_text, $ba_videoid, $ba_photoid, $full_name);
+            $stmt->bind_result($dataset["ba_id"],$dataset["ba_datetime"],$dataset["ba_alias"],$dataset["ba_header"],$dataset["ba_intro"],$dataset["ba_text"],$dataset["ba_videoid"],$dataset["ba_photoid"],$dataset["full_name"]);
+            // oder ohne array dataset: $stmt->bind_result($ba_id, $ba_datetime, $ba_alias, $ba_header, $ba_intro, $ba_text, $ba_videoid, $ba_photoid, $full_name);
             // mysqli-statement-objekt kennt kein fetch_assoc(), nur fetch(), kein array als rückgabe
 
             // suche ausgeben (2), bei mehreren ergebnissen auf mehreren seiten
@@ -926,7 +963,7 @@ class Blog extends Model {
   }
 
   // blog anzeigen
-  private function getEntry($page, $year, $month, &$parameter_array, &$option_array, &$blog_comment_id_array) {
+  private function getEntry($page, $year, $month, $alias, &$parameter_array, &$option_array, &$blog_comment_id_array) {
     $hd_title_str = "";
     $replace = "";
     $taglist = "";
@@ -953,6 +990,7 @@ class Blog extends Model {
       $show_page = false;
       $show_year = false;
       $show_month = false;
+      $show_alias = false;
       $month_now = intval(date("n"));	// ohne führende null
       //$year = $this->year_max();
       //$page = 1;
@@ -1003,9 +1041,32 @@ class Blog extends Model {
             $hd_title_str .= "/".str_pad($month, 2, "0", STR_PAD_LEFT);	// mit führender null
           }
 
-        }
+          $date_str = $year."-".$month."-1";	// format Y-n-j ohne führende null
 
-      }
+          // datum validieren
+          $datetime = date_create_from_format("Y-n-j|", $date_str);	// alles ab "|" ist 0
+          $date = date_format($datetime, "Y-m-d H:i:s");	// return string "2018-02-09 00:00:00"
+
+          // GET alias auslesen
+          if (isset($alias) and strlen($alias) > 0) {
+            // alias vorhanden und nicht leer
+
+            $alias = $this->check_alias($alias);	// return alias aus db oder ""
+
+            if (!empty($alias)) {
+              $show_alias = true;
+
+              if ($show_page == false) {
+                $hd_title_str .= "/".stripslashes($this->html5specialchars($alias));
+              }
+
+            } // !empty($alias)
+
+          } // isset($alias)
+
+        } // isset($month)
+
+      } // isset($year)
 
       else {
         // init
@@ -1029,20 +1090,23 @@ class Blog extends Model {
       // zugriff auf mysql datenbank (6)
       $sql = "";	// blog eintrag nr.1 nur auf erster seite, danach alle absteigend 100..99...2 (ohne 1)
       if ($page == 1 or $show_year == true) {
-        $sql .= "SELECT ba_id, ba_datetime, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id = 1".
+        $sql .= "SELECT ba_id, ba_datetime, ba_alias, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id = 1".
                 "\nUNION\n";
       }
       if ($show_page == true) {
-        $sql .= "(SELECT ba_id, ba_datetime, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id != 1 ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps.")";
+        $sql .= "(SELECT ba_id, ba_datetime, ba_alias, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id != 1 ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps.")";
       }
       elseif ($show_year == true and $show_month == false) {
-        $sql .= "(SELECT ba_id, ba_datetime, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$year." ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
+        $sql .= "(SELECT ba_id, ba_datetime, ba_alias, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$year." ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
       }
-      elseif ($show_year == true and $show_month == true) {
-        $sql .= "(SELECT ba_id, ba_datetime, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$year." AND MONTH(ba_datetime) = ".$month." ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
+      elseif ($show_year == true and $show_month == true and $show_alias == false) {
+        $sql .= "(SELECT ba_id, ba_datetime, ba_alias, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_datetime >= '".$date."' AND ba_datetime < '".$date."' + INTERVAL 1 MONTH ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
+      }
+      elseif ($show_year == true and $show_month == true and $show_alias == true) {
+        $sql .= "(SELECT ba_id, ba_datetime, ba_alias, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_datetime >= '".$date."' AND ba_datetime < '".$date."' + INTERVAL 1 MONTH AND ba_alias = '".$alias."' ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
       }
       else {
-        $sql .= "(SELECT ba_id, ba_datetime, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id = 1)";
+        $sql .= "(SELECT ba_id, ba_datetime, ba_alias, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id = 1)";
       }
       $ret = $this->database->query($sql);	// liefert in return db-objekt
       if ($ret) {
@@ -1061,6 +1125,10 @@ class Blog extends Model {
           if (isset($month) and $show_month) {
             $parameter_array["month"] = $month;	// für kommentar weiter unten
             $query_data["month"] = $month;
+            if (isset($alias) and $show_alias) {
+              $parameter_array["alias"] = $alias;	// für kommentar weiter unten
+              $query_data["alias"] = $alias;
+            }
           }
         }
 

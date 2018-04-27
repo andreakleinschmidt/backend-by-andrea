@@ -77,7 +77,7 @@ class Model {
       $feed["author"] = stripslashes($this->xmlspecialchars(Blog::getOption_by_name("feed_author", true)));	// als string
 
       // zugriff auf mysql datenbank
-      $sql = "SELECT ba_datetime, ba_header, ba_intro, ba_text FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." ORDER BY ba_id DESC LIMIT 0,".$num_entries;
+      $sql = "SELECT ba_datetime, ba_alias, ba_header, ba_intro, ba_text FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." ORDER BY ba_id DESC LIMIT 0,".$num_entries;
       $ret = $this->database->query($sql);	// liefert in return db-objekt
       if ($ret) {
         // wenn kein fehler 2
@@ -91,6 +91,7 @@ class Model {
         while ($dataset = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
 
           $datetime = Blog::check_datetime(date_create_from_format("Y-m-d H:i:s", $dataset["ba_datetime"]));	// "YYYY-MM-DD HH:MM:SS"
+          $blogalias = trim(rawurlencode($dataset["ba_alias"]));
           $blogheader = stripslashes($this->xmlspecialchars($dataset["ba_header"]));
           $blogintro = stripslashes(Blog::html_tags($this->xmlspecialchars(nl2br($dataset["ba_intro"])), false));	// <br /> hier als xmlspecialchars()
           $blogtext = stripslashes(Blog::html_tags($this->xmlspecialchars(nl2br($dataset["ba_text"])), false));	// <br /> hier als xmlspecialchars()
@@ -123,9 +124,9 @@ class Model {
           $blogtextcontent = implode("\n", $blogtextcontent_arr);
 
           $atomtitle = $blogtitle;
-          $datetime_anchor = date_format($datetime, "YmdHis");
-          $atomlink = $feed["url"]."#".$datetime_anchor;
-          $atomid = $feed["id"]."-".$datetime_anchor;
+          $permalink = date_format($datetime, "Y/m/").$blogalias;
+          $atomlink = $feed["url"].$permalink."/";
+          $atomid = $feed["id"].":".date_format($datetime, "YmdHis");
           $atomupdated = date_format($datetime, "Y-m-d\TH:i:sP");	// YYYY-MM-DD'T'HH:MM:SS+0[1,2]:00
           if ($use_summary) {
             // use summary

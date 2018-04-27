@@ -588,13 +588,13 @@ atom:
       foreach (range(1,2) as $i) {
         if ($i == 1) {
           // zugriff auf mysql datenbank (1p)
-          $sql = "SELECT ba_datetime, ba_text FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." ORDER BY ba_id DESC LIMIT 0,".$footer_num_entries;
+          $sql = "SELECT ba_datetime, ba_alias, ba_text FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." ORDER BY ba_id DESC LIMIT 0,".$footer_num_entries;
           $header = $this->language["FRONTEND_RECENT_POSTS"];
           $errornumber = "1p";
         }
         else {
           // zugriff auf mysql datenbank (1c)
-          $sql = "SELECT ba_comment.ba_id AS ba_commentid, ba_comment.ba_name AS ba_name, ba_comment.ba_mail AS ba_mail, ba_comment.ba_blogid AS ba_blogid, ba_blog.ba_datetime AS ba_datetime, ba_blog.ba_text AS ba_text FROM ba_comment INNER JOIN ba_blog ON ba_comment.ba_blogid = ba_blog.ba_id WHERE ba_comment.ba_state >= ".STATE_PUBLISHED." ORDER BY ba_comment.ba_id DESC LIMIT 0,".$footer_num_entries;
+          $sql = "SELECT ba_comment.ba_id AS ba_commentid, ba_comment.ba_name AS ba_name, ba_comment.ba_mail AS ba_mail, ba_comment.ba_blogid AS ba_blogid, ba_blog.ba_datetime AS ba_datetime, ba_blog.ba_alias AS ba_alias, ba_blog.ba_text AS ba_text FROM ba_comment INNER JOIN ba_blog ON ba_comment.ba_blogid = ba_blog.ba_id WHERE ba_comment.ba_state >= ".STATE_PUBLISHED." ORDER BY ba_comment.ba_id DESC LIMIT 0,".$footer_num_entries;
           $header = $this->language["FRONTEND_RECENT_COMMENTS"];
           $errornumber = "1c";
         }
@@ -609,10 +609,11 @@ atom:
           // ausgabeschleife
           while ($dataset = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
             $datetime = Blog::check_datetime(date_create_from_format("Y-m-d H:i:s", $dataset["ba_datetime"]));	// "YYYY-MM-DD HH:MM:SS"
-            $datetime_anchor = date_format($datetime, "YmdHis");	// blog id für anker
+            $blogalias = trim(rawurlencode($dataset["ba_alias"]));
+            $permalink = date_format($datetime, "Y/m/").$blogalias;
             $blogtext40 = stripslashes(Blog::html_tags($this->html5specialchars(mb_substr($dataset["ba_text"], 0, 40, MB_ENCODING)), false));	// substr problem bei trennung umlaute
             if ($i == 1) {
-              $footer .= "<li><a href=\"index.php?action=blog#".$datetime_anchor."\">".$blogtext40."</a>...</li>\n";
+              $footer .= "<li><a href=\"blog/".$permalink."/\">".$blogtext40."</a>...</li>\n";
             }
             else {
               $ba_commentid = $dataset["ba_commentid"];
@@ -627,7 +628,7 @@ atom:
               }
               $footer .= "<li>".$commenter;
               if ($ba_blogid > 1) {
-                $footer .= " ".$this->language["FRONTEND_ON"]." <a href=\"index.php?action=blog#comment".$ba_commentid."\">".$blogtext40."</a>...";
+                $footer .= " ".$this->language["FRONTEND_ON"]." <a href=\"blog/".$permalink."/#comment".$ba_commentid."\">".$blogtext40."</a>...";
               }
               $footer .= "</li>\n";
             }

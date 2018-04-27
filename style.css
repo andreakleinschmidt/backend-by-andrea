@@ -65,10 +65,22 @@ footer a:active { font-size:12px; color:#662244; text-decoration:none; }
 span#white a:link { font-size:14.5px; color:#FFFFFF; text-decoration:none; }
 span#white a:visited { font-size:14.5px; color:#FFFFFF; text-decoration:none; }
 span#white a:active { font-size:14.5px; color:#FFFFFF; text-decoration:none; }
+span#white_bold a:link { font-size:14.5px; color:#FFFFFF; font-weight:bold; text-decoration:none; }
+span#white_bold a:visited { font-size:14.5px; color:#FFFFFF; font-weight:bold; text-decoration:none; }
+span#white_bold a:active { font-size:14.5px; color:#FFFFFF; font-weight:bold; text-decoration:none; }
+span#white_small a:link { font-size:12px; color:#FFFFFF; text-decoration:none; }
+span#white_small a:visited { font-size:12px; color:#FFFFFF; text-decoration:none; }
+span#white_small a:active { font-size:12px; color:#FFFFFF; text-decoration:none; }
 
 span#white {
   font-size:14.5px;
   color:#FFFFFF;
+}
+
+span#white_bold {
+  font-size:14.5px;
+  color:#FFFFFF;
+  font-weight:bold;
 }
 
 span#white_small {
@@ -561,7 +573,9 @@ div#input_website { display:none; }
 	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:small; }
 	div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:small; }
 	footer a:link, footer a:visited, footer a:active { font-size:small; }
-	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }, span#white_small { font-size:small; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }
+	span#white_bold a:link, span#white_bold a:visited, span#white_bold a:active, span#white_bold { font-size:medium; }
+	span#white_small a:link, span#white_small a:visited, span#white_small a:active, span#white_small { font-size:small; }
 	pre, figcaption { font-size:small; }
 	table { font-size:medium; }
 	.tb_profile { max-width:300px; }
@@ -618,7 +632,9 @@ div#input_website { display:none; }
 	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:small; }
 	div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:small; }
 	footer a:link, footer a:visited, footer a:active { font-size:small; }
-	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }, span#white_small { font-size:small; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }
+	span#white_bold a:link, span#white_bold a:visited, span#white_bold a:active, span#white_bold { font-size:medium; }
+	span#white_small a:link, span#white_small a:visited, span#white_small a:active, span#white_small { font-size:small; }
 	pre, figcaption { font-size:small; }
 	table { font-size:medium; }
 	.tb_profile { max-width:340px; }
@@ -674,7 +690,9 @@ div#input_website { display:none; }
 	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:small; }
 	div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:small; }
 	footer a:link, footer a:visited, footer a:active { font-size:small; }
-	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }, span#white_small { font-size:small; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }
+	span#white_bold a:link, span#white_bold a:visited, span#white_bold a:active, span#white_bold { font-size:medium; }
+	span#white_small a:link, span#white_small a:visited, span#white_small a:active, span#white_small { font-size:small; }
 	pre, figcaption { font-size:small; }
 	table { font-size:medium; }
 	.tb_profile { max-width:340px; }
@@ -729,7 +747,9 @@ div#input_website { display:none; }
 	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:small; }
 	div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:small; }
 	footer a:link, footer a:visited, footer a:active { font-size:small; }
-	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }, span#white_small { font-size:small; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }
+	span#white_bold a:link, span#white_bold a:visited, span#white_bold a:active, span#white_bold { font-size:medium; }
+	span#white_small a:link, span#white_small a:visited, span#white_small a:active, span#white_small { font-size:small; }
 	pre, figcaption { font-size:small; }
 	table { font-size:medium; }
 	.tb_profile { max-width:460px; }
@@ -781,7 +801,9 @@ div#input_website { display:none; }
 	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:small; }
 	div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:small; }
 	footer a:link, footer a:visited, footer a:active { font-size:small; }
-	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }, span#white_small { font-size:small; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }
+	span#white_bold a:link, span#white_bold a:visited, span#white_bold a:active, span#white_bold { font-size:medium; }
+	span#white_small a:link, span#white_small a:visited, span#white_small a:active, span#white_small { font-size:small; }
 	pre, figcaption { font-size:small; }
 	table { font-size:medium; }
 	.tb_profile { max-width:340px; }
@@ -836,7 +858,9 @@ div#input_website { display:none; }
 	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:small; }
 	div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:small; }
 	footer a:link, footer a:visited, footer a:active { font-size:small; }
-	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }, span#white_small { font-size:small; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }
+	span#white_bold a:link, span#white_bold a:visited, span#white_bold a:active, span#white_bold { font-size:medium; }
+	span#white_small a:link, span#white_small a:visited, span#white_small a:active, span#white_small { font-size:small; }
 	pre, figcaption { font-size:small; }
 	table { font-size:medium; }
 	.tb_profile { max-width:393px; }
@@ -891,7 +915,9 @@ div#input_website { display:none; }
 	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:small; }
 	div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:small; }
 	footer a:link, footer a:visited, footer a:active { font-size:small; }
-	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }, span#white_small { font-size:small; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }
+	span#white_bold a:link, span#white_bold a:visited, span#white_bold a:active, span#white_bold { font-size:medium; }
+	span#white_small a:link, span#white_small a:visited, span#white_small a:active, span#white_small { font-size:small; }
 	pre, figcaption { font-size:small; }
 	table { font-size:medium; }
 	.tb_profile { max-width:428px; }
@@ -944,7 +970,9 @@ div#input_website { display:none; }
 	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:small; }
 	div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:small; }
 	footer a:link, footer a:visited, footer a:active { font-size:small; }
-	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }, span#white_small { font-size:small; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }
+	span#white_bold a:link, span#white_bold a:visited, span#white_bold a:active, span#white_bold { font-size:medium; }
+	span#white_small a:link, span#white_small a:visited, span#white_small a:active, span#white_small { font-size:small; }
 	pre, figcaption { font-size:small; }
 	table { font-size:medium; }
 	.tb_profile { max-width:458px; }
@@ -996,7 +1024,9 @@ div#input_website { display:none; }
 	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:small; }
 	div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:small; }
 	footer a:link, footer a:visited, footer a:active { font-size:small; }
-	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }, span#white_small { font-size:small; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }
+	span#white_bold a:link, span#white_bold a:visited, span#white_bold a:active, span#white_bold { font-size:medium; }
+	span#white_small a:link, span#white_small a:visited, span#white_small a:active, span#white_small { font-size:small; }
 	pre, figcaption { font-size:small; }
 	table { font-size:medium; }
 	.tb_profile { max-width:500px; }
@@ -1048,7 +1078,9 @@ div#input_website { display:none; }
 	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:small; }
 	div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:small; }
 	footer a:link, footer a:visited, footer a:active { font-size:small; }
-	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }, span#white_small { font-size:small; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }
+	span#white_bold a:link, span#white_bold a:visited, span#white_bold a:active, span#white_bold { font-size:medium; }
+	span#white_small a:link, span#white_small a:visited, span#white_small a:active, span#white_small { font-size:small; }
 	pre, figcaption { font-size:small; }
 	table { font-size:medium; }
 	.tb_profile { max-width:660px; }
@@ -1098,7 +1130,9 @@ div#input_website { display:none; }
 	div#blogcomment a:link, div#blogcomment a:visited, div#blogcomment a:active { font-size:small; }
 	div#suggestion a:link, div#suggestion a:visited, div#suggestion a:active { font-size:small; }
 	footer a:link, footer a:visited, footer a:active { font-size:small; }
-	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }, span#white_small { font-size:small; }
+	span#white a:link, span#white a:visited, span#white a:active, span#white { font-size:medium; }
+	span#white_bold a:link, span#white_bold a:visited, span#white_bold a:active, span#white_bold { font-size:medium; }
+	span#white_small a:link, span#white_small a:visited, span#white_small a:active, span#white_small { font-size:small; }
 	pre, figcaption { font-size:small; }
 	table { font-size:medium; }
 	ul {}

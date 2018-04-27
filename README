@@ -3,7 +3,7 @@
 
 CMS & blog software with frontend / backend
 
-Document last modified: 2018-04-01
+Document last modified: 2018-04-26
 
 
 Abstract
@@ -198,6 +198,7 @@ mysql> CREATE TABLE ba_blog (
 ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
 ba_userid INT UNSIGNED NOT NULL,
 ba_datetime DATETIME NOT NULL,
+ba_alias VARCHAR(64) NOT NULL,
 ba_header VARCHAR(128) NOT NULL,
 ba_intro VARCHAR(1024) NOT NULL,
 ba_text VARCHAR(11264) NOT NULL,
@@ -213,6 +214,7 @@ ba_state TINYINT UNSIGNED NOT NULL);
 | ba_id       | int(10) unsigned    | NO   | PRI | NULL    | auto_increment |
 | ba_userid   | int(10) unsigned    | NO   |     | NULL    |                |
 | ba_datetime | datetime            | NO   |     | NULL    |                |
+| ba_alias    | varchar(64)         | NO   |     | NULL    |                |
 | ba_header   | varchar(128)        | NO   |     | NULL    |                |
 | ba_intro    | varchar(1024)       | NO   |     | NULL    |                |
 | ba_text     | varchar(11264)      | NO   |     | NULL    |                |

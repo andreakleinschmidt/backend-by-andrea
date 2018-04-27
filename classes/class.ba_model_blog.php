@@ -46,6 +46,8 @@
 //define("MAXLEN_BLOGTAGS",128);
 //define("MAXLEN_BLOGCATEGORY",32);
 //define("MAXLEN_FEED",128);	// blogroll
+//define("MAXLEN_OPTIONSTR",64);
+//define("MAXLEN_PERMALINK",50);
 //define("STATE_CREATED",0);
 //define("STATE_EDITED",1);
 //define("STATE_APPROVAL",2);
@@ -84,7 +86,7 @@ class Blog extends Model {
       // $this->language
   }
 
-  // (doppelt in frontend und backend model blog)
+  // (start: doppelt in frontend und backend model blog)
   public function getOption_by_name($ba_name, $str_flag=false) {
     if ($str_flag) {
       $value = "";
@@ -148,6 +150,158 @@ class Blog extends Model {
       $datetime = date_create_from_format("U", 0);	// im fehlerfall
     }
     return $datetime;
+  }
+
+  // ersetze tag kommandos im blogtext ~cmd{content_str} mit html tags <a>, <b>, <i>, <img>
+  public function html_tags($text_str, $tag_flag, $encoding="UTF-8") {
+    for ($start=0; mb_strpos($text_str, "~", $start, $encoding) !== false; $start++) {
+      // suche tilde, abbruch der schleife wenn keine tilde mehr in text_str vorhanden (strpos return bool(false))
+
+      $start   = mb_strpos($text_str, "~", $start, $encoding);
+      $brace   = mb_strpos($text_str, "{", $start, $encoding);
+      $stop    = mb_strpos($text_str, "}", $start, $encoding);
+
+      if ($brace and $stop) {
+        // nur ausführen wenn {} gefunden
+        $cmd         = mb_substr($text_str, $start+1, $brace-$start-1, $encoding);
+        $content_str = mb_substr($text_str, $brace+1, $stop-$brace-1 , $encoding);
+
+        switch ($cmd) {
+
+          case "link":
+
+            if (mb_strlen($content_str, $encoding) > 0 and $tag_flag) {
+              $link = explode("|", $content_str);
+              if (count($link) == 2) {
+                $tag_str = "<a href=\"".$link[0]."\">".$link[1]."</a>";
+              }
+              else {
+                $tag_str = "<a href=\"".$link[0]."\">".$link[0]."</a>";
+              }
+            }
+            elseif (mb_strlen($content_str, $encoding) > 0 and !$tag_flag) {
+              $link = explode("|", $content_str);
+              if (count($link) == 2) {
+                $tag_str = $link[1];
+              }
+              else {
+                $tag_str = $link[0];
+              }
+            }
+            else {
+              $tag_str = "";
+            }
+            break;
+
+          case "bold":
+
+            if (mb_strlen($content_str, $encoding) > 0 and $tag_flag) {
+              $tag_str = "<b>".$content_str."</b>";
+            }
+            elseif (mb_strlen($content_str, $encoding) > 0 and !$tag_flag) {
+              $tag_str = $content_str;
+            }
+            else {
+              $tag_str = "";
+            }
+            break;
+
+          case "italic":
+
+            if (mb_strlen($content_str, $encoding) > 0 and $tag_flag) {
+              $tag_str = "<i>".$content_str."</i>";
+            }
+            elseif (mb_strlen($content_str, $encoding) > 0 and !$tag_flag) {
+              $tag_str = $content_str;
+            }
+            else {
+              $tag_str = "";
+            }
+            break;
+
+          case "image":
+
+            if (mb_strlen($content_str, $encoding) > 0 and $tag_flag) {
+              $imagename = "jpeg/".$content_str.".jpg";
+              if (is_readable($imagename)) {
+                $imagesize = getimagesize($imagename);
+                $caption = Photos::getText($content_str);	// imagename als photoid, return caption text
+                $tag_str = "<figure class=\"floating\">".
+                           "<img class=\"border\" src=\"".$imagename."\" ".$imagesize[3].">".
+                           "<figcaption class=\"floating_caption\">".$caption."</figcaption>".
+                           "</figure>";
+              }
+              else {
+                $tag_str = "[".$content_str."]";
+              }
+            }
+            elseif (mb_strlen($content_str, $encoding) > 0 and !$tag_flag) {
+              $tag_str = "[".$content_str."]";
+            }
+            else {
+              $tag_str = "";
+            }
+            break;
+
+          default:
+            $tag_str = $cmd.$content_str;
+
+        } // switch
+
+        $text_str = mb_substr($text_str, 0, $start, $encoding).$tag_str.mb_substr($text_str, $stop+1, NULL, $encoding);
+        // mb_substr_replace($text_str, $tag_str, $start, $stop-$start+1);
+
+      } // if
+
+      elseif ($brace) {
+        // ohne stop
+        $text_str = mb_substr($text_str, 0, $start, $encoding).mb_substr($text_str, $brace+1, NULL, $encoding);
+      }
+
+    } // for
+
+    return $text_str;
+  }
+  // (ende: doppelt in frontend und backend model blog)
+
+  // umlaute ersetzen und nicht-wort-zeichen (außer leerzeichen und "-") entfernen
+  private function replace_chars($str) {
+    $mask = array(
+      "/ä/" => "ae",
+      "/ö/" => "oe",
+      "/ü/" => "ue",
+      "/ß/" => "ss",
+      "/[^\w^\s^-]/" => ""
+    );
+    return preg_replace(array_keys($mask), array_values($mask), $str);
+  }
+
+  // alias für permalink, return NULL wenn fehler
+  private function get_alias_from_text($datetime, $str) {
+    $alias = "";
+    $datetime = $this->check_datetime(date_create_from_format("Y-m-d H:i:s", $datetime));	// "YYYY-MM-DD HH:MM:SS"
+
+    // satzendzeichen als trennzeichen, nur erster satz (bzw. kommagetrennter nebensatz)
+    $split_str = preg_split("/(?<=\!\s|,\s|\.\s|\:\s|\?\s)/", $str, 2, PREG_SPLIT_NO_EMPTY)[0];
+
+    // keine html_tags, lowercase, umlaute ersetzen und nicht-wort-zeichen (außer leerzeichen und "-") entfernen
+    $clean_str = $this->replace_chars(mb_strtolower($this->html_tags($split_str, false)));
+
+    // text zerlegen, trennzeichen: leerzeichen oder "-"
+    $split_arr = preg_split("/[\s-]+/", $clean_str, 0, PREG_SPLIT_NO_EMPTY);
+
+    $alias = array_shift($split_arr);	// erstes element, return NULL wenn array leer
+    foreach ($split_arr as $part) {
+      // ab zweites element
+      if (strlen($alias."-".$part) <= MAXLEN_PERMALINK) {
+        $alias .= "-".$part;	// auffüllen bis maxlen
+      }
+      else {
+        break;	// maxlen erreicht
+      }
+    }
+
+    return $alias;
   }
 
   private function getHistory($id) {
@@ -246,6 +400,7 @@ class Blog extends Model {
       // TABLE ba_blog (ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
       //                ba_userid INT UNSIGNED NOT NULL,
       //                ba_datetime DATETIME NOT NULL,
+      //                ba_alias VARCHAR(64) NOT NULL,
       //                ba_header VARCHAR(128) NOT NULL,
       //                ba_intro VARCHAR(1024) NOT NULL,
       //                ba_text VARCHAR(11264) NOT NULL,
@@ -364,8 +519,8 @@ class Blog extends Model {
             $datetime = $this->check_datetime(date_create_from_format("Y-m-d H:i:s", $dataset["ba_datetime"]));	// "YYYY-MM-DD HH:MM:SS"
             $blogdate = date_format($datetime, $this->language["FORMAT_DATE"]." / ".$this->language["FORMAT_TIME"]);	// "DD.MM.YY / HH:MM"
             $ba_header = stripslashes($this->html5specialchars(mb_substr($dataset["ba_header"], 0, 40, MB_ENCODING)));	// 80 wie blogbox in class.model.php, substr problem bei trennung umlaute
-            $ba_intro = stripslashes($this->html5specialchars(mb_substr($dataset["ba_intro"], 0, 40, MB_ENCODING)));	// 80 wie blogbox in class.model.php, substr problem bei trennung umlaute
-            $ba_text = stripslashes($this->html5specialchars(mb_substr($dataset["ba_text"], 0, 80, MB_ENCODING)));	// 80 wie blogbox in class.model.php, substr problem bei trennung umlaute
+            $ba_intro = stripslashes($this->html_tags($this->html5specialchars(mb_substr($dataset["ba_intro"], 0, 40, MB_ENCODING)), false));	// 80 wie blogbox in class.model.php, substr problem bei trennung umlaute
+            $ba_text = stripslashes($this->html_tags($this->html5specialchars(mb_substr($dataset["ba_text"], 0, 80, MB_ENCODING)), false));	// 80 wie blogbox in class.model.php, substr problem bei trennung umlaute
             $ba_videoid = stripslashes($this->html5specialchars($dataset["ba_videoid"]));
             $ba_photoid = stripslashes($this->html5specialchars($dataset["ba_photoid"]));
             $ba_catid = intval($dataset["ba_catid"]);
@@ -729,6 +884,7 @@ class Blog extends Model {
       // TABLE ba_blog (ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
       //                ba_userid INT UNSIGNED NOT NULL,
       //                ba_datetime DATETIME NOT NULL,
+      //                ba_alias VARCHAR(64) NOT NULL,
       //                ba_header VARCHAR(128) NOT NULL,
       //                ba_intro VARCHAR(1024) NOT NULL,
       //                ba_text VARCHAR(11264) NOT NULL,
@@ -949,13 +1105,28 @@ class Blog extends Model {
 
       $html_backend_ext .= "<section>\n\n";
 
+      // options
+      $diary_mode = boolval($this->getOption_by_name("blog_diary_mode"));	// tagebuch modus an = 1
+
       if ($ba_id != 0xffff) {
+
+        // alias für permalink:
+        if ($diary_mode) {
+          $str = $ba_text;
+        }
+        else {
+          $str = $ba_header;
+        }
+        $ba_alias = $this->get_alias_from_text($ba_datetime, $str);	// return NULL wenn fehler
+        if (is_null($ba_alias)) {
+          $ba_alias = "";
+        }
 
         $count = 0;
 
         // einfügen in datenbank:
         if ($ba_id == 0) {
-          $sql = "INSERT INTO ba_blog (ba_userid, ba_datetime, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_catid, ba_tags, ba_state) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+          $sql = "INSERT INTO ba_blog (ba_userid, ba_datetime, ba_alias, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_catid, ba_tags, ba_state) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         }
 
         // löschen in datenbank:
@@ -965,7 +1136,7 @@ class Blog extends Model {
 
         // update in datenbank:
         else {
-          $sql = "UPDATE ba_blog SET ba_userid = ?, ba_datetime = ?, ba_header = ?, ba_intro = ?, ba_text = ?, ba_videoid = ?, ba_photoid = ?, ba_catid = ?, ba_tags = ?, ba_state = ? WHERE ba_id = ?";
+          $sql = "UPDATE ba_blog SET ba_userid = ?, ba_datetime = ?, ba_alias = ?, ba_header = ?, ba_intro = ?, ba_text = ?, ba_videoid = ?, ba_photoid = ?, ba_catid = ?, ba_tags = ?, ba_state = ? WHERE ba_id = ?";
         }
 
         // mit prepare() - sql injections verhindern
@@ -973,9 +1144,9 @@ class Blog extends Model {
         if ($stmt) {
           // wenn kein fehler 4e
 
-          // austauschen ??????????, ? oder ??????????? durch string und int
+          // austauschen ???????????, ? oder ???????????? durch string und int
           if ($ba_id == 0) {
-            $stmt->bind_param("issssssisi", $ba_userid, $ba_datetime, $ba_header, $ba_intro, $ba_text, $ba_videoid, $ba_photoid, $ba_catid, $ba_tags, $ba_state);	// einfügen in datenbank
+            $stmt->bind_param("isssssssisi", $ba_userid, $ba_datetime, $ba_alias, $ba_header, $ba_intro, $ba_text, $ba_videoid, $ba_photoid, $ba_catid, $ba_tags, $ba_state);	// einfügen in datenbank
             $html_backend_ext .= "<p>".$this->language["MSG_BLOG_NEW"]."</p>\n\n";
           }
           elseif ($ba_delete) {
@@ -983,7 +1154,7 @@ class Blog extends Model {
             $html_backend_ext .= "<p>".$this->language["MSG_BLOG_DELETE"]."</p>\n\n";
           }
           else {
-            $stmt->bind_param("issssssisii", $ba_userid, $ba_datetime, $ba_header, $ba_intro, $ba_text, $ba_videoid, $ba_photoid, $ba_catid, $ba_tags, $ba_state, $ba_id);	// update in datenbank
+            $stmt->bind_param("isssssssisii", $ba_userid, $ba_datetime, $ba_alias, $ba_header, $ba_intro, $ba_text, $ba_videoid, $ba_photoid, $ba_catid, $ba_tags, $ba_state, $ba_id);	// update in datenbank
             $html_backend_ext .= "<p>".$this->language["MSG_BLOG_UPDATE"]."</p>\n\n";
           }
           $stmt->execute();	// ausführen geänderte zeile
