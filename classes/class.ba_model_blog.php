@@ -872,6 +872,29 @@ class Blog extends Model {
     return $categories;
   }
 
+  private function getTags() {
+    $tags = array();	// init
+
+    if (!$this->database->connect_errno) {
+      // wenn kein fehler
+
+      $sql = "SELECT ba_tags FROM ba_blog GROUP BY ba_tags";
+      $ret = $this->database->query($sql);	// liefert in return db-objekt
+      if ($ret) {
+        // ausgabeschleife
+        while ($dataset = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
+          $ba_tags = stripslashes($this->html5specialchars($dataset["ba_tags"]));
+          $tags[] = $ba_tags;
+        }
+        $ret->close();
+        unset($ret);
+      }
+
+    } // datenbank
+
+    return $tags;
+  }
+
   public function getBlog($id, $page, $date) {
     $html_backend_ext = "";
     $errorstring = "";
@@ -976,6 +999,7 @@ class Blog extends Model {
       } // keine id
 
       $categories = $this->getCategories();	// return array($category => $catid)
+      $tags = $this->getTags();	// return array mit tags als string (auch mit kommas): ["tag_1", "tag_1, tag_2", "tag_2", ...]
 
       // formular felder für blog eintrag , GET id oder neu , ba_id und ba_userid in hidden feld , ba_daten aus preset
 
@@ -1030,7 +1054,12 @@ class Blog extends Model {
                            "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">".
                            $this->language["PROMPT_TAGS"].
                            "</td>\n<td>".
-                           "<input type=\"text\" name=\"ba_blog[ba_tags]\" class=\"size_32\" maxlength=\"".MAXLEN_BLOGTAGS."\" value=\"".$ba_tags."\"/>".
+                           "<input type=\"text\" name=\"ba_blog[ba_tags]\" class=\"size_32\" list=\"ba_tags\" maxlength=\"".MAXLEN_BLOGTAGS."\" value=\"".$ba_tags."\"/>".
+                           "<datalist id=\"ba_tags\">\n";
+      foreach ($tags as $tag_str) {
+        $html_backend_ext .= "<option>".$tag_str."</option>\n";
+      }
+      $html_backend_ext .= "</datalist>\n".
                            "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">".
                            $this->language["PROMPT_STATE"].
                            "</td>\n<td>\n".
