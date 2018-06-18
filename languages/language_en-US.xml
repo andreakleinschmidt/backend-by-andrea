@@ -17,6 +17,8 @@
   <FRONTEND_BLOGROLL text="blogroll:"/>
   <FRONTEND_COMMENT_LINK text="comment"/>
   <FRONTEND_COMMENT text="comment:"/>
+  <FRONTEND_ENTRIES text="entries"/>
+  <FRONTEND_ENTRY text="entry"/>
   <FRONTEND_GALLERIES text="galleries"/>
   <FRONTEND_GALLERY text="gallery"/>
   <FRONTEND_IGNORE_MY_COMMENT text="I'm a bot and my comment will be ignored"/>

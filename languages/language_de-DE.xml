@@ -17,6 +17,8 @@
   <FRONTEND_BLOGROLL text="Blogroll:"/>
   <FRONTEND_COMMENT_LINK text="Kommentar"/>
   <FRONTEND_COMMENT text="Kommentar:"/>
+  <FRONTEND_ENTRIES text="Einträge"/>
+  <FRONTEND_ENTRY text="Eintrag"/>
   <FRONTEND_GALLERIES text="Galerien"/>
   <FRONTEND_GALLERY text="Galerie"/>
   <FRONTEND_IGNORE_MY_COMMENT text="Ich bin ein Bot und mein Kommentar wird ignoriert"/>
@@ -38,7 +40,7 @@
   <FRONTEND_PHOTOS text="Fotos"/>
   <FRONTEND_PHOTOS_TOTAL text="Fotos insgesamt"/>
   <FRONTEND_PHOTO text="Foto"/>
-  <FRONTEND_PROMPT_BLOGENTRY text="Der Blog-Eintrag auf dem sich dein Kommentar bezieht:"/>
+  <FRONTEND_PROMPT_BLOGENTRY text="Der Blogeintrag auf dem sich dein Kommentar bezieht:"/>
   <FRONTEND_PROMPT_COMMENT_MAXLEN text="Kommentar (max. 2048 Zeichen):"/>
   <FRONTEND_RECENT_BLOGENTRIES text="letzte Blogeinträge:"/>
   <FRONTEND_RECENT_COMMENTS text="Neueste Kommentare"/>

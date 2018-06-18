@@ -44,6 +44,7 @@ class GetController {
   private $id;
   private $q;
   private $tag;
+  private $author;
   private $page;
   private $year;
   private $month;
@@ -58,6 +59,7 @@ class GetController {
     $this->id = !empty($_GET["id"]) ? substr(trim($_GET["id"]), 0, 8) : NULL;	// GET id auslesen, überflüssige leerzeichen entfernen, zu lange photoid abschneiden
     $this->q = !empty($_GET["q"]) ? mb_substr(trim($_GET["q"]), 0, 64, MB_ENCODING) : NULL;	// GET q auslesen, überflüssige leerzeichen entfernen, zu langes GET abschneiden
     $this->tag = !empty($_GET["tag"]) ? mb_substr(trim($_GET["tag"]), 0, 32, MB_ENCODING) : NULL;	// GET tag auslesen, überflüssige leerzeichen entfernen, zu langes GET abschneiden
+    $this->author = !empty($_GET["author"]) ? (is_numeric($_GET["author"]) ? intval($_GET["author"]) : NULL) : NULL;	// GET author auslesen, string in int umwandeln
     $this->page = !empty($_GET["page"]) ? (is_numeric($_GET["page"]) ? intval($_GET["page"]) : NULL) : NULL;	// GET page auslesen, string in int umwandeln
     $this->year = !empty($_GET["year"]) ? (is_numeric($_GET["year"]) ? intval($_GET["year"]) : NULL) : NULL;	// GET year auslesen, string in int umwandeln
     $this->month = !empty($_GET["month"]) ? (is_numeric($_GET["month"]) ? intval($_GET["month"]) : NULL) : NULL;	// GET month auslesen, string in int umwandeln
@@ -166,7 +168,7 @@ class GetController {
 
       case ACTION_BLOG: {
         $model_blog = new Blog();	// model erstellen
-        $ret = $model_blog->getBlog($this->q, $this->tag, $this->page, $this->year, $this->month, $this->alias, $this->compage);	// daten für blog aus dem model
+        $ret = $model_blog->getBlog($this->q, $this->tag, $this->author, $this->page, $this->year, $this->month, $this->alias, $this->compage);	// daten für blog aus dem model
         $view->setContent("hd_title", $head["hd_title"]." blog".$ret["hd_title_ext"]);
         break;
       }
