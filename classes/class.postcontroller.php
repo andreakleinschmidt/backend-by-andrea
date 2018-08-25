@@ -121,7 +121,7 @@ class PostController {
     }
 
     // redirect index.php?action=blog#comment
-    header("refresh:10;index.php?action=blog#comment");
+    header("refresh:10;blog/#comment");
 
     $view->setContent("content", $ret["content"]);
 

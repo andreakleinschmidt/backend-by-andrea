@@ -1,7 +1,7 @@
 RewriteEngine on
 RewriteBase /morgana81/
-RewriteCond %(REQUEST_FILENAME) !-f
-RewriteCond %(REQUEST_FILENAME) !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule ^(home|profile|photos|blog)/?$ index.php?action=$1 [L,R=301]
 RewriteRule ^profile/([a-z]{2})/?$ index.php?action=profile&lang=$1 [L,R=301]
 RewriteRule ^photos/([a-z_0-9]{1,16})/?$ index.php?action=photos&gallery=$1 [L,R=301]

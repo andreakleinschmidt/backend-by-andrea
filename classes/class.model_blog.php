@@ -442,7 +442,7 @@ class Blog extends Model {
         $taglist_arr[] = $tag_key_html." (".$entries.")";
       }
       else {
-        // (alt)          "<a href=\"index.php?action=blog&tag=".rawurlencode(mb_strtolower($tag_key, MB_ENCODING))."\">".$tag_key_html."</a> (".$entries.")";
+        // (alt)         "<a href=\"index.php?action=blog&tag=".rawurlencode(mb_strtolower($tag_key, MB_ENCODING))."\">".$tag_key_html."</a> (".$entries.")";
         $taglist_arr[] = "<a href=\"blog/".rawurlencode(mb_strtolower($tag_key, MB_ENCODING))."/\">".$tag_key_html."</a> (".$entries.")";
       }
 
@@ -1493,7 +1493,8 @@ class Blog extends Model {
                 $stmt->bind_param("ssssii", $comment_ip, $comment_name, $comment_mail, $comment_text, $comment_blogid, $comment_state);
                 $stmt->execute();	// ausführen geänderte zeile
 
-                $replace .= "<p>".$this->language["FRONTEND_MSG_NEW_COMMENT"]." - <a href=\"index.php?action=blog#comment\">".$this->language["FRONTEND_MSG_RETURN_TO_BLOG"]."</a> ".$this->language["FRONTEND_MSG_AUTOMATIC_IN_10_SECONDS"]."</p>\n";
+                // (alt) ...<a href=\"index.php?action=blog#comment\">...
+                $replace .= "<p>".$this->language["FRONTEND_MSG_NEW_COMMENT"]." - <a href=\"blog/#comment\">".$this->language["FRONTEND_MSG_RETURN_TO_BLOG"]."</a> ".$this->language["FRONTEND_MSG_AUTOMATIC_IN_10_SECONDS"]."</p>\n";
 
                 mail($contact_mail, $this->language["FRONTEND_MSG_NEW_BLOG_COMMENT"], $comment_name." (".$comment_mail."): ".$comment_text." (".$comment_blogid.")", "from:".$contact_mail);
 

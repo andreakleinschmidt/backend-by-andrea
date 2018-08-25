@@ -434,7 +434,8 @@ atom:
         $blogdate = date_format($datetime, $this->language["FORMAT_DATE"]." / ".$this->language["FORMAT_TIME"]);	// "DD.MM.YY / HH:MM"
         $blogtext80 = stripslashes(Blog::html_tags($this->html5specialchars(mb_substr($dataset["ba_text"], 0, 80, MB_ENCODING)), false));	// substr problem bei trennung umlaute
 
-        $login .= "<br><a href=\"index.php?action=blog#".$datetime_anchor."\">".$blogdate."</a>\n".
+        // (alt)  "<br><a href=\"index.php?action=blog#".$datetime_anchor."\">".$blogdate."</a>\n".
+        $login .= "<br><a href=\"blog/#".$datetime_anchor."\">".$blogdate."</a>\n".
                   "<br>".$blogtext80."...\n";
       }
 
