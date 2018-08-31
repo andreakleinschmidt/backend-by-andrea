@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <language name="Deutsch (DE)" tag="de-DE">
+  <BUTTON_BOLD text="Fett"/>
   <BUTTON_CLEAR text="löschen"/>
   <BUTTON_DELETE text="löschen"/>
+  <BUTTON_IMAGE text="Bild"/>
+  <BUTTON_ITALIC text="Kursiv"/>
+  <BUTTON_LINK text="Link"/>
+  <BUTTON_LIST text="Liste"/>
   <BUTTON_NEW text="neu"/>
   <BUTTON_POST text="senden"/>
   <BUTTON_SEARCH text="Suche"/>

@@ -184,6 +184,23 @@ class Blog extends Model {
             }
             break;
 
+          case "list":
+
+            $tag_str = "";
+            if (mb_strlen($content_str, $encoding) > 0 and $tag_flag) {
+              $list = explode("|", $content_str);
+              foreach($list as $item) {
+                $tag_str .= "<span class=\"list\">".$item."</span>\n";
+              }
+            }
+            elseif (mb_strlen($content_str, $encoding) > 0 and !$tag_flag) {
+              $list = explode("|", $content_str);
+              foreach($list as $item) {
+                $tag_str .= " - ".$item."\n";
+              }
+            }
+            break;
+
           case "image":
 
             if (mb_strlen($content_str, $encoding) > 0 and $tag_flag) {
@@ -212,6 +229,28 @@ class Blog extends Model {
             $tag_str = $cmd.$content_str;
 
         } // switch
+
+        // falls liste, <br> nach </span> entfernen
+        if ($cmd == "list") {
+          if (mb_substr($text_str, $stop+1, 8, $encoding) == "<br />\r\n") {
+            $stop += 8;
+          }
+          elseif (mb_substr($text_str, $stop+1, 7, $encoding) == "<br />\r") {
+            $stop += 7;
+          }
+          elseif (mb_substr($text_str, $stop+1, 7, $encoding) == "<br />\n") {
+            $stop += 7;
+          }
+          elseif (mb_substr($text_str, $stop+1, 6, $encoding) == "<br>\r\n") {
+            $stop += 6;
+          }
+          elseif (mb_substr($text_str, $stop+1, 5, $encoding) == "<br>\r") {
+            $stop += 5;
+          }
+          elseif (mb_substr($text_str, $stop+1, 5, $encoding) == "<br>\n") {
+            $stop += 5;
+          }
+        }
 
         $text_str = mb_substr($text_str, 0, $start, $encoding).$tag_str.mb_substr($text_str, $stop+1, NULL, $encoding);
         // mb_substr_replace($text_str, $tag_str, $start, $stop-$start+1);

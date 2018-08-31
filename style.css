@@ -177,6 +177,9 @@ ul {}
 li {}
 .li_backend { list-style:none; cursor:pointer; }
 
+span.list { display:list-item; padding-left:0.3em; }
+span.list:before { content:"-"; padding-right:0.3em; }
+
 details {
   width:150px;
 }
