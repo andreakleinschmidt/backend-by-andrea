@@ -117,6 +117,13 @@ class Blog extends Model {
     return $datetime;
   }
 
+  // ersetze new lines im text durch <br> (bzw. <br />) und interpretiere doppelte new lines als absatz <p>
+  public function nl2br_extended($text_str, $xhtml_flag=true) {
+    $paragraphs_old = preg_split('/(*BSR_ANYCRLF)\R{2}/', $text_str, 0, PREG_SPLIT_NO_EMPTY);	// doppelte new lines, PCRE (*BSR_ANYCRLF)\R für \r\n oder \r oder \n
+    $paragraphs_new = array_map("nl2br", $paragraphs_old, array_fill(1, count($paragraphs_old), $xhtml_flag));	// einfache new lines, array_map mit dritten parameter für nl2br($text_str, $xhtml_flag)
+    return implode("</p>\n<p>", $paragraphs_new);	// zusammenfassen zu string, ohne erstes <p> und letztes </p>, nur </p><p> dazwischen
+  }
+
   // ersetze tag kommandos im blogtext ~cmd{content_str} mit html tags <a>, <b>, <i>, <img>
   public function html_tags($text_str, $tag_flag, $encoding="UTF-8") {
     for ($start=0; mb_strpos($text_str, "~", $start, $encoding) !== false; $start++) {
@@ -277,13 +284,13 @@ class Blog extends Model {
     $blogdate = date_format($datetime, $this->language["FORMAT_DATE"]." / ".$this->language["FORMAT_TIME"]);	// "DD.MM.YY / HH:MM"
     $blogalias = trim(rawurlencode($dataset["ba_alias"]));
     $blogheader = stripslashes($this->html5specialchars($dataset["ba_header"]));
-    $blogintro = stripslashes($this->html_tags(nl2br($this->html5specialchars($dataset["ba_intro"])), false));
-    $blogtext = stripslashes($this->html_tags(nl2br($this->html5specialchars($dataset["ba_text"])), true));
+    $blogintro = stripslashes($this->html_tags($this->nl2br_extended($this->html5specialchars($dataset["ba_intro"])), false));
+    $blogtext = stripslashes($this->html_tags($this->nl2br_extended($this->html5specialchars($dataset["ba_text"])), true));
 
     if (!$diary_mode or ($diary_mode and $first_entry)) {
       if (empty($blogintro)) {
         $split_array = array_slice(preg_split("/(?<=\!\s|\.\s|\:\s|\?\s)/", $dataset["ba_text"], $num_sentences+1, PREG_SPLIT_NO_EMPTY), 0, $num_sentences);
-        $blogintro = stripslashes($this->html_tags(nl2br($this->html5specialchars(implode($split_array))), false));	// satzendzeichen als trennzeichen, anzahl sätze optional
+        $blogintro = stripslashes($this->html_tags($this->nl2br_extended($this->html5specialchars(implode($split_array))), false));	// satzendzeichen als trennzeichen, anzahl sätze optional
       }
     }
 
@@ -1382,8 +1389,8 @@ class Blog extends Model {
           $comment_date = date_format($datetime, $this->language["FORMAT_DATE"]." / ".$this->language["FORMAT_TIME"]);	// "DD.MM.YY / HH:MM"
           $comment_name = stripslashes($this->html5specialchars($dataset["ba_name"]));
           $comment_mail = stripslashes($this->html5specialchars($dataset["ba_mail"]));
-          $comment_text = stripslashes(nl2br($this->html5specialchars($dataset["ba_text"])));
-          $comment_comment = stripslashes(nl2br($this->html5specialchars($dataset["ba_comment"])));
+          $comment_text = stripslashes($this->nl2br_extended($this->html5specialchars($dataset["ba_text"])));
+          $comment_comment = stripslashes($this->nl2br_extended($this->html5specialchars($dataset["ba_comment"])));
           //$comment_blogid = intval($dataset["ba_blogid"]);
           $comment_full_name = stripslashes($this->html5specialchars($dataset["full_name"]));	// comment commenters full name
 

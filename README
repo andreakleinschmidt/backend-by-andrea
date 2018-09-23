@@ -71,6 +71,7 @@ atom.php
 backend.php
 feed-icon-14x14.png
 index.php
+insert.js
 phpqrcode.php	(MERGED version of PHP QR Code library)
 qrcode.php
 scroll.js

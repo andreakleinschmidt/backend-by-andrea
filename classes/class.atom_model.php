@@ -93,8 +93,8 @@ class Model {
           $datetime = Blog::check_datetime(date_create_from_format("Y-m-d H:i:s", $dataset["ba_datetime"]));	// "YYYY-MM-DD HH:MM:SS"
           $blogalias = trim(rawurlencode($dataset["ba_alias"]));
           $blogheader = stripslashes($this->xmlspecialchars($dataset["ba_header"]));
-          $blogintro = stripslashes(Blog::html_tags($this->xmlspecialchars(nl2br($dataset["ba_intro"])), false));	// <br /> hier als xmlspecialchars()
-          $blogtext = stripslashes(Blog::html_tags($this->xmlspecialchars(nl2br($dataset["ba_text"])), false));	// <br /> hier als xmlspecialchars()
+          $blogintro = stripslashes(Blog::html_tags($this->xmlspecialchars(Blog::nl2br_extended($dataset["ba_intro"])), false));	// <br /> hier als xmlspecialchars()
+          $blogtext = stripslashes(Blog::html_tags($this->xmlspecialchars(Blog::nl2br_extended($dataset["ba_text"])), false));	// <br /> hier als xmlspecialchars()
 
           if (empty($blogheader)) {
             $to_split = $dataset["ba_text"];
@@ -112,7 +112,7 @@ class Model {
             $to_split = $dataset["ba_intro"];
           }
           $split_array = array_slice(preg_split("/(?<=\!\s|\.\s|\:\s|\?\s)/", $to_split, $num_sentences+1, PREG_SPLIT_NO_EMPTY), 0, $num_sentences);
-          $blogtextshort = stripslashes(Blog::html_tags($this->xmlspecialchars(nl2br(implode($split_array))), false));	// satzendzeichen als trennzeichen, anzahl sätze optional
+          $blogtextshort = stripslashes(Blog::html_tags($this->xmlspecialchars(Blog::nl2br_extended(implode($split_array))), false));	// satzendzeichen als trennzeichen, anzahl sätze optional
 
           $blogtextcontent_arr = array();
           if (!empty($blogintro)) {
