@@ -424,7 +424,7 @@ atom:
       // {login} erweitern mit blogbox (ersten 3 einträge aus blog)
       $login .= "\n<!-- blogbox -->\n".
                 "<div id=\"blogbox\">\n".
-                $this->language["FRONTEND_RECENT_BLOGENTRIES"]."\n";
+                "<span id=\"white_small\">".$this->language["FRONTEND_RECENT_BLOGENTRIES"]."</span>\n";
 
       // ausgabeschleife
       while ($dataset = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
@@ -466,7 +466,7 @@ atom:
       // {login} erweitern mit blogroll (nur 5 einträge)
       $login .= "\n<!-- blogroll -->\n".
                 "<div id=\"blogbox\">\n".
-                $this->language["FRONTEND_BLOGROLL"]."\n";
+                "<span id=\"white_small\">".$this->language["FRONTEND_BLOGROLL"]."</span>\n";
 
       // parameter
       $local_file_path = "cache/";

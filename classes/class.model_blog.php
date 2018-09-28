@@ -712,7 +712,7 @@ class Blog extends Model {
       $replace .= "<div id=\"blogquery\">\n";
       $replace .= "<form action=\"index.php\" method=\"get\">\n";
       $replace .= "<input type=\"hidden\" name=\"action\" value=\"blog\" />\n";
-      $replace .= "<input type=\"text\" name=\"q\" placeholder=\"Suche\" class=\"size_20\" maxlength=\"64\" onkeyup=\"ajax('suggest',this.value);\" />\n";
+      $replace .= "<input type=\"text\" name=\"q\" placeholder=\"Suche\" class=\"size_24\" maxlength=\"64\" onkeyup=\"ajax('suggest',this.value);\" />\n";
       $replace .= "<input type=\"submit\" value=\"".$this->language["BUTTON_SEARCH"]."\" style=\"display:none;\" />\n";
       $replace .= "<div id=\"suggestion\"></div>";
       $replace .= "</form>\n";

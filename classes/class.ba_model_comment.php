@@ -424,7 +424,7 @@ class Comment extends Model {
                            "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">".
                            $this->language["PROMPT_BLOGID"].
                            "</td>\n<td>".
-                           "<input type=\"text\" name=\"ba_comment[ba_blogid]\" class=\"size_16\" maxlength=\"".MAXLEN_COMMENTBLOGID."\" value=\"".$ba_blogid."\"/>".
+                           "<input type=\"text\" name=\"ba_comment[ba_blogid]\" class=\"size_4\" maxlength=\"".MAXLEN_COMMENTBLOGID."\" value=\"".$ba_blogid."\"/>".
                            "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">".
                            $this->language["PROMPT_STATE"].
                            "</td>\n<td>\n".

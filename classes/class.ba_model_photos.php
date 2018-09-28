@@ -204,7 +204,7 @@ class Photos extends Model {
                              "<input type=\"hidden\" name=\"ba_photos_new[ba_galleryid]\" value=\"".$galleryid."\"/>\n".
                              "<input type=\"text\" name=\"ba_photos_new[ba_photoid]\" class=\"size_4\" maxlength=\"".MAXLEN_PHOTOID."\" />\n".
                              "</td>\n<td>".
-                             "<input type=\"text\" name=\"ba_photos_new[ba_text]\" class=\"size_32\" maxlength=\"".MAXLEN_PHOTOTEXT."\" />".
+                             "<input type=\"text\" name=\"ba_photos_new[ba_text]\" class=\"size_40\" maxlength=\"".MAXLEN_PHOTOTEXT."\" />".
                              "</td>\n<td>".
                              $this->language["PROMPT_HIDE"]."<input type=\"checkbox\" name=\"ba_photos_new[]\" value=\"hide\"/>".
                              "</td>\n</tr>\n<tr>\n<td class=\"td_backend\"></td>\n<td>".
@@ -253,7 +253,7 @@ class Photos extends Model {
                                    "</td>\n<td>".
                                    "<input type=\"text\" name=\"ba_photos[".$dataset["ba_id"]."][ba_photoid]\" class=\"size_4\" maxlength=\"".MAXLEN_PHOTOID."\" value=\"".stripslashes($this->html5specialchars($dataset["ba_photoid"]))."\"/>".
                                    "</td>\n<td>".
-                                   "<input type=\"text\" name=\"ba_photos[".$dataset["ba_id"]."][ba_text]\" class=\"size_32\" maxlength=\"".MAXLEN_PHOTOTEXT."\" value=\"".stripslashes($this->html5specialchars($dataset["ba_text"]))."\"/>".
+                                   "<input type=\"text\" name=\"ba_photos[".$dataset["ba_id"]."][ba_text]\" class=\"size_40\" maxlength=\"".MAXLEN_PHOTOTEXT."\" value=\"".stripslashes($this->html5specialchars($dataset["ba_text"]))."\"/>".
                                    "</td>\n<td>".
                                    $this->language["PROMPT_HIDE"]."<input type=\"checkbox\" name=\"ba_photos[".$dataset["ba_id"]."][]\" value=\"hide\"";
               if ($dataset["ba_hide"] == 1) {
