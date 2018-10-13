@@ -613,16 +613,18 @@ class Blog extends Model {
     if (!$this->database->connect_errno) {
       // wenn kein fehler
 
-      $sql = "SELECT ba_category, ba_tags FROM ba_blog INNER JOIN ba_blogcategory ON ba_blog.ba_catid = ba_blogcategory.ba_id WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_category != '' OR ba_tags != '')";
+      $sql = "SELECT ba_category, ba_tags FROM ba_blog LEFT JOIN ba_blogcategory ON ba_blog.ba_catid = ba_blogcategory.ba_id WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_category != '' OR ba_tags != '')";
       $ret = $this->database->query($sql);	// liefert in return db-objekt
       if ($ret) {
         // ausgabeschleife
         while ($dataset = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
-          $ba_category = trim($dataset["ba_category"]);
-          $ba_tags = trim($dataset["ba_tags"]);
-          if ($ba_category == "") {
+          if (is_null($dataset["ba_category"])) {
             $ba_category = "none";
           }
+          else {
+            $ba_category = trim($dataset["ba_category"]);
+          }
+          $ba_tags = trim($dataset["ba_tags"]);
           $tags_from_db[$ba_category][] = $ba_tags;	// array mit category als key und zweites array mit allen tag_data zeilen
         }
         $ret->close();
@@ -876,7 +878,7 @@ class Blog extends Model {
       }
       else {
         // tag
-        $sql = "SELECT ba_blog.ba_id FROM ba_blog INNER JOIN ba_blogcategory ON ba_blog.ba_catid = ba_blogcategory.ba_id WHERE ba_state >= ".STATE_PUBLISHED." AND (CONCAT(ba_category, ', ', ba_tags) RLIKE ?)";	// (1) ohne LIMIT
+        $sql = "SELECT ba_blog.ba_id FROM ba_blog LEFT JOIN ba_blogcategory ON ba_blog.ba_catid = ba_blogcategory.ba_id WHERE ba_state >= ".STATE_PUBLISHED." AND (CONCAT_WS(', ', ba_category, ba_tags) RLIKE ?)";	// (1) ohne LIMIT
       }
       $stmt = $this->database->prepare($sql);	// liefert mysqli-statement-objekt
       if ($stmt) {
@@ -929,7 +931,7 @@ class Blog extends Model {
           }
           else {
             // tag
-            $sql = "SELECT ba_blog.ba_id, ba_userid, ba_datetime, ba_alias, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid INNER JOIN ba_blogcategory ON ba_blog.ba_catid = ba_blogcategory.ba_id WHERE ba_state >= ".STATE_PUBLISHED." AND (CONCAT(ba_category, ', ', ba_tags) RLIKE ?) ORDER BY ba_blog.ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;	// (2) mit LIMIT
+            $sql = "SELECT ba_blog.ba_id, ba_userid, ba_datetime, ba_alias, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid LEFT JOIN ba_blogcategory ON ba_blog.ba_catid = ba_blogcategory.ba_id WHERE ba_state >= ".STATE_PUBLISHED." AND (CONCAT_WS(', ', ba_category, ba_tags) RLIKE ?) ORDER BY ba_blog.ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;	// (2) mit LIMIT
           }
           $stmt = $this->database->prepare($sql);	// liefert mysqli-statement-objekt
           if ($stmt) {
