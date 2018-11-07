@@ -275,7 +275,8 @@ atom:
       // wenn kein fehler
 
       // options
-      $feed_title = stripslashes($this->html5specialchars(Blog::getOption_by_name("feed_title", true)));	// als string
+      $model_blog = new Blog();
+      $feed_title = stripslashes($this->html5specialchars($model_blog->getOption_by_name("feed_title", true)));	// als string
 
       // zugriff auf mysql datenbank (1h)
       $sql = "SELECT ba_title, ba_description, ba_author FROM ba_base LIMIT 1";
@@ -312,6 +313,11 @@ atom:
     if (!$this->database->connect_errno) {
       // wenn kein fehler
 
+      // options
+      $model_blog = new Blog();
+      $contact_mail = stripslashes($model_blog->getOption_by_name("contact_mail", true));	// als string
+      $feed_title = stripslashes($this->html5specialchars($model_blog->getOption_by_name("feed_title", true)));	// als string
+
       // daten aus der basis
       $ret_array = $this->getBase("nav");
       $nav_str = $ret_array["nav"];
@@ -347,11 +353,9 @@ atom:
       }
 
       // mail kontakt
-      $contact_mail = stripslashes(Blog::getOption_by_name("contact_mail", true));	// als string
       $menue .= "<li><a href=\"mailto:".$contact_mail."\">".$this->language["FRONTEND_NAV_CONTACT"]."</a></li>\n";
 
       // feed icon
-      $feed_title = stripslashes($this->html5specialchars(Blog::getOption_by_name("feed_title", true)));	// als string
       $menue .= "<li><a href=\"atom.php\" type=\"application/atom+xml\" title=\"".$feed_title."\"><img class=\"noborder\" src=\"".FEED_PNG."\" height=\"14\" width=\"14\"></a></li>\n";
 
       $menue .= "</ul>";
@@ -580,8 +584,9 @@ atom:
       // wenn kein fehler
 
       // options
-      $footer_num_entries = Blog::check_zero(Blog::getOption_by_name("footer_num_entries"));	// anzahl einträge footer = 5
-      $feed_title = stripslashes($this->html5specialchars(Blog::getOption_by_name("feed_title", true)));	// als string
+      $model_blog = new Blog();
+      $footer_num_entries = Blog::check_zero($model_blog->getOption_by_name("footer_num_entries"));	// anzahl einträge footer = 5
+      $feed_title = stripslashes($this->html5specialchars($model_blog->getOption_by_name("feed_title", true)));	// als string
 
       $footer .= "<div>\n";
 

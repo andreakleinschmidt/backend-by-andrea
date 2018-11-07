@@ -280,7 +280,8 @@ class Admin extends Model {
       // wenn kein fehler
 
       // options
-      $contact_mail = stripslashes(Blog::getOption_by_name("contact_mail", true));	// als string
+      $model_blog = new Blog();
+      $contact_mail = stripslashes($model_blog->getOption_by_name("contact_mail", true));	// als string
 
       $html_backend_ext .= "<section>\n\n";
 

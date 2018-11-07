@@ -142,7 +142,7 @@ class Languages extends Model {
                            "<tr>\n<th>".
                            $dir.
                            "</th>\n</tr>\n<tr>\n<td>\n".
-                           Upload::listFiles($dir, "xml").
+                           (new Upload())->listFiles($dir, "xml").
                            "</td>\n</tr>\n".
                            "</table>\n\n";
 

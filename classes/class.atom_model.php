@@ -67,14 +67,15 @@ class Model {
       // wenn kein fehler 1
 
       // options
-      $num_entries = Blog::check_zero(Blog::getOption_by_name("feed_num_entries"));	// = 20
-      $use_summary = boolval(Blog::getOption_by_name("feed_use_summary"));	// = 0 (use content)
-      $num_sentences = Blog::check_zero(Blog::getOption_by_name("feed_num_sentences_summary"));	// = 3
-      $feed["id"] = stripslashes($this->xmlspecialchars(Blog::getOption_by_name("feed_id", true)));	// als string
-      $feed["url"] = stripslashes($this->xmlspecialchars(Blog::getOption_by_name("feed_url", true)));	// als string
-      $feed["title"] = stripslashes($this->xmlspecialchars(Blog::getOption_by_name("feed_title", true)));	// als string
-      $feed["subtitle"] = stripslashes($this->xmlspecialchars(Blog::getOption_by_name("feed_subtitle", true)));	// als string
-      $feed["author"] = stripslashes($this->xmlspecialchars(Blog::getOption_by_name("feed_author", true)));	// als string
+      $model_blog = new Blog();
+      $num_entries = Blog::check_zero($model_blog->getOption_by_name("feed_num_entries"));	// = 20
+      $use_summary = boolval($model_blog->getOption_by_name("feed_use_summary"));	// = 0 (use content)
+      $num_sentences = Blog::check_zero($model_blog->getOption_by_name("feed_num_sentences_summary"));	// = 3
+      $feed["id"] = stripslashes($this->xmlspecialchars($model_blog->getOption_by_name("feed_id", true)));	// als string
+      $feed["url"] = stripslashes($this->xmlspecialchars($model_blog->getOption_by_name("feed_url", true)));	// als string
+      $feed["title"] = stripslashes($this->xmlspecialchars($model_blog->getOption_by_name("feed_title", true)));	// als string
+      $feed["subtitle"] = stripslashes($this->xmlspecialchars($model_blog->getOption_by_name("feed_subtitle", true)));	// als string
+      $feed["author"] = stripslashes($this->xmlspecialchars($model_blog->getOption_by_name("feed_author", true)));	// als string
 
       // zugriff auf mysql datenbank
       $sql = "SELECT ba_datetime, ba_alias, ba_header, ba_intro, ba_text FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." ORDER BY ba_id DESC LIMIT 0,".$num_entries;

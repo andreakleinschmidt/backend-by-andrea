@@ -214,7 +214,7 @@ class Blog extends Model {
               $imagename = "jpeg/".$content_str.".jpg";
               if (is_readable($imagename)) {
                 $imagesize = getimagesize($imagename);
-                $caption = Photos::getText($content_str);	// imagename als photoid, return caption text
+                $caption = (new Photos())->getText($content_str);	// imagename als photoid, return caption text
                 $tag_str = "<figure class=\"floating\">".
                            "<img class=\"border\" src=\"".$imagename."\" ".$imagesize[3].">".
                            "<figcaption class=\"floating_caption\">".$caption."</figcaption>".

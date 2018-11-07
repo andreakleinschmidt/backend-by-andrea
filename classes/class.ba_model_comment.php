@@ -92,7 +92,8 @@ class Comment extends Model {
       //                   ba_state TINYINT UNSIGNED NOT NULL);
 
       // options
-      $anzahl_eps = Blog::check_zero(Blog::getOption_by_name("blog_comments_per_page"));	// anzahl einträge pro seite = 20
+      $model_blog = new Blog();
+      $anzahl_eps = Blog::check_zero($model_blog->getOption_by_name("blog_comments_per_page"));	// anzahl einträge pro seite = 20
 
       // liste mit älteren kommentar-einträgen
       $html_backend_ext .= "<p id=\"commentlist\"><b>".$this->language["HEADER_COMMENT_LIST"]."</b></p>\n\n";
