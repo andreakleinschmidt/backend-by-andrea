@@ -283,19 +283,20 @@ class Comment extends Model {
 
         }
         else {
-          $errorstring .= "<p>db error 3i</p>\n\n";
+          $errorstring .= "db error 3i\n";
         }
 
       }
       else {
-        $errorstring .= "<p>db error 3h</p>\n\n";
+        $errorstring .= "db error 3h\n";
       }
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
@@ -366,7 +367,7 @@ class Comment extends Model {
 
           }
           else {
-            $errorstring .= "<p>no id!</p>\n\n";
+            $errorstring .= "no id!\n";
           }
 
           $stmt->close();	// stmt-ojekt schließen
@@ -374,7 +375,7 @@ class Comment extends Model {
 
         }
         else {
-          $errorstring .= "<p>db error 3g</p>\n\n";
+          $errorstring .= "db error 3g\n";
         }
 
       } // id
@@ -465,9 +466,10 @@ class Comment extends Model {
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
@@ -524,23 +526,24 @@ class Comment extends Model {
         } // stmt
 
         else {
-          $errorstring .= "<p>db error 4f</p>\n\n";
+          $errorstring .= "db error 4f\n";
         }
 
         $html_backend_ext .= "<p>".$count." ".$this->language["MSG_ROWS_CHANGED"]."</p>\n\n";
 
       }
       else {
-        $errorstring .= "<p>no id!</p>\n\n";
+        $errorstring .= "no id!\n";
       }
 
       $html_backend_ext .= "</section>\n\n";
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 

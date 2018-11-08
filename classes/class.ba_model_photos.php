@@ -172,7 +172,7 @@ class Photos extends Model {
 
       }
       else {
-        $errorstring .= "<p>db error 3k</p>\n\n";
+        $errorstring .= "db error 3k\n";
       }
 
       // TABLE ba_photos (ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -277,7 +277,7 @@ class Photos extends Model {
 
         }
         else {
-          $errorstring .= "<p>db error 3c</p>\n\n";
+          $errorstring .= "db error 3c\n";
         }
 
       }
@@ -289,9 +289,10 @@ class Photos extends Model {
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
@@ -326,16 +327,17 @@ class Photos extends Model {
       } // stmt
 
       else {
-        $errorstring .= "<p>db error 4c</p>\n\n";
+        $errorstring .= "db error 4i\n";
       }
 
       $html_backend_ext .= "</section>\n\n";
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
@@ -381,7 +383,7 @@ class Photos extends Model {
         } // stmt
 
         else {
-          $errorstring .= "<p>db error 4j</p>\n\n";
+          $errorstring .= "db error 4j\n";
         }
 
       }
@@ -392,9 +394,10 @@ class Photos extends Model {
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
@@ -429,16 +432,17 @@ class Photos extends Model {
       } // stmt
 
       else {
-        $errorstring .= "<p>db error 4c</p>\n\n";
+        $errorstring .= "db error 4c\n";
       }
 
       $html_backend_ext .= "</section>\n\n";
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
@@ -485,7 +489,7 @@ class Photos extends Model {
         } // stmt
 
         else {
-          $errorstring .= "<p>db error 4d</p>\n\n";
+          $errorstring .= "db error 4d\n";
         }
 
       }
@@ -496,9 +500,10 @@ class Photos extends Model {
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 

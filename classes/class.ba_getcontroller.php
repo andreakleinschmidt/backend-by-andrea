@@ -64,7 +64,6 @@ class GetController {
     $view->setTemplate("backend");	// template "tpl_backend.htm" laden
 
     $debug_str = "";
-    if (DEBUG) { $debug_str .= DEBUG_STR; }
 
 // *****************************************************************************
 // *** session ***
@@ -74,12 +73,13 @@ class GetController {
     if (isset($_SESSION["panic"])) {
       $html_backend_ext = "";
       $errorstring = "";
-      if (DEBUG) { $debug_str .= "<br>001 panic\n"; }
+      if (DEBUG) { $debug_str .= "001 panic\n"; }
     }
     else {
       // no panic , login?
 
-      $debug_str .= $this->session->check_login($login);
+      $ret = $this->session->check_login($login);
+      if (DEBUG) { $debug_str .= $ret; }
 
       if (!$login) {
 
@@ -135,7 +135,7 @@ class GetController {
 
             } // ROLE_EDITOR
 
-              break;
+            break;
           }
 
 // *****************************************************************************
@@ -153,7 +153,7 @@ class GetController {
 
             } // ROLE_EDITOR
 
-              break;
+            break;
           }
 
 // *****************************************************************************
@@ -334,8 +334,6 @@ class GetController {
       } // else login
 
     } // no panic
-
-    if (DEBUG) { $debug_str .= DEBUG_STR_END; }
 
     // setze inhalt, falls string vorhanden, sonst leer
     $view->setContent("content", isset($html_backend_ext) ? $html_backend_ext : "");

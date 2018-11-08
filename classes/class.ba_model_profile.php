@@ -129,7 +129,7 @@ class Profile extends Model {
 
       }
       else {
-        $errorstring .= "<p>db error 3b-e</p>\n\n";
+        $errorstring .= "db error 3b-e\n";
       }
 
       // neues element
@@ -183,9 +183,10 @@ class Profile extends Model {
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
@@ -297,16 +298,17 @@ class Profile extends Model {
 
         } // stmt
         else {
-          $errorstring .= "<br>db error 4b-t1\n";
+          $errorstring .= "db error 4b-t1\n";
         }
 
       } // foreach table name
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
@@ -393,7 +395,7 @@ class Profile extends Model {
 
       }
       else {
-        $errorstring .= "<p>db error 3b</p>\n\n";
+        $errorstring .= "db error 3b\n";
       }
 
       // tables
@@ -410,9 +412,10 @@ class Profile extends Model {
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
@@ -446,7 +449,7 @@ class Profile extends Model {
         } // stmt
 
         else {
-          $errorstring .= "<p>db error 4b</p>\n\n";
+          $errorstring .= "db error 4b\n";
         }
 
       }
@@ -457,9 +460,10 @@ class Profile extends Model {
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
@@ -505,16 +509,17 @@ class Profile extends Model {
       } // stmt
 
       else {
-        $errorstring .= "<p>db error 4b-n</p>\n\n";
+        $errorstring .= "db error 4b-n\n";
       }
 
       $html_backend_ext .= "</section>\n\n";
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
@@ -546,7 +551,7 @@ class Profile extends Model {
         } // stmt
 
         else {
-          $errorstring .= "<p>db error 4b-e</p>\n\n";
+          $errorstring .= "db error 4b-e\n";
         }
 
       }
@@ -557,9 +562,10 @@ class Profile extends Model {
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
@@ -604,7 +610,7 @@ class Profile extends Model {
             } // stmt
 
             else {
-              $errorstring .= "<p>db error 4b-tn</p>\n\n";
+              $errorstring .= "db error 4b-tn\n";
             }
 
           } // foreach language code
@@ -617,9 +623,10 @@ class Profile extends Model {
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
@@ -654,7 +661,7 @@ class Profile extends Model {
               } // stmt
 
               else {
-                $errorstring .= "<p>db error 4b-t2</p>\n\n";
+                $errorstring .= "db error 4b-t2\n";
               }
 
             } // foreach languages
@@ -668,9 +675,10 @@ class Profile extends Model {
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 

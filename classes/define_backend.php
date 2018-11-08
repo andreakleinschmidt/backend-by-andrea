@@ -98,7 +98,5 @@ define("ELEMENT_TABLE","table");
 define("MB_ENCODING","UTF-8");
 define("DEFAULT_LOCALE","de-DE");	// "de-DE" oder "en-US"
 define("DEBUG",false);
-define("DEBUG_STR","<section>\n<p>debug:\n");
-define("DEBUG_STR_END","</p>\n</section>\n");
 
 ?>

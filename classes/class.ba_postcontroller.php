@@ -40,10 +40,12 @@
 // *** error list ***
 // *****************************************************************************
 //
-// password new (1) and new (2) not equal - bei backend POST password
-//
 // user/password error - bei POST login
+// code error - bei POST login
+//
 // password error - bei backend POST password
+// password new (1) and new (2) not equal - bei backend POST password
+// wrong password - bei backend POST password
 //
 // POST error - bei login ($_POST["unbekannt"])
 // POST error - bei backend POST ($_POST["unbekannt"])
@@ -115,7 +117,6 @@ class PostController {
     $view->setTemplate("backend");	// template "tpl_backend.htm" laden
 
     $debug_str = "";
-    if (DEBUG) { $debug_str .= DEBUG_STR; }
 
 // *****************************************************************************
 // *** session ***
@@ -125,12 +126,13 @@ class PostController {
     if (isset($_SESSION["panic"])) {
       $html_backend_ext = "";
       $errorstring = "";
-      if (DEBUG) { $debug_str .= "<br>001 panic\n"; }
+      if (DEBUG) { $debug_str .= "001 panic\n"; }
     }
     else {
       // no panic , login?
 
-      $debug_str .= $this->session->check_login($login);
+      $ret = $this->session->check_login($login);
+      if (DEBUG) { $debug_str .= $ret; }
 
       if (!$login) {
 
@@ -148,8 +150,8 @@ class PostController {
         // POST überprüfen
         if (isset($this->user_login, $this->password)) {
 
-          if (DEBUG) { $debug_str .= "<br>008 user_login = ".$this->user_login."\n"; }
-          if (DEBUG) { $debug_str .= "<br>008 pwd = ".$this->password."\n"; }
+          if (DEBUG) { $debug_str .= "008 user_login = ".$this->user_login."\n"; }
+          if (DEBUG) { $debug_str .= "008 pwd = ".$this->password."\n"; }
 
           if ($this->user_login != "" and mb_strlen($this->user_login, MB_ENCODING) <= MAXLEN_USER and $this->password != "" and mb_strlen($this->password, MB_ENCODING) <= MAXLEN_PASSWORD) {
             // test auf leere felder
@@ -168,7 +170,7 @@ class PostController {
               $last_code = $ret["last_code"];
               $base64_secret = $ret["base64_secret"];
 
-              if (DEBUG) { $debug_str .= "<br>010 pwd-hash = ".$password_hash."\n"; }
+              if (DEBUG) { $debug_str .= "010 pwd-hash = ".$password_hash."\n"; }
               if (hash_equals(crypt($this->password, $password_hash), $password_hash)) {
                 // passwort stimmt
 
@@ -180,8 +182,8 @@ class PostController {
                   $_SESSION["login_last_code"] = $last_code;
                   $_SESSION["login_base64_secret"] = $base64_secret;
 
-                  if (DEBUG) { $debug_str .= "<br>2fa last_code = ".$last_code."\n"; }
-                  if (DEBUG) { $debug_str .= "<br>2fa base64_secret = ".$base64_secret."\n"; }
+                  if (DEBUG) { $debug_str .= "2fa last_code = ".$last_code."\n"; }
+                  if (DEBUG) { $debug_str .= "2fa base64_secret = ".$base64_secret."\n"; }
 
                   // login form 2fa
                   $html_backend_ext = $this->model->html_form_2fa();
@@ -206,7 +208,7 @@ class PostController {
           } // user/password error
 
           else {
-            $errorstring = "<p>user/password error</p>\n\n";
+            $errorstring = "user/password error\n";
           }
 
           $_SESSION["login_passed"] = $login_1;
@@ -225,13 +227,13 @@ class PostController {
           unset($_SESSION["login_last_code"]);
           unset($_SESSION["login_base64_secret"]);
 
-          if (DEBUG) { $debug_str .= "<br>2fa first login passed (1) = ".$login_passed."\n"; }
-          if (DEBUG) { $debug_str .= "<br>2fa last_code = ".$last_code."\n"; }
-          if (DEBUG) { $debug_str .= "<br>2fa base64_secret = ".$base64_secret."\n"; }
+          if (DEBUG) { $debug_str .= "2fa first login passed (1) = ".$login_passed."\n"; }
+          if (DEBUG) { $debug_str .= "2fa last_code = ".$last_code."\n"; }
+          if (DEBUG) { $debug_str .= "2fa base64_secret = ".$base64_secret."\n"; }
 
           if ($login_passed) {
 
-            if (DEBUG) { $debug_str .= "<br>010 code = ".$this->code."\n"; }
+            if (DEBUG) { $debug_str .= "010 code = ".$this->code."\n"; }
 
             if ($this->code != "" and strlen($this->code) <= MAXLEN_CODE) {
               // test auf leere felder
@@ -240,9 +242,9 @@ class PostController {
               $shared_secret = base64_decode($base64_secret);
               $own_code = $this->get_code($shared_secret, $unix_ts);
               $own_code_n1 = $this->get_code($shared_secret, $unix_ts, -1);
-              if (DEBUG) { $debug_str .= "<br>010 own_code = ".$own_code."\n"; }
-              if (DEBUG) { $debug_str .= "<br>010 own_code_n1 = ".$own_code_n1."\n"; }
-              if (DEBUG) { $debug_str .= "<br>010 last_code = ".$last_code."\n"; }
+              if (DEBUG) { $debug_str .= "010 own_code = ".$own_code."\n"; }
+              if (DEBUG) { $debug_str .= "010 own_code_n1 = ".$own_code_n1."\n"; }
+              if (DEBUG) { $debug_str .= "010 last_code = ".$last_code."\n"; }
 
               // vergleich eingegebenen code mit berechneten code und zuletzt eingegebenen code
               if ((($this->code == $own_code) or ($this->code == $own_code_n1)) and ($this->code != $last_code)) {
@@ -261,7 +263,7 @@ class PostController {
             } // code error
 
             else {
-              $errorstring = "<p>code error</p>\n\n";
+              $errorstring = "code error\n";
             }
 
           } // login
@@ -269,7 +271,7 @@ class PostController {
         } // code in POST
 
         else {
-          $errorstring = "<p>POST error</p>\n\n";
+          $errorstring = "POST error\n";
         }
 
         // nach POST überprüfung, auswertung login variablen
@@ -282,7 +284,7 @@ class PostController {
         elseif ($login_2) {
           // code in POST, 2fa
           $login_1 = $login_passed;
-          if (DEBUG) { $debug_str .= "<br>2fa first login passed (2) = ".$login_1."\n"; }
+          if (DEBUG) { $debug_str .= "2fa first login passed (2) = ".$login_1."\n"; }
         }
         else {
           $ret = $this->session->unset_user_login();	// 2fa failed, user variablen aus session entfernen
@@ -300,7 +302,7 @@ class PostController {
 
         } // passwort und (optional) code ok
 
-        if (DEBUG) { $debug_str .= "<br>011 login = ".$login."\n"; }
+        if (DEBUG) { $debug_str .= "011 login = ".$login."\n"; }
 
         if ($login) {
           $html_backend_ext = $this->model->html_backend($_SESSION["user_role"], $_SESSION["user_name"]);
@@ -337,9 +339,9 @@ class PostController {
           $password = trim($_POST["password"]);	// überflüssige leerzeichen entfernen
           $password_new1 = trim($_POST["password_new1"]);
           $password_new2 = trim($_POST["password_new2"]);
-          if (DEBUG) { $debug_str .= "<br>014 pwd = ".$password."\n"; }
-          if (DEBUG) { $debug_str .= "<br>015 pwd-n1 = ".$password_new1."\n"; }
-          if (DEBUG) { $debug_str .= "<br>016 pwd-n2 = ".$password_new2."\n"; }
+          if (DEBUG) { $debug_str .= "014 pwd = ".$password."\n"; }
+          if (DEBUG) { $debug_str .= "015 pwd-n1 = ".$password_new1."\n"; }
+          if (DEBUG) { $debug_str .= "016 pwd-n2 = ".$password_new2."\n"; }
 
           if ($password != "" and (mb_strlen($password, MB_ENCODING) <= MAXLEN_PASSWORD)
               and $password_new1 != "" and mb_strlen($password_new1, MB_ENCODING) <= MAXLEN_PASSWORD
@@ -356,13 +358,13 @@ class PostController {
 
                 $password_hash = $ret["password_hash"];
 
-                if (DEBUG) { $debug_str .= "<br>020 pwd-hash = ".$password_hash."\n"; }
+                if (DEBUG) { $debug_str .= "020 pwd-hash = ".$password_hash."\n"; }
                 if (hash_equals(crypt($password, $password_hash), $password_hash)) {
                   // passwort stimmt
 
                   // CRYPT_BLOWFISH (60 Zeichen): "$2y$" + default cost "10" + "$" + random 22 zeichen salt + 31 zeichen hash
                   $password_new_hash = password_hash($password_new1, PASSWORD_BCRYPT);
-                  if (DEBUG) { $debug_str .= "<br>021 pwd-n-hash = ".$password_new_hash."\n"; }
+                  if (DEBUG) { $debug_str .= "021 pwd-n-hash = ".$password_new_hash."\n"; }
 
                   // update in datenbank (passwort in datenbank ist blowfish hash mit random salt)
                   $ret = $this->model->update_password($password_new_hash);
@@ -372,7 +374,7 @@ class PostController {
                 } // passwort ok
 
                 else {
-                  $errorstring = "<p>wrong password</p>\n\n";
+                  $errorstring = "wrong password\n";
                 }
 
               } // check password ok
@@ -384,13 +386,13 @@ class PostController {
             } // passwort neu 1 und 2 gleich?
 
             else {
-              $errorstring = "<p>password new (1) and new (2) not equal</p>\n\n";
+              $errorstring = "password new (1) and new (2) not equal\n";
             }
 
           } // password error
 
           else {
-            $errorstring = "<p>password error</p>\n\n";
+            $errorstring = "password error\n";
           }
 
         } // password in POST
@@ -1330,14 +1332,12 @@ class PostController {
         } // ba_admin[id][]
 
         else {
-          $errorstring = "<p>POST error</p>\n\n";
+          $errorstring = "POST error\n";
         }
 
       } // else login
 
     } // no panic
-
-    if (DEBUG) { $debug_str .= DEBUG_STR_END; }
 
     // setze inhalt, falls string vorhanden, sonst leer
     $view->setContent("content", isset($html_backend_ext) ? $html_backend_ext : "");

@@ -118,7 +118,7 @@ class Home extends Model {
 
       }
       else {
-        $errorstring .= "<p>db error 3a-e</p>\n\n";
+        $errorstring .= "db error 3a-e\n";
       }
 
       // neues element
@@ -139,9 +139,10 @@ class Home extends Model {
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
@@ -214,7 +215,7 @@ class Home extends Model {
 
       }
       else {
-        $errorstring .= "<p>db error 3a</p>\n\n";
+        $errorstring .= "db error 3a\n";
       }
 
       // elements
@@ -226,9 +227,10 @@ class Home extends Model {
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
@@ -262,7 +264,7 @@ class Home extends Model {
         } // stmt
 
         else {
-          $errorstring .= "<p>db error 4a</p>\n\n";
+          $errorstring .= "db error 4a\n";
         }
 
       }
@@ -273,9 +275,10 @@ class Home extends Model {
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
@@ -310,16 +313,17 @@ class Home extends Model {
       } // stmt
 
       else {
-        $errorstring .= "<p>db error 4a-n</p>\n\n";
+        $errorstring .= "db error 4a-n\n";
       }
 
       $html_backend_ext .= "</section>\n\n";
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
@@ -350,7 +354,7 @@ class Home extends Model {
         } // stmt
 
         else {
-          $errorstring .= "<p>db error 4a-e</p>\n\n";
+          $errorstring .= "db error 4a-e\n";
         }
 
       }
@@ -361,9 +365,10 @@ class Home extends Model {
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 

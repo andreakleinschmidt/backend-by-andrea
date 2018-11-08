@@ -35,7 +35,18 @@
 // * - daten an controller zurückgeben
 // *****************************************************************************
 
+// *****************************************************************************
+// *** define ***
+// *****************************************************************************
+
 //define("STATE_PUBLISHED",3);
+
+// *****************************************************************************
+// *** error list ***
+// *****************************************************************************
+//
+// db error 1 - kontakt zur datenbank
+// db error 2 - ret bei query
 
 class Model {
 
@@ -43,6 +54,7 @@ class Model {
 
   // konstruktor
   public function __construct() {
+    // datenbank:
     $this->database = @new Database();	// @ unterdrückt fehlermeldung
     if (!$this->database->connect_errno) {
       // wenn kein fehler

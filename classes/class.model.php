@@ -252,14 +252,15 @@ atom:
 
       }
       else {
-        $errorstring .= "<br>db error 1b\n";
+        $errorstring .= "db error 1b\n";
       }
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error\n";
+      $errorstring .= "db error\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array($name => $value, "error" => $errorstring);
   }
 
@@ -294,14 +295,15 @@ atom:
 
       }
       else {
-        $errorstring .= "<br>db error 1h\n";
+        $errorstring .= "db error 1h\n";
       }
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error\n";
+      $errorstring .= "db error\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("hd_title" => $hd_title, "hd_description" => $hd_description, "hd_author" => $hd_author, "feed_title" => $feed_title, "error" => $errorstring);
   }
 
@@ -362,9 +364,10 @@ atom:
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error\n";
+      $errorstring .= "db error\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("menue" => $menue, "error" => $errorstring);
   }
 
@@ -397,7 +400,7 @@ atom:
 
       }
       else {
-        $errorstring .= "<br>db error 1l\n";
+        $errorstring .= "db error 1l\n";
       }
 
       // {login} erweitern mit blogroll oder blogbox
@@ -408,9 +411,10 @@ atom:
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error\n";
+      $errorstring .= "db error\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("login" => $login, "error" => $errorstring);
   }
 
@@ -450,9 +454,10 @@ atom:
 
     }
     else {
-      $errorstring .= "<br>db error 1x\n";
+      $errorstring .= "db error 1x\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("login" => $login, "error" => $errorstring);
   }
 
@@ -536,9 +541,10 @@ atom:
 
     }
     else {
-      $errorstring .= "<br>db error 1r\n";
+      $errorstring .= "db error 1r\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("login" => $login, "error" => $errorstring);
   }
 
@@ -564,14 +570,15 @@ atom:
 
       }
       else {
-        $errorstring .= "<br>db error 1o\n";
+        $errorstring .= "db error 1o\n";
       }
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error\n";
+      $errorstring .= "db error\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("locale" => $locale, "error" => $errorstring);
   }
 
@@ -647,7 +654,7 @@ atom:
 
         }
         else {
-          $errorstring .= "<br>db error ".$errornumber."\n";
+          $errorstring .= "db error ".$errornumber."\n";
         }
 
       } // schleife zweimal
@@ -661,9 +668,10 @@ atom:
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error\n";
+      $errorstring .= "db error\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("footer" => $footer, "error" => $errorstring);
   }
 

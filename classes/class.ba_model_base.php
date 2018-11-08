@@ -171,16 +171,17 @@ class Base extends Model {
 
       }
       else {
-        $errorstring .= "<p>db error 3</p>\n\n";
+        $errorstring .= "db error 3\n";
       }
 
       $html_backend_ext .= "</section>\n\n";
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
@@ -210,7 +211,7 @@ class Base extends Model {
       } // stmt
 
       else {
-        $errorstring .= "<p>db error 4</p>\n\n";
+        $errorstring .= "db error 4\n";
       }
 
       $html_backend_ext .= "<p>".$count." ".$this->language["MSG_ROWS_CHANGED"]."</p>\n\n";
@@ -219,9 +220,10 @@ class Base extends Model {
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 

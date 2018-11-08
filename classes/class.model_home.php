@@ -104,14 +104,15 @@ class Home extends Model {
 
       }
       else {
-        $errorstring .= "<br>db error 2\n";
+        $errorstring .= "db error 2\n";
       }
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error\n";
+      $errorstring .= "db error\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $replace, "error" => $errorstring);
   }
 

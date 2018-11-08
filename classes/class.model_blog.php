@@ -844,9 +844,10 @@ class Blog extends Model {
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error\n";
+      $errorstring .= "db error\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("hd_title_ext" => $hd_title_str, "content" => $replace, "error" => $errorstring);
   }
 
@@ -997,7 +998,7 @@ class Blog extends Model {
 
           }
           else {
-            $errorstring .= "<br>db error 6a\n";
+            $errorstring .= "db error 6a\n";
           }
 
         } // anzahl_e > 0
@@ -1007,14 +1008,15 @@ class Blog extends Model {
 
       }
       else {
-        $errorstring .= "<br>db error 5a\n";
+        $errorstring .= "db error 5a\n";
       }
 
     }
     else {
-      $errorstring .= "<br>empty query or tag\n";	// query leer
+      $errorstring .= "empty query or tag\n";	// query leer
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("hd_title_ext" => $hd_title_str, "content" => $replace, "taglist" => $taglist, "error" => $errorstring);
   }
 
@@ -1200,7 +1202,7 @@ class Blog extends Model {
 
       }
       else {
-        $errorstring .= "<br>db error 6b\n";
+        $errorstring .= "db error 6b\n";
       }
 
       // seitenauswahl mit links und vor/zurück
@@ -1211,9 +1213,10 @@ class Blog extends Model {
 
     }
     else {
-      $errorstring .= "<br>db error 5b\n";
+      $errorstring .= "db error 5b\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("hd_title_ext" => $hd_title_str, "content" => $replace, "year_month_list" => $year_month_list, "error" => $errorstring);
   }
 
@@ -1302,7 +1305,7 @@ class Blog extends Model {
 
         }
         else {
-          $errorstring .= "<br>db error 6c\n";
+          $errorstring .= "db error 6c\n";
         }
 
       } // anzahl_e > 0
@@ -1312,9 +1315,10 @@ class Blog extends Model {
 
     }
     else {
-      $errorstring .= "<br>db error 5c\n";
+      $errorstring .= "db error 5c\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("hd_title_ext" => $hd_title_str, "content" => $replace, "error" => $errorstring);
   }
 
@@ -1416,7 +1420,7 @@ class Blog extends Model {
 
       }
       else {
-        $errorstring .= "<br>db error 8\n";
+        $errorstring .= "db error 8\n";
       }
 
       $query_data = array("action" => "blog");
@@ -1449,7 +1453,7 @@ class Blog extends Model {
 
     }
     else {
-      $errorstring .= "<br>db error 7\n";
+      $errorstring .= "db error 7\n";
     }
 
     // kommentar formular
@@ -1478,6 +1482,7 @@ class Blog extends Model {
                 "<p><input type=\"submit\" value=\"".$this->language["BUTTON_SEND"]."\" /><input type=\"reset\" value=\"".$this->language["BUTTON_CLEAR"]."\" /></p>\n".
                 "</form>\n";
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $replace, "error" => $errorstring);
   }
 
@@ -1548,7 +1553,7 @@ class Blog extends Model {
 
               }
               else {
-                $errorstring .= "<br>db error 9\n";
+                $errorstring .= "db error 9\n";
               }
 
             }
@@ -1572,9 +1577,10 @@ class Blog extends Model {
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error\n";
+      $errorstring .= "db error\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $replace, "error" => $errorstring);
   }
 

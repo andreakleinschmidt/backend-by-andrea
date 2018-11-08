@@ -128,14 +128,15 @@ class Photos extends Model {
 
       }
       else {
-        $errorstring .= "<br>db error 4a\n";
+        $errorstring .= "db error 4a\n";
       }
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error\n";
+      $errorstring .= "db error\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("hd_title_ext" => $hd_title_str, "content" => $replace, "error" => $errorstring);
   }
 
@@ -243,9 +244,10 @@ class Photos extends Model {
 
     }
     else {
-      $errorstring .= "<br>db error 4b\n";
+      $errorstring .= "db error 4b\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("hd_title_ext" => $hd_title_str, "content" => $replace, "error" => $errorstring);
   }
 
@@ -319,9 +321,10 @@ class Photos extends Model {
 
     }
     else {
-      $errorstring .= "<br>db error 4c\n";
+      $errorstring .= "db error 4c\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $replace, "error" => $errorstring);
   }
 

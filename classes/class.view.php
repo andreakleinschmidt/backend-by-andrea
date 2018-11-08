@@ -60,10 +60,23 @@ class View {
       $template_out = fread($handle, filesize($this->template));
       fclose($handle);
 
-      $errorstring = "".$this->content_arr["error"];
+      $errorstring = "";
+      if (array_key_exists("error", $this->content_arr)) {
+        if (strlen($this->content_arr["error"]) > 0) {
+          $errorstring = "".$this->content_arr["error"];
+          $errorstring = "<p>".nl2br($errorstring)."</p>\n\n";
+        }
+      }
+
+      $debug_str = "";
+      if (array_key_exists("debug", $this->content_arr)) {
+        if (strlen($this->content_arr["debug"]) > 0) {
+          $debug_str = "debug:\n".$this->content_arr["debug"];
+          $debug_str = "<p>".nl2br($debug_str)."</p>\n\n";
+        }
+      }
 
       if ($backend) {
-        $debug_str = "".$this->content_arr["debug"];
         $template_out = str_replace("{content}", $this->content_arr["content"], $template_out);
         $template_out = str_replace("{error}", $errorstring, $template_out);
         $template_out = str_replace("{debug}", $debug_str, $template_out);

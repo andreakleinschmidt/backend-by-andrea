@@ -115,7 +115,7 @@ class PostController {
     } // comment[]
 
     else {
-      $errorstring = "<p>POST error</p>\n\n";
+      $errorstring = "POST error\n";
       $ret["content"] = "";
       $ret["error"] = $errorstring;
     }

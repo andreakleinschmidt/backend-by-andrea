@@ -157,14 +157,15 @@ class Profile extends Model {
 
       } // stmt
       else {
-        $errorstring .= "<br>db error 3a\n";
+        $errorstring .= "db error 3a\n";
       }
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error\n";
+      $errorstring .= "db error\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $replace, "error" => $errorstring);
   }
 
@@ -270,14 +271,15 @@ class Profile extends Model {
 
       }
       else {
-        $errorstring .= "<br>db error 3\n";
+        $errorstring .= "db error 3\n";
       }
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error\n";
+      $errorstring .= "db error\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $replace, "error" => $errorstring);
   }
 

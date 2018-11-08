@@ -44,13 +44,13 @@ class Session {
   // return debug string
   public function set_login() {
     $uid = sha1(uniqid(bin2hex(openssl_random_pseudo_bytes(8))));	// sha1 uid mit random prefix
-    $ret = "<br>sl1 uid = ".$uid."\n";
+    $ret = "sl1 uid = ".$uid."\n";
 
     $_SESSION["auth"] = sha1($_SERVER['HTTP_USER_AGENT'].
                              $_SERVER['REMOTE_ADDR'].
                              "backend_".VERSION.
                              $uid);
-    $ret .= "<br>sl2 auth = ".$_SESSION["auth"]."\n";
+    $ret .= "sl2 auth = ".$_SESSION["auth"]."\n";
 
     // client id cookie setzen mit sha1 uid
     setcookie("uid",$uid, time()+LOGIN_TIME);	// client
@@ -85,12 +85,10 @@ class Session {
         $login = false;
       }
 
-      if (DEBUG) {
-        $ret .= "<br>002 auth = ".$auth."\n";
-        $ret .= "<br>003 auth2 = ".$auth2."\n";
-        $ret .= "<br>004 uid = ".$uid."\n";
-        $ret .= "<br>005 login = ".$login."\n";
-      }
+      $ret .= "002 auth = ".$auth."\n";
+      $ret .= "003 auth2 = ".$auth2."\n";
+      $ret .= "004 uid = ".$uid."\n";
+      $ret .= "005 login = ".$login."\n";
 
     }
 
@@ -105,10 +103,10 @@ class Session {
     $_SESSION["user_name"] = $user_login;
     $_SESSION["user_locale"] = $user_locale;
 
-    $ret = "<br>user_id = ".$_SESSION["user_id"]."\n";
-    $ret .= "<br>user_role = ".$_SESSION["user_role"]."\n";
-    $ret .= "<br>user_name = ".$_SESSION["user_name"]."\n";
-    $ret .= "<br>user_locale = ".$_SESSION["user_locale"]."\n";
+    $ret = "user_id = ".$_SESSION["user_id"]."\n";
+    $ret .= "user_role = ".$_SESSION["user_role"]."\n";
+    $ret .= "user_name = ".$_SESSION["user_name"]."\n";
+    $ret .= "user_locale = ".$_SESSION["user_locale"]."\n";
 
     return $ret;
   }
@@ -117,7 +115,7 @@ class Session {
   // return debug string
   public function unset_user_login() {
     unset($_SESSION["user_id"], $_SESSION["user_role"], $_SESSION["user_name"], $_SESSION["user_locale"]);
-    $ret = "<br>unset user_id/_role/_name/_locale\n";
+    $ret = "unset user_id/_role/_name/_locale\n";
 
     return $ret;
   }

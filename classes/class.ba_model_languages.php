@@ -120,7 +120,7 @@ class Languages extends Model {
 
       }
       else {
-        $errorstring .= "<p>db error 3p</p>\n\n";
+        $errorstring .= "db error 3p\n";
       }
 
       // neue language
@@ -150,9 +150,10 @@ class Languages extends Model {
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
@@ -187,16 +188,17 @@ class Languages extends Model {
       } // stmt
 
       else {
-        $errorstring .= "<p>db error 4p</p>\n\n";
+        $errorstring .= "db error 4p\n";
       }
 
       $html_backend_ext .= "</section>\n\n";
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
@@ -241,7 +243,7 @@ class Languages extends Model {
         } // stmt
 
         else {
-          $errorstring .= "<p>db error 4q</p>\n\n";
+          $errorstring .= "db error 4q\n";
         }
 
       }
@@ -252,9 +254,10 @@ class Languages extends Model {
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 

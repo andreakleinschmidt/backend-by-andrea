@@ -43,6 +43,7 @@
 // *** error list ***
 // *****************************************************************************
 //
+// error fileupload - bei backend POST upload (module fileinfo, ressource finfo)
 // error fileupload 1 - bei backend POST upload (kein type jpg oder mp4)
 // error fileupload 2 - bei backend POST upload (datei schreiben)
 
@@ -147,7 +148,7 @@ class Upload extends Model {
             $html_backend_ext .= "<p>fileupload (jpeg)</p>\n\n";
           }
           else {
-            $errorstring .= "<p>error fileupload 2 (jpeg)</p>\n\n";
+            $errorstring .= "error fileupload 2 (jpeg)\n";
           }
         }
         elseif ($mimetype == "video/mp4") {
@@ -156,22 +157,22 @@ class Upload extends Model {
             $html_backend_ext .= "<p>fileupload (video)</p>\n\n";
           }
           else {
-            $errorstring .= "<p>error fileupload 2 (video)</p>\n\n";
+            $errorstring .= "error fileupload 2 (video)\n";
           }
         }
         else {
-          $errorstring .= "<p>error fileupload 1 (wrong mime type)</p>\n\n";
+          $errorstring .= "error fileupload 1 (wrong mime type)\n";
         } // if mimetype
 
         finfo_close($finfo);
       } // $finfo
       else {
-        $errorstring .= "<p>error fileupload - no ressource finfo</p>\n\n";
+        $errorstring .= "error fileupload - no ressource finfo\n";
       }
 
     } // module fileinfo
     else {
-      $errorstring .= "<p>error fileupload - module fileinfo doesn't exist</p>\n\n";
+      $errorstring .= "error fileupload - module fileinfo doesn't exist\n";
     }
 
     $html_backend_ext .= "</section>\n\n";

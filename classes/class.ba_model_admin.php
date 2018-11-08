@@ -254,7 +254,7 @@ class Admin extends Model {
 
       }
       else {
-        $errorstring .= "<p>db error 3j</p>\n\n";
+        $errorstring .= "db error 3j\n";
       }
 
       $locales = $this->getLocales();	// locales als array
@@ -266,9 +266,10 @@ class Admin extends Model {
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
@@ -311,16 +312,17 @@ class Admin extends Model {
       } // stmt
 
       else {
-        $errorstring .= "<p>db error 4g</p>\n\n";
+        $errorstring .= "db error 4g\n";
       }
 
       $html_backend_ext .= "</section>\n\n";
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
@@ -364,7 +366,7 @@ class Admin extends Model {
         } // stmt
 
         else {
-          $errorstring .= "<p>db error 4h</p>\n\n";
+          $errorstring .= "db error 4h\n";
         }
 
       }
@@ -375,9 +377,10 @@ class Admin extends Model {
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 

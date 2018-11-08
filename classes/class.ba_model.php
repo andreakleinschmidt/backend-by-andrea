@@ -468,14 +468,15 @@ class Model {
       } // stmt
 
       else {
-        $errorstring .=  "<p>db error 2a</p>\n\n";
+        $errorstring .=  "db error 2a\n";
       }
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("check" => $check, "user_id" => $user_id, "user_role" => $user_role, "user_login" => $user_login, "user_locale" => $user_locale, "password_hash" => $password_hash, "use_2fa" => $use_2fa, "last_code" => $last_code, "base64_secret" => $base64_secret, "error" => $errorstring);
   }
 
@@ -501,14 +502,15 @@ class Model {
       } // stmt_ts
 
       else {
-        $errorstring .=  "<p>db error 2c</p>\n\n";	// db error 2c - stmt bei login timestamp
+        $errorstring .=  "db error 2c\n";	// db error 2c - stmt bei login timestamp
       }
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("error" => $errorstring);
   }
 
@@ -543,7 +545,7 @@ class Model {
         } // fetch ok
 
         else {
-          $errorstring .= "<p>id error</p>\n\n";
+          $errorstring .= "id error\n";
         }
 
         $stmt_select->close();
@@ -551,14 +553,15 @@ class Model {
       } // stmt_select
 
       else {
-        $errorstring .= "<p>db error 2b1</p>\n\n";
+        $errorstring .= "db error 2b1\n";
       }
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("check" => $check, "password_hash" => $password_hash, "error" => $errorstring);
   }
 
@@ -594,16 +597,17 @@ class Model {
       } // stmt_select
 
       else {
-        $errorstring .= "<p>db error 2b2</p>\n\n";
+        $errorstring .= "db error 2b2\n";
       }
 
       $html_backend_ext .= "</section>\n\n";
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
@@ -639,7 +643,7 @@ class Model {
 
 
         else {
-          $errorstring .= "<p>id error</p>\n\n";
+          $errorstring .= "id error\n";
         }
 
         $stmt_select->close();
@@ -647,14 +651,15 @@ class Model {
       } // stmt_select
 
       else {
-        $errorstring .= "<p>db error 2b3</p>\n\n";
+        $errorstring .= "db error 2b3\n";
       }
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("result" => $result, "use_2fa" => $use_2fa, "base64_secret" => $base64_secret, "error" => $errorstring);
   }
 
@@ -690,16 +695,17 @@ class Model {
       } // stmt_select
 
       else {
-        $errorstring .= "<p>db error 2b4</p>\n\n";
+        $errorstring .= "db error 2b4\n";
       }
 
       $html_backend_ext .= "</section>\n\n";
 
     } // datenbank
     else {
-      $errorstring .= "<br>db error 1\n";
+      $errorstring .= "db error 1\n";
     }
 
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
@@ -715,7 +721,7 @@ class Model {
                            "</section>\n\n";
     }
     else {
-      $errorstring .= "<p>no version defined</p>\n\n";
+      $errorstring .= "no version defined\n";
     }
 
     return array("content" => $html_backend_ext, "error" => $errorstring);
