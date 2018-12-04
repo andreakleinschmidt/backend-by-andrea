@@ -348,6 +348,7 @@ div#photostripscroll {
 div#blog, div#blogcommentform {
   float:left;
   text-align:justify;
+  hyphens:auto;
   width:820px;
   overflow:auto;
 }
@@ -355,6 +356,7 @@ div#blog, div#blogcommentform {
 div#blogstrip {
   float:right;
   text-align:justify;
+  hyphens:auto;
   width:235px;
   overflow:hidden;
 }
@@ -532,6 +534,7 @@ div#suggestion {
 
 div#blogbox {
   text-align:justify;
+  hyphens:auto;
   color:#331122;
   font-size:small;
   margin-top:50px;

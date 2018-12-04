@@ -101,6 +101,11 @@ class Model {
     return $language;
   }
 
+  // return "de" oder "en"
+  public function getLang() {
+    return substr($this->language["locale"], 0, 2);
+  }
+
   // wrapper htmlspecialchars()
   public function html5specialchars($str) {
     return htmlspecialchars($str, ENT_COMPAT | ENT_HTML5, "UTF-8");

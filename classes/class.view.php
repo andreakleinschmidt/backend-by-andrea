@@ -82,6 +82,7 @@ class View {
         $template_out = str_replace("{debug}", $debug_str, $template_out);
       }
       else {
+        $template_out = str_replace("{language_code}", $this->content_arr["language_code"], $template_out);
         $template_out = str_replace("{hd_title}", $this->content_arr["hd_title"], $template_out);
         $template_out = str_replace("{hd_description}", $this->content_arr["hd_description"], $template_out);
         $template_out = str_replace("{hd_author}", $this->content_arr["hd_author"], $template_out);

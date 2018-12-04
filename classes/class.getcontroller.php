@@ -73,6 +73,11 @@ class GetController {
     $view = new View();	// view erstellen
     $view->setTemplate("default");	// template "tpl_default.htm" laden
 
+    // html language code
+    $language_code = $this->model->getLang();	// "de" oder "en"
+
+    $view->setContent("language_code", $language_code);
+
     // html head
     if (!isset($_SESSION["head"])) {
       // falls session variable noch nicht existiert
