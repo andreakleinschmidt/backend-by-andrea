@@ -363,7 +363,7 @@ atom:
       $menue .= "<li><a href=\"mailto:".$contact_mail."\">".$this->language["FRONTEND_NAV_CONTACT"]."</a></li>\n";
 
       // feed icon
-      $menue .= "<li><a href=\"atom.php\" type=\"application/atom+xml\" title=\"".$feed_title."\"><img class=\"noborder\" src=\"".FEED_PNG."\" height=\"14\" width=\"14\"></a></li>\n";
+      $menue .= "<li><a href=\"feed/\" type=\"application/atom+xml\" title=\"".$feed_title."\"><img class=\"noborder\" src=\"".FEED_PNG."\" height=\"14\" width=\"14\"></a></li>\n";
 
       $menue .= "</ul>";
 
@@ -667,7 +667,7 @@ atom:
       // follow blog (nur atom feed)
       $footer .= "<ul>\n".
                  "<li><h3>".$this->language["FRONTEND_SUBSCRIBE_BLOG"]."</h3></li>\n".
-                 "<li><a href=\"atom.php\" type=\"application/atom+xml\" title=\"".$feed_title."\"><img class=\"noborder\" src=\"".FEED_PNG."\" height=\"14\" width=\"14\"> Atom Feed</a></li>\n".
+                 "<li><a href=\"feed/\" type=\"application/atom+xml\" title=\"".$feed_title."\"><img class=\"noborder\" src=\"".FEED_PNG."\" height=\"14\" width=\"14\"> Atom Feed</a></li>\n".
                  "</ul>\n".
                  "</div>";
 
