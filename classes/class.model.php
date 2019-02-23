@@ -362,8 +362,10 @@ atom:
       // mail kontakt
       $menue .= "<li><a href=\"mailto:".$contact_mail."\">".$this->language["FRONTEND_NAV_CONTACT"]."</a></li>\n";
 
-      // feed icon
-      $menue .= "<li><a href=\"feed/\" type=\"application/atom+xml\" title=\"".$feed_title."\"><img class=\"noborder\" src=\"".FEED_PNG."\" height=\"14\" width=\"14\"></a></li>\n";
+      // feed icon (nur wenn blog)
+      if (in_array(ACTION_BLOG, $nav_arr)) {
+        $menue .= "<li><a href=\"feed/\" type=\"application/atom+xml\" title=\"".$feed_title."\"><img class=\"noborder\" src=\"".FEED_PNG."\" height=\"14\" width=\"14\"></a></li>\n";
+      }
 
       $menue .= "</ul>";
 
@@ -385,7 +387,7 @@ atom:
       // wenn kein fehler
 
       // zugriff auf mysql datenbank (1l)
-      $sql = "SELECT user, ba_datetime FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid ORDER BY ba_id DESC LIMIT 1";
+      $sql = "SELECT id, user, last_login FROM backend ORDER BY last_login DESC LIMIT 1";
       $ret = $this->database->query($sql);	// liefert in return db-objekt
       if ($ret) {
         // wenn kein fehler 1l
@@ -393,7 +395,7 @@ atom:
         // {login} ersetzen mit user und letzten datum-eintrag in blog
         $dataset = $ret->fetch_assoc();	// fetch_assoc() liefert array
         $user = stripslashes($this->html5specialchars($dataset["user"]));
-        $datetime = Blog::check_datetime(date_create_from_format("Y-m-d H:i:s", $dataset["ba_datetime"]));	// "YYYY-MM-DD HH:MM:SS"
+        $datetime = Blog::check_datetime(date_create_from_format("Y-m-d H:i:s", $dataset["last_login"]));	// "YYYY-MM-DD HH:MM:SS"
         $date = date_format($datetime, $this->language["FORMAT_DATE"]);	// "DD.MM.YY"
 
         $login = "<p>".$this->language["FRONTEND_LAST_LOGIN"]."</p>\n".

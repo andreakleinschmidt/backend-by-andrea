@@ -106,6 +106,20 @@ class GetController {
 
     $view->setContent("menue", $menue["menue"]);
 
+    // action überprüfen
+    $base = $this->model->getBase("nav");
+    $actions = explode(",", $base["nav"]);	// array(ACTION_HOME, ACTION_PROFILE, ACTION_PHOTOS, ACTION_BLOG);
+
+    if (!in_array($this->action, $actions)) {
+      $base = $this->model->getBase("startpage");
+      if (!empty($base["startpage"])) {
+        $this->action = $base["startpage"];
+      }
+      else {
+        $this->action = ACTION_HOME;	// default
+      }
+    }
+
     if ($this->action == ACTION_BLOG) {
       if (!isset($_SESSION["blogroll"])) {
         // falls session variable noch nicht existiert
@@ -117,7 +131,7 @@ class GetController {
         $ret_array = $_SESSION["blogroll"];	// aus SESSION lesen
       }
     }
-    else {
+    elseif (in_array(ACTION_BLOG, $actions)) {
       if (!isset($_SESSION["blogbox"])) {
         // falls session variable noch nicht existiert
         $ret_array = $this->model->blogbox();	// login erweitern mit blogbox
@@ -128,23 +142,14 @@ class GetController {
         $ret_array = $_SESSION["blogbox"];	// aus SESSION lesen
       }
     }
+    else {
+      $ret_array = array();	// empty
+    }
 
     $login = $this->model->getLogin($ret_array);	// daten für login aus dem model, mit login erweiterung als parameter
     $view->setContent("login", $login["login"]);
 
     $ret = null;	// ["content","error"]
-
-    // action überprüfen
-    $actions = array(ACTION_HOME, ACTION_PROFILE, ACTION_PHOTOS, ACTION_BLOG);
-    if (!in_array($this->action, $actions)) {
-      $base = $this->model->getBase("startpage");
-      if (!empty($base["startpage"])) {
-        $this->action = $base["startpage"];
-      }
-      else {
-        $this->action = ACTION_HOME;	// default
-      }
-    }
 
     // switch anweisung, {hd_title} und {content} ersetzen je nach GET-action
 
@@ -182,14 +187,20 @@ class GetController {
 
     $view->setContent("content", $ret["content"]);
 
-    if (!isset($_SESSION["footer"])) {
-      // falls session variable noch nicht existiert
-      $footer = $this->model->getFooter();	// daten für footer aus dem model
-      $_SESSION["footer"] = $footer;	// in SESSION speichern
-    } // neue session variable
+    if (in_array(ACTION_BLOG, $actions)) {
+      // footer nur wenn blog
+      if (!isset($_SESSION["footer"])) {
+        // falls session variable noch nicht existiert
+        $footer = $this->model->getFooter();	// daten für footer aus dem model
+        $_SESSION["footer"] = $footer;	// in SESSION speichern
+      } // neue session variable
+      else {
+        // alte session variable
+        $footer = $_SESSION["footer"];	// aus SESSION lesen
+      }
+    }
     else {
-      // alte session variable
-      $footer = $_SESSION["footer"];	// aus SESSION lesen
+      $footer = array("footer" => "", "error" => "");
     }
 
     $view->setContent("footer", $footer["footer"]);

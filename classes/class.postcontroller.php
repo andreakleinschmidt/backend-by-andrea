@@ -76,6 +76,10 @@ class PostController {
 
     $view->setContent("menue", $menue["menue"]);
 
+    // action überprüfen
+    $base = $this->model->getBase("nav");
+    $actions = explode(",", $base["nav"]);	// array(ACTION_HOME, ACTION_PROFILE, ACTION_PHOTOS, ACTION_BLOG);
+
     $login = $this->model->getLogin();	// daten für login aus dem model
     $view->setContent("login", $login["login"]);
 
@@ -125,14 +129,20 @@ class PostController {
 
     $view->setContent("content", $ret["content"]);
 
-    if (!isset($_SESSION["footer"])) {
-      // falls session variable noch nicht existiert
-      $footer = $this->model->getFooter();	// daten für footer aus dem model
-      $_SESSION["footer"] = $footer;	// in SESSION speichern
-    } // neue session variable
+    if (in_array(ACTION_BLOG, $actions)) {
+      // footer nur wenn blog
+      if (!isset($_SESSION["footer"])) {
+        // falls session variable noch nicht existiert
+        $footer = $this->model->getFooter();	// daten für footer aus dem model
+        $_SESSION["footer"] = $footer;	// in SESSION speichern
+      } // neue session variable
+      else {
+        // alte session variable
+        $footer = $_SESSION["footer"];	// aus SESSION lesen
+      }
+    }
     else {
-      // alte session variable
-      $footer = $_SESSION["footer"];	// aus SESSION lesen
+      $footer = array("footer" => "", "error" => "");
     }
 
     $view->setContent("footer", $footer["footer"]);
