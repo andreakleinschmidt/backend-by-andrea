@@ -488,7 +488,7 @@ class Comment extends Model {
 
         // einfügen in datenbank:
         if ($ba_id == 0) {
-          $sql = "INSERT INTO ba_comment (ba_userid, ba_datetime, ba_ip, ba_name, ba_mail, ba_text, ba_comment, ba_blogid, ba_state) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+          $sql = "INSERT INTO ba_comment (ba_userid, ba_datetime, ba_ip, ba_name, ba_mail, ba_text, ba_comment, ba_blogid, ba_state) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
         }
 
         // löschen in datenbank:
@@ -508,7 +508,7 @@ class Comment extends Model {
 
           // austauschen ?????????, ? oder ?????????? durch string und int
           if ($ba_id == 0) {
-            $stmt->bind_param("sssssssii", $ba_userid, $ba_datetime, $ba_ip, $ba_name, $ba_mail, $ba_text, $ba_comment, $ba_blogid, $ba_state);	// einfügen in datenbank
+            $stmt->bind_param("issssssii", $ba_userid, $ba_datetime, $ba_ip, $ba_name, $ba_mail, $ba_text, $ba_comment, $ba_blogid, $ba_state);	// einfügen in datenbank
             $html_backend_ext .= "<p>".$this->language["MSG_COMMENT_NEW"]."</p>\n\n";
           }
           elseif ($ba_delete) {
@@ -516,7 +516,7 @@ class Comment extends Model {
             $html_backend_ext .= "<p>".$this->language["MSG_COMMENT_DELETE"]."</p>\n\n";
           }
           else {
-            $stmt->bind_param("sssssssiii", $ba_userid, $ba_datetime, $ba_ip, $ba_name, $ba_mail, $ba_text, $ba_comment, $ba_blogid, $ba_state, $ba_id);	// update in datenbank
+            $stmt->bind_param("issssssiii", $ba_userid, $ba_datetime, $ba_ip, $ba_name, $ba_mail, $ba_text, $ba_comment, $ba_blogid, $ba_state, $ba_id);	// update in datenbank
             $html_backend_ext .= "<p>".$this->language["MSG_COMMENT_UPDATE"]."</p>\n\n";
           }
           $stmt->execute();	// ausführen geänderte zeile

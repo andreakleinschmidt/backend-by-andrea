@@ -1382,7 +1382,7 @@ class Blog extends Model {
       $lmt_start = ($compage-1) * $anzahl_cps;
 
       // zugriff auf mysql datenbank (8)
-      $sql = "SELECT ba_id, ba_datetime, ba_name, ba_mail, ba_text, ba_comment, ba_blogid, IFNULL(full_name,'nobody') FROM ba_comment LEFT JOIN backend ON backend.id = ba_comment.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_blogid = 1 OR ".$sql_part.") ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_cps;
+      $sql = "SELECT ba_id, ba_datetime, ba_name, ba_mail, ba_text, ba_comment, ba_blogid, IFNULL(full_name,'nobody') AS full_name FROM ba_comment LEFT JOIN backend ON backend.id = ba_comment.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_blogid = 1 OR ".$sql_part.") ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_cps;
       $ret = $this->database->query($sql);	// liefert in return db-objekt
       if ($ret) {
         // wenn kein fehler 8
@@ -1537,13 +1537,13 @@ class Blog extends Model {
               // if not spam
 
               // in mysql einfügen mit prepare() - sql injections verhindern
-              $sql = "INSERT INTO ba_comment(ba_datetime, ba_ip, ba_name, ba_mail, ba_text, ba_blogid, ba_state) VALUES (NOW(), ?, ?, ?, ?, ?, ?)";
+              $sql = "INSERT INTO ba_comment(ba_datetime, ba_ip, ba_name, ba_mail, ba_text, ba_blogid, ba_state) VALUES (NOW(), ?, ?, ?, ?, ?, 0)";
               $stmt = $this->database->prepare($sql);	// liefert mysqli-statement-objekt
               if ($stmt) {
                 // wenn kein fehler 9
 
                 // austauschen ?????? durch string und int 
-                $stmt->bind_param("ssssii", $comment_ip, $comment_name, $comment_mail, $comment_text, $comment_blogid, $comment_state);
+                $stmt->bind_param("ssssi", $comment_ip, $comment_name, $comment_mail, $comment_text, $comment_blogid);
                 $stmt->execute();	// ausführen geänderte zeile
 
                 // (alt) ...<a href=\"index.php?action=blog#comment\">...

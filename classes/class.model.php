@@ -641,10 +641,10 @@ atom:
               $ba_mail = stripslashes($this->html5specialchars($dataset["ba_mail"]));
               $ba_blogid = $dataset["ba_blogid"];
               if ($ba_mail != "") {
-                $commenter .= "<a href=\"mailto:".$ba_mail."\">".$ba_name."</a>";
+                $commenter = "<a href=\"mailto:".$ba_mail."\">".$ba_name."</a>";
               }
               else {
-                $commenter .= $ba_name;
+                $commenter = $ba_name;
               }
               $footer .= "<li>".$commenter;
               if ($ba_blogid > 1) {
