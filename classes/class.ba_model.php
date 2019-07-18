@@ -263,7 +263,13 @@ class Model {
     $section_start_str = $section_start ? "<section>\n\n" : "";
     $section_end_str = $section_end ? "</section>\n\n" : "";
     $shared_secret = base64_decode($base64_secret);
-    $base32_secret = $this->base32_encode($shared_secret); // für qrcode
+    if (!empty($shared_secret)) {
+      $base32_secret = $this->base32_encode($shared_secret); // für qrcode
+    }
+    else {
+      $base64_secret = "init";
+      $base32_secret = "";
+    }
     $twofa_form = $section_start_str.
                   "<p><b>".$this->language["HEADER_2FA"]."</b></p>\n".
                   "<form name=\"twofa_form\" action=\"backend.php\" method=\"post\">\n".
@@ -452,7 +458,7 @@ class Model {
         // austauschen ? durch user string (s)
         $stmt->bind_param("s", $user_login);
         $stmt->execute();	// ausführen geänderte zeile
-        $stmt->store_result();	// sonst $database->error "Commands out of sync; you can't run this command now" bei stmt_opt
+        $stmt->store_result();	// sonst $database->error "Commands out of sync; you can't run this command now" bei stmt
 
         $stmt->bind_result($user_id, $user_role, $user_login, $password_hash, $user_locale, $use_2fa, $last_code, $base64_secret);	// ausgabe in $user_id, user_role, $user_login, $password_hash, $use_2fa, $last_code, $base64_secret
         // fetch liefert wert oder NULL (user aus SELECT stimmt nicht überein)
@@ -533,7 +539,7 @@ class Model {
         // austauschen ? durch id int (i)
         $stmt_select->bind_param("i", $_SESSION["user_id"]);
         $stmt_select->execute();	// ausführen geänderte zeile
-        $stmt_select->store_result();	// sonst $database->error "Commands out of sync; you can't run this command now" bei stmt_opt
+        $stmt_select->store_result();	// sonst $database->error "Commands out of sync; you can't run this command now" bei stmt_select
 
         $stmt_select->bind_result($password_hash);	// ausgabe in $password_hash
         // fetch liefert wert oder NULL
@@ -594,7 +600,7 @@ class Model {
 
         $stmt_update->close();
 
-      } // stmt_select
+      } // stmt_update
 
       else {
         $errorstring .= "db error 2b2\n";
@@ -631,7 +637,7 @@ class Model {
         // austauschen ? durch id int (i)
         $stmt_select->bind_param("i", $_SESSION["user_id"]);
         $stmt_select->execute();	// ausführen geänderte zeile
-        $stmt_select->store_result();	// sonst $database->error "Commands out of sync; you can't run this command now" bei stmt_opt
+        $stmt_select->store_result();	// sonst $database->error "Commands out of sync; you can't run this command now" bei stmt_select
 
         $stmt_select->bind_result($use_2fa, $base64_secret);	// ausgabe in $use_2fa, $base64_secret
         // fetch liefert wert oder NULL
@@ -692,7 +698,7 @@ class Model {
 
         $stmt_update->close();
 
-      } // stmt_select
+      } // stmt_update
 
       else {
         $errorstring .= "db error 2b4\n";
