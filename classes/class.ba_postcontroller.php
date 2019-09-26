@@ -52,6 +52,10 @@
 
 class PostController {
 
+  private $user_login;
+  private $password;
+  private $code;
+
   // konstruktor, controller erstellen
   public function __construct() {
     $this->user_login = !empty($_POST["user_login"]) ? trim($_POST["user_login"]) : NULL;	// überflüssige leerzeichen entfernen
@@ -159,7 +163,7 @@ class PostController {
             // vergleich mit datenbank (passwort in datenbank ist blowfish hash mit random salt)
             $ret = $this->model->check_user($this->user_login);
 
-            if ($ret["check"] = true) {
+            if ($ret["check"] == true) {
 
               $user_id = $ret["user_id"];
               $user_role = $ret["user_role"];
@@ -221,7 +225,6 @@ class PostController {
           $login_passed = $_SESSION["login_passed"];
           $last_code= $_SESSION["login_last_code"];
           $base64_secret = $_SESSION["login_base64_secret"];
-
 
           unset($_SESSION["login_passed"]);
           unset($_SESSION["login_last_code"]);
@@ -348,13 +351,17 @@ class PostController {
               and $password_new2 != "" and mb_strlen($password_new2, MB_ENCODING) <= MAXLEN_PASSWORD) {
             // test auf leeres passwort
 
+            if (DEBUG) { $debug_str .= "017 pwd = ".$password."\n"; }
+            if (DEBUG) { $debug_str .= "018 pwd-n1 = ".$password_new1."\n"; }
+            if (DEBUG) { $debug_str .= "019 pwd-n2 = ".$password_new2."\n"; }
+
             // passwort neu 1 und 2 gleich?
             if ($password_new1 == $password_new2) {
 
               // vergleich mit datenbank (passwort in datenbank ist blowfish hash mit random salt)
               $ret = $this->model->check_password();
 
-              if ($ret["check"] = true) {
+              if ($ret["check"] == true) {
 
                 $password_hash = $ret["password_hash"];
 

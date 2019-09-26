@@ -205,6 +205,21 @@ class Photos extends Model {
                           $replace_photo."\n".
                           "<figcaption>".$replace_text."</figcaption>\n".
                           "</figure>\n";
+
+        // vor und zurück
+        $keys = array_keys($photos);	// array mit ba_photoid
+        $current = array_search($id, $keys);
+        if (isset($keys[$current-1])) {
+          $prev_id = $keys[$current-1];
+          $query_data = array("action" => "photos", "gallery" => $alias, "id" => $prev_id);
+          $replace_figure .= "<a href=\"index.php?".$this->html_build_query($query_data)."\">".$this->language["PAGE_PREVIOUS"]."</a>\n";
+        }
+        if (isset($keys[$current+1])) {
+          $next_id = $keys[$current+1];
+          $query_data = array("action" => "photos", "gallery" => $alias, "id" => $next_id);
+          $replace_figure .= "<a href=\"index.php?".$this->html_build_query($query_data)."\">".$this->language["PAGE_NEXT"]."</a>\n";
+        }
+
       }
       else {
         // keine id

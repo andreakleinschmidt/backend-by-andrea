@@ -11,7 +11,7 @@ body {
   text-align:center;
   margin:0px; padding:0px;
   min-width:1200px;
-  min-height:750px;
+  min-height:800px;
 }
 .body_gbook {
   background-image:url();
@@ -48,6 +48,9 @@ i { font-size:medium; color:#993366; font-style:italic; } /* default italic */
 a:link { font-size:medium; color:#993366; text-decoration:none; }
 a:visited { font-size:medium; color:#993366; text-decoration:none; }
 a:active { font-size:medium; color:#993366; text-decoration:none; }
+div#photos a:link { font-size:small; color:#662244; text-decoration:none; }
+div#photos a:visited { font-size:small; color:#662244; text-decoration:none; }
+div#photos a:active { font-size:small; color:#662244; text-decoration:none; }
 div#blogbox a:link { font-size:small; color:#993366; text-decoration:none; }
 div#blogbox a:visited { font-size:small; color:#993366; text-decoration:none; }
 div#blogbox a:active { font-size:small; color:#993366; text-decoration:none; }
@@ -325,7 +328,7 @@ div#photos {
   color:#331122;
   font-size:small;
   width:855px;
-  height:665px;
+  height:700px;
   overflow:auto;
 }
 
@@ -333,7 +336,7 @@ div#photostrip {
   float:left;
   text-align:center;
   width:200px;
-  height:620px;
+  height:660px;
   overflow:hidden;
 }
 
