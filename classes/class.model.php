@@ -481,7 +481,7 @@ atom:
 
       // {login} erweitern mit blogroll (nur 5 einträge)
       $login .= "\n<!-- blogroll -->\n".
-                "<div id=\"blogbox\">\n".
+                "<div id=\"blogbox\" data-nosnippet>\n".
                 "<span id=\"white_small\">".$this->language["FRONTEND_BLOGROLL"]."</span>\n";
 
       // parameter
@@ -527,7 +527,7 @@ atom:
           // 0=ok, 1=timeout, 2=error
 
           // titel als link + beschreibung
-          $login .= "<br><a href=\"".$ret_array["link"]."\">".$ret_array["title"]."</a>\n";
+          $login .= "<br><a rel=\"nofollow\" href=\"".$ret_array["link"]."\">".$ret_array["title"]."</a>\n";
           $description80 = $ret_array["description80"];
           if (mb_strlen($description80, MB_ENCODING) > 0) {
             if (mb_strlen($description80, MB_ENCODING) >= 79) {
