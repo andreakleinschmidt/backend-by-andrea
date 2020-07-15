@@ -191,6 +191,19 @@ class Blog extends Model {
             }
             break;
 
+          case "bold-italic":
+
+            if (mb_strlen($content_str, $encoding) > 0 and $tag_flag) {
+              $tag_str = "<b><i>".$content_str."</i></b>";
+            }
+            elseif (mb_strlen($content_str, $encoding) > 0 and !$tag_flag) {
+              $tag_str = $content_str;
+            }
+            else {
+              $tag_str = "";
+            }
+            break;
+
           case "list":
 
             $tag_str = "";

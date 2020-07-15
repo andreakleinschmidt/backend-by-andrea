@@ -45,9 +45,13 @@ h3 {
 /* inline Textformat+Links */
 b { font-size:medium; color:#FFFFFF; font-weight:bold; } /* default bold */
 i { font-size:medium; color:#993366; font-style:italic; } /* default italic */
+b i { font-size:medium; color:#993366; font-weight:bold; font-style:italic; }
 a:link { font-size:medium; color:#993366; text-decoration:none; }
 a:visited { font-size:medium; color:#993366; text-decoration:none; }
 a:active { font-size:medium; color:#993366; text-decoration:none; }
+article a:link { font-size:medium; color:#993366; text-decoration:underline; }
+article a:visited { font-size:medium; color:#993366; text-decoration:underline; }
+article a:active { font-size:medium; color:#993366; text-decoration:underline; }
 div#photos a:link { font-size:small; color:#662244; text-decoration:none; }
 div#photos a:visited { font-size:small; color:#662244; text-decoration:none; }
 div#photos a:active { font-size:small; color:#662244; text-decoration:none; }

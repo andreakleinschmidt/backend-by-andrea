@@ -219,6 +219,19 @@ class Blog extends Model {
             }
             break;
 
+          case "bold-italic":
+
+            if (mb_strlen($content_str, $encoding) > 0 and $tag_flag) {
+              $tag_str = "<b><i>".$content_str."</i></b>";
+            }
+            elseif (mb_strlen($content_str, $encoding) > 0 and !$tag_flag) {
+              $tag_str = $content_str;
+            }
+            else {
+              $tag_str = "";
+            }
+            break;
+
           case "list":
 
             $tag_str = "";
@@ -1076,6 +1089,7 @@ class Blog extends Model {
                            "</td>\n<td>\n".
                            "<button type=\"button\" onclick=\"insert_tag('blog_text','bold')\">".$this->language["BUTTON_BOLD"]."</button>\n".
                            "<button type=\"button\" onclick=\"insert_tag('blog_text','italic')\">".$this->language["BUTTON_ITALIC"]."</button>\n".
+                           "<button type=\"button\" onclick=\"insert_tag('blog_text','bold-italic')\">".$this->language["BUTTON_BOLD_ITALIC"]."</button>\n".
                            "<button type=\"button\" onclick=\"insert_tag('blog_text','link')\">".$this->language["BUTTON_LINK"]."</button>\n".
                            "<button type=\"button\" onclick=\"insert_tag('blog_text','list')\">".$this->language["BUTTON_LIST"]."</button>\n".
                            "<button type=\"button\" onclick=\"insert_tag('blog_text','image')\">".$this->language["BUTTON_IMAGE"]."</button>\n".

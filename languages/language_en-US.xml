@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <language name="English (US)" tag="en-US">
   <BUTTON_BOLD text="bold"/>
+  <BUTTON_BOLD_ITALIC text="bold-italic"/>
   <BUTTON_CLEAR text="clear"/>
   <BUTTON_DELETE text="delete"/>
   <BUTTON_IMAGE text="image"/>
