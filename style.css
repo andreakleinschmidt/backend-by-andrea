@@ -96,6 +96,11 @@ span#white_small {
 }
 
 /* Monospace Text */
+span#monospace {
+  font-family:monospace; /* default */
+  font-size:medium;
+  color:#993366;
+}
 pre {
   font-family:monospace; /* default */
   font-size:small;

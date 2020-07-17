@@ -8,6 +8,7 @@
   <BUTTON_ITALIC text="italic"/>
   <BUTTON_LINK text="link"/>
   <BUTTON_LIST text="list"/>
+  <BUTTON_MONOSPACE text="monospace"/>
   <BUTTON_NEW text="new"/>
   <BUTTON_POST text="post"/>
   <BUTTON_SEARCH text="search"/>

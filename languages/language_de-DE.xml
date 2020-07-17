@@ -8,6 +8,7 @@
   <BUTTON_ITALIC text="Kursiv"/>
   <BUTTON_LINK text="Link"/>
   <BUTTON_LIST text="Liste"/>
+  <BUTTON_MONOSPACE text="Monospace"/>
   <BUTTON_NEW text="neu"/>
   <BUTTON_POST text="senden"/>
   <BUTTON_SEARCH text="Suche"/>
