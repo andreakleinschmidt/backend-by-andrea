@@ -689,6 +689,7 @@ class Blog extends Model {
   // return alias aus db oder ""
   private function check_alias($alias) {
     $ba_alias = "";
+    $regex_alias = "^".$alias."$";	// mit start und ende
 
     if (!$this->database->connect_errno) {
       // wenn kein fehler
@@ -699,7 +700,7 @@ class Blog extends Model {
         // wenn kein fehler
 
         // austauschen ? durch string (s)
-        $stmt->bind_param("s", $alias);
+        $stmt->bind_param("s", $regex_alias);
         $stmt->execute();	// ausführen geänderte zeile
 
         $stmt->bind_result($dataset["ba_alias"]);
