@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <language name="Deutsch (DE)" tag="de-DE">
   <BUTTON_BOLD text="Fett"/>
-  <BUTTON_BOLD_ITALIC text="Fett-Kursiv"/>
   <BUTTON_CLEAR text="löschen"/>
   <BUTTON_DELETE text="löschen"/>
   <BUTTON_IMAGE text="Bild"/>

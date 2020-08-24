@@ -18,10 +18,6 @@ function insert_tag(textarea_id,button_id) {
         tag_start = "~italic{";
         tag_end = "}";
         break;
-      case "bold-italic":
-        tag_start = "~bold-italic{";
-        tag_end = "}";
-        break;
       case "monospace":
         tag_start = "~monospace{";
         tag_end = "}";

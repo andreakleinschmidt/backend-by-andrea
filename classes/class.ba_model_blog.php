@@ -152,178 +152,181 @@ class Blog extends Model {
     return $datetime;
   }
 
+  // ersetze new lines im text durch <br> (bzw. <br />) und interpretiere doppelte new lines als absatz <p>
+  public function nl2br_extended($text_str, $xhtml_flag=true) {
+    $paragraphs_old = preg_split('/(*BSR_ANYCRLF)\R{2}/', $text_str, 0, PREG_SPLIT_NO_EMPTY);	// doppelte new lines, PCRE (*BSR_ANYCRLF)\R für \r\n oder \r oder \n
+    $paragraphs_new = array_map("nl2br", $paragraphs_old, array_fill(1, count($paragraphs_old), $xhtml_flag));	// einfache new lines, array_map mit dritten parameter für nl2br($text_str, $xhtml_flag)
+    return implode("</p>\n<p>", $paragraphs_new);	// zusammenfassen zu string, ohne erstes <p> und letztes </p>, nur </p><p> dazwischen
+  }
+
   // ersetze tag kommandos im blogtext ~cmd{content_str} mit html tags <a>, <b>, <i>, <img>
   public function html_tags($text_str, $tag_flag, $encoding="UTF-8") {
-    for ($start=0; mb_strpos($text_str, "~", $start, $encoding) !== false; $start++) {
-      // suche tilde, abbruch der schleife wenn keine tilde mehr in text_str vorhanden (strpos return bool(false))
+    $offset = 0;
+    do {
+      // suche tilde, abbruch der schleife wenn keine tilde mehr in text_str vorhanden (strrpos return bool(false))
+      $start = mb_strrpos($text_str, "~", $offset, $encoding);	// rückwärts, letztes vorkommen (falls schachteltext)
+      if ($start !== false) {
+        $brace = mb_strpos($text_str, "{", $start, $encoding);	// vorwärts, erstes vorkommen
+        $stop  = mb_strpos($text_str, "}", $start, $encoding);	// vorwärts, erstes vorkommen
 
-      $start   = mb_strpos($text_str, "~", $start, $encoding);
-      $brace   = mb_strpos($text_str, "{", $start, $encoding);
-      $stop    = mb_strpos($text_str, "}", $start, $encoding);
+        if ($brace and $stop) {
+          // nur ausführen wenn {} gefunden
+          $cmd         = mb_substr($text_str, $start+1, $brace-$start-1, $encoding);
+          $content_str = mb_substr($text_str, $brace+1, $stop-$brace-1 , $encoding);
 
-      if ($brace and $stop) {
-        // nur ausführen wenn {} gefunden
-        $cmd         = mb_substr($text_str, $start+1, $brace-$start-1, $encoding);
-        $content_str = mb_substr($text_str, $brace+1, $stop-$brace-1 , $encoding);
+          switch ($cmd) {
 
-        switch ($cmd) {
+            case "link":
 
-          case "link":
-
-            if (mb_strlen($content_str, $encoding) > 0 and $tag_flag) {
-              $link = explode("|", $content_str);
-              if (count($link) == 2) {
-                $tag_str = "<a href=\"".$link[0]."\">".$link[1]."</a>";
+              if (mb_strlen($content_str, $encoding) > 0 and $tag_flag) {
+                $link = explode("|", $content_str);
+                if (count($link) == 2) {
+                  $tag_str = "<a href=\"".strip_tags($link[0])."\">".$link[1]."</a>";	// strip_tags falls verirrter html tag
+                }
+                else {
+                  $tag_str = "<a href=\"".strip_tags($link[0])."\">".$link[0]."</a>";	// strip_tags falls verirrter html tag
+                }
+              }
+              elseif (mb_strlen($content_str, $encoding) > 0 and !$tag_flag) {
+                $link = explode("|", $content_str);
+                if (count($link) == 2) {
+                  $tag_str = $link[1];
+                }
+                else {
+                  $tag_str = $link[0];
+                }
               }
               else {
-                $tag_str = "<a href=\"".$link[0]."\">".$link[0]."</a>";
+                $tag_str = "";
               }
-            }
-            elseif (mb_strlen($content_str, $encoding) > 0 and !$tag_flag) {
-              $link = explode("|", $content_str);
-              if (count($link) == 2) {
-                $tag_str = $link[1];
+              break;
+
+            case "bold":
+
+              if (mb_strlen($content_str, $encoding) > 0 and $tag_flag) {
+                $tag_str = "<b>".$content_str."</b>";
               }
-              else {
-                $tag_str = $link[0];
-              }
-            }
-            else {
-              $tag_str = "";
-            }
-            break;
-
-          case "bold":
-
-            if (mb_strlen($content_str, $encoding) > 0 and $tag_flag) {
-              $tag_str = "<b>".$content_str."</b>";
-            }
-            elseif (mb_strlen($content_str, $encoding) > 0 and !$tag_flag) {
-              $tag_str = $content_str;
-            }
-            else {
-              $tag_str = "";
-            }
-            break;
-
-          case "italic":
-
-            if (mb_strlen($content_str, $encoding) > 0 and $tag_flag) {
-              $tag_str = "<i>".$content_str."</i>";
-            }
-            elseif (mb_strlen($content_str, $encoding) > 0 and !$tag_flag) {
-              $tag_str = $content_str;
-            }
-            else {
-              $tag_str = "";
-            }
-            break;
-
-          case "bold-italic":
-
-            if (mb_strlen($content_str, $encoding) > 0 and $tag_flag) {
-              $tag_str = "<b><i>".$content_str."</i></b>";
-            }
-            elseif (mb_strlen($content_str, $encoding) > 0 and !$tag_flag) {
-              $tag_str = $content_str;
-            }
-            else {
-              $tag_str = "";
-            }
-            break;
-
-          case "monospace":
-
-            if (mb_strlen($content_str, $encoding) > 0 and $tag_flag) {
-              $tag_str = "<span id=\"monospace\">".$content_str."</span>";	//<tt></tt>
-            }
-            elseif (mb_strlen($content_str, $encoding) > 0 and !$tag_flag) {
-              $tag_str = $content_str;
-            }
-            else {
-              $tag_str = "";
-            }
-            break;
-
-          case "list":
-
-            $tag_str = "";
-            if (mb_strlen($content_str, $encoding) > 0 and $tag_flag) {
-              $list = explode("|", $content_str);
-              foreach($list as $item) {
-                $tag_str .= "<span class=\"list\">".$item."</span>\n";
-              }
-            }
-            elseif (mb_strlen($content_str, $encoding) > 0 and !$tag_flag) {
-              $list = explode("|", $content_str);
-              foreach($list as $item) {
-                $tag_str .= " - ".$item."\n";
-              }
-            }
-            break;
-
-          case "image":
-
-            if (mb_strlen($content_str, $encoding) > 0 and $tag_flag) {
-              $imagename = "jpeg/".$content_str.".jpg";
-              if (is_readable($imagename)) {
-                $imagesize = getimagesize($imagename);
-                $caption = (new Photos())->getText($content_str);	// imagename als photoid, return caption text
-                $tag_str = "<figure class=\"floating\">".
-                           "<img class=\"border\" src=\"".$imagename."\" ".$imagesize[3].">".
-                           "<figcaption class=\"floating_caption\">".$caption."</figcaption>".
-                           "</figure>";
+              elseif (mb_strlen($content_str, $encoding) > 0 and !$tag_flag) {
+                $tag_str = $content_str;
               }
               else {
+                $tag_str = "";
+              }
+              break;
+
+            case "italic":
+
+              if (mb_strlen($content_str, $encoding) > 0 and $tag_flag) {
+                $tag_str = "<i>".$content_str."</i>";
+              }
+              elseif (mb_strlen($content_str, $encoding) > 0 and !$tag_flag) {
+                $tag_str = $content_str;
+              }
+              else {
+                $tag_str = "";
+              }
+              break;
+
+            case "monospace":
+
+              if (mb_strlen($content_str, $encoding) > 0 and $tag_flag) {
+                $tag_str = "<span id=\"monospace\">".$content_str."</span>";	//<tt></tt>
+              }
+              elseif (mb_strlen($content_str, $encoding) > 0 and !$tag_flag) {
+                $tag_str = $content_str;
+              }
+              else {
+                $tag_str = "";
+              }
+              break;
+
+            case "list":
+
+              $tag_arr = array();
+              if (mb_strlen($content_str, $encoding) > 0 and $tag_flag) {
+                $list = explode("|", $content_str);
+                foreach($list as $item) {
+                  $tag_arr[] = "<span class=\"list\">".$item."</span>";
+                }
+              }
+              elseif (mb_strlen($content_str, $encoding) > 0 and !$tag_flag) {
+                $list = explode("|", $content_str);
+                foreach($list as $item) {
+                  $tag_arr[] = " - ".$item;
+                }
+              }
+              $tag_str = implode("\n", $tag_arr)."\n";
+              break;
+
+            case "image":
+
+              if (mb_strlen($content_str, $encoding) > 0 and $tag_flag) {
+                $imagename = "jpeg/".$content_str.".jpg";
+                if (is_readable($imagename)) {
+                  $imagesize = getimagesize($imagename);
+                  $caption = (new Photos())->getText($content_str);	// imagename als photoid, return caption text
+                  $tag_str = "<figure class=\"floating\">".
+                             "<img class=\"border\" src=\"".$imagename."\" ".$imagesize[3].">".
+                             "<figcaption class=\"floating_caption\">".$caption."</figcaption>".
+                             "</figure>";
+                }
+                else {
+                  $tag_str = "[".$content_str."]";
+                }
+              }
+              elseif (mb_strlen($content_str, $encoding) > 0 and !$tag_flag) {
                 $tag_str = "[".$content_str."]";
               }
-            }
-            elseif (mb_strlen($content_str, $encoding) > 0 and !$tag_flag) {
-              $tag_str = "[".$content_str."]";
-            }
-            else {
-              $tag_str = "";
-            }
-            break;
+              else {
+                $tag_str = "";
+              }
+              break;
 
-          default:
-            $tag_str = $cmd.$content_str;
+            default:
+              $tag_str = $cmd.$content_str;
 
-        } // switch
+          } // switch
 
-        // falls liste, <br> nach </span> entfernen
-        if ($cmd == "list") {
-          if (mb_substr($text_str, $stop+1, 8, $encoding) == "<br />\r\n") {
-            $stop += 8;
+          // falls liste, <br> nach </span> entfernen
+          if ($cmd == "list") {
+            if (mb_substr($text_str, $stop+1, 8, $encoding) == "<br />\r\n") {
+              $stop += 8;
+            }
+            elseif (mb_substr($text_str, $stop+1, 7, $encoding) == "<br />\r") {
+              $stop += 7;
+            }
+            elseif (mb_substr($text_str, $stop+1, 7, $encoding) == "<br />\n") {
+              $stop += 7;
+            }
+            elseif (mb_substr($text_str, $stop+1, 6, $encoding) == "<br>\r\n") {
+              $stop += 6;
+            }
+            elseif (mb_substr($text_str, $stop+1, 5, $encoding) == "<br>\r") {
+              $stop += 5;
+            }
+            elseif (mb_substr($text_str, $stop+1, 5, $encoding) == "<br>\n") {
+              $stop += 5;
+            }
           }
-          elseif (mb_substr($text_str, $stop+1, 7, $encoding) == "<br />\r") {
-            $stop += 7;
-          }
-          elseif (mb_substr($text_str, $stop+1, 7, $encoding) == "<br />\n") {
-            $stop += 7;
-          }
-          elseif (mb_substr($text_str, $stop+1, 6, $encoding) == "<br>\r\n") {
-            $stop += 6;
-          }
-          elseif (mb_substr($text_str, $stop+1, 5, $encoding) == "<br>\r") {
-            $stop += 5;
-          }
-          elseif (mb_substr($text_str, $stop+1, 5, $encoding) == "<br>\n") {
-            $stop += 5;
-          }
+
+          $text_str = mb_substr($text_str, 0, $start, $encoding).$tag_str.mb_substr($text_str, $stop+1, NULL, $encoding);
+          // mb_substr_replace($text_str, $tag_str, $start, $stop-$start+1);
+
+        } // if brace und stop
+
+        elseif ($brace) {
+          // ohne stop
+          $text_str = mb_substr($text_str, 0, $start, $encoding).mb_substr($text_str, $brace+1, NULL, $encoding);
         }
 
-        $text_str = mb_substr($text_str, 0, $start, $encoding).$tag_str.mb_substr($text_str, $stop+1, NULL, $encoding);
-        // mb_substr_replace($text_str, $tag_str, $start, $stop-$start+1);
+        $offset = ($start-1)-mb_strlen($text_str, $encoding);	// negativ, ohne beachtung der zeichen hinter offset
+        if (abs($offset) > mb_strlen($text_str, $encoding)) {
+          $offset = 0;
+        }
 
-      } // if
+      } // if start
 
-      elseif ($brace) {
-        // ohne stop
-        $text_str = mb_substr($text_str, 0, $start, $encoding).mb_substr($text_str, $brace+1, NULL, $encoding);
-      }
-
-    } // for
+    } while ($start !== false);
 
     return $text_str;
   }
@@ -1102,7 +1105,6 @@ class Blog extends Model {
                            "</td>\n<td>\n".
                            "<button type=\"button\" onclick=\"insert_tag('blog_text','bold')\">".$this->language["BUTTON_BOLD"]."</button>\n".
                            "<button type=\"button\" onclick=\"insert_tag('blog_text','italic')\">".$this->language["BUTTON_ITALIC"]."</button>\n".
-                           "<button type=\"button\" onclick=\"insert_tag('blog_text','bold-italic')\">".$this->language["BUTTON_BOLD_ITALIC"]."</button>\n".
                            "<button type=\"button\" onclick=\"insert_tag('blog_text','monospace')\">".$this->language["BUTTON_MONOSPACE"]."</button>\n".
                            "<button type=\"button\" onclick=\"insert_tag('blog_text','link')\">".$this->language["BUTTON_LINK"]."</button>\n".
                            "<button type=\"button\" onclick=\"insert_tag('blog_text','list')\">".$this->language["BUTTON_LIST"]."</button>\n".

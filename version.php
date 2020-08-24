@@ -1,5 +1,5 @@
 <?php
 // This file is part of 'backend by andrea'
 // CMS & blog software with frontend / backend
-define("VERSION","v2018-36-ge77e87e");
+define("VERSION","v2018-37-g34d37f8");
 ?>

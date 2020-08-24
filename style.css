@@ -43,9 +43,10 @@ h3 {
 }
 
 /* inline Textformat+Links */
-b { font-size:medium; color:#FFFFFF; font-weight:bold; } /* default bold */
-i { font-size:medium; color:#993366; font-style:italic; } /* default italic */
-b i { font-size:medium; color:#993366; font-weight:bold; font-style:italic; }
+b   { font-size:medium; color:#FFFFFF; font-weight:bold; } /* default bold */
+b i { font-size:medium; color:#FFFFFF; font-weight:bold; font-style:italic; }
+i   { font-size:medium; color:#993366; font-style:italic; } /* default italic */
+i b { font-size:medium; color:#993366; font-style:italic; font-weight:bold; }
 a:link { font-size:medium; color:#993366; text-decoration:none; }
 a:visited { font-size:medium; color:#993366; text-decoration:none; }
 a:active { font-size:medium; color:#993366; text-decoration:none; }
