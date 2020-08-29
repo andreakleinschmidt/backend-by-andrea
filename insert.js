@@ -30,6 +30,10 @@ function insert_tag(textarea_id,button_id) {
         tag_start = "~list{";
         tag_end = "|...}";
         break;
+      case "table":
+        tag_start = "~table{";
+        tag_end = "|...\\\\}";
+        break;
       case "image":
         tag_start = "~image{";
         tag_end = "}";

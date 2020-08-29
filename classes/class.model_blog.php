@@ -223,6 +223,58 @@ class Blog extends Model {
               $tag_str = implode("\n", $tag_arr)."\n";
               break;
 
+            case "table":
+
+              if (mb_strlen($content_str, $encoding) > 0) {
+                $count_cells = 0;			// höchste anzahl an spalten in einer zeile
+                $table_arr = array();			// leer
+                $rows = explode("\\\\", $content_str);	// "\\" zwei backslashes als trennzeichen zwischen den zeilen
+                foreach ($rows as $row_str) {
+                  $row_arr = array();			// leer
+                  $cells = explode("|", $row_str);	// "|" als trennzeichen zwischen den spalten
+                  foreach ($cells as $cell_str) {
+                    $row_arr[] = $cell_str;		// neue spalte hinzufügen
+                  }
+                  if (count($row_arr) > $count_cells) {
+                    $count_cells = count($row_arr);	// update höchste anzahl an spalten in einer zeile
+                  }
+                  $table_arr[] = $row_arr;		// neue zeile hinzufügen
+                }
+                if ($tag_flag) {
+                  $tag_str = "<table class=\"tb_blog\">\n";
+                  foreach ($table_arr as $row_arr) {
+                    $row_arr = array_pad($row_arr, $count_cells, "");	// zeile mit leeren spalten auffüllen
+                    $tag_str .= "<tr class=\"tr_blog\">\n";
+                    $tag_arr = array();
+                    foreach ($row_arr as $cell_str) {
+                      $tag_arr[] = "<td class=\"td_blog\">".$cell_str."</td>";
+                    }
+                    $tag_str .= implode("\n", $tag_arr)."\n";
+                    $tag_str .= "</tr>\n";
+                  }
+                  $tag_str .= "</table>";
+                }
+                else {
+                  // !$tag_flag
+                  $tag_str = "[\n";
+                  foreach ($table_arr as $row_arr) {
+                    $row_arr = array_pad($row_arr, $count_cells, "");	// zeile mit leeren spalten auffüllen
+                    $tag_str .= "[ ";
+                    $tag_arr = array();
+                    foreach ($row_arr as $cell_str) {
+                      $tag_arr[] = "[".$cell_str."]";
+                    }
+                    $tag_str .= implode(" ", $tag_arr);
+                    $tag_str .= " ]\n";
+                  }
+                  $tag_str .= "]";
+                }
+              }
+              else {
+                $tag_str = "";
+              }
+              break;
+
             case "image":
 
               if (mb_strlen($content_str, $encoding) > 0 and $tag_flag) {

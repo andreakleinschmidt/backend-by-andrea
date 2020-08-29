@@ -13,6 +13,7 @@
   <BUTTON_SEARCH text="search"/>
   <BUTTON_SEND text="send"/>
   <BUTTON_SET text="set"/>
+  <BUTTON_TABLE text="table"/>
   <ELEMENT_IMAGE text="image"/>
   <ELEMENT_PARAGRAPH text="paragraph"/>
   <ELEMENT_TABLE_H text="table with headline"/>

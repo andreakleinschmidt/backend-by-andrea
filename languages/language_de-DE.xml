@@ -13,6 +13,7 @@
   <BUTTON_SEARCH text="Suche"/>
   <BUTTON_SEND text="senden"/>
   <BUTTON_SET text="ändern"/>
+  <BUTTON_TABLE text="Tabelle"/>
   <ELEMENT_IMAGE text="Bild"/>
   <ELEMENT_PARAGRAPH text="Absatz"/>
   <ELEMENT_TABLE_H text="Tabelle mit Kopfzeile"/>

@@ -147,6 +147,14 @@ table {
   max-width:800px;
   border-spacing:10px;
 }
+.tb_blog {
+  background-image:url(transpar.png);
+  font-size:90%;
+  text-align:left;
+  margin:1em 0.5em;
+  max-width:800px;
+  /*border-spacing:2px;*/
+}
 .gbook {
   text-align:left;
   width:800px;
@@ -164,7 +172,6 @@ table {
 .backend i { font-size:inherit; }
 .backend a { font-size:inherit; }
 
-
 tr { background-color:transparent; }
 .farbig { background-color:#331122; }
 th { vertical-align:top; }
@@ -174,6 +181,10 @@ td {}
 .td_profile { vertical-align:top; padding-right:5px; width:25%; }
 .td_backend { vertical-align:top; padding-right:5px; width:15%; }
 .td_media { vertical-align:top; padding-right:5px; }
+.td_blog { vertical-align:top; padding-right:1em; }
+.td_blog a { font-size:inherit; }
+.td_blog b { font-size:inherit; }
+.td_blog i { font-size:inherit; }
 
 /* Imgage Platz+Rahmen */
 img {}
