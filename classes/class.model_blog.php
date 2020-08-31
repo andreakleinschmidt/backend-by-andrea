@@ -241,13 +241,13 @@ class Blog extends Model {
                   $table_arr[] = $row_arr;		// neue zeile hinzufügen
                 }
                 if ($tag_flag) {
-                  $tag_str = "<table class=\"tb_blog\">\n";
+                  $tag_str = "<table>\n";
                   foreach ($table_arr as $row_arr) {
                     $row_arr = array_pad($row_arr, $count_cells, "");	// zeile mit leeren spalten auffüllen
-                    $tag_str .= "<tr class=\"tr_blog\">\n";
+                    $tag_str .= "<tr>\n";
                     $tag_arr = array();
                     foreach ($row_arr as $cell_str) {
-                      $tag_arr[] = "<td class=\"td_blog\">".$cell_str."</td>";
+                      $tag_arr[] = "<td>".$cell_str."</td>";
                     }
                     $tag_str .= implode("\n", $tag_arr)."\n";
                     $tag_str .= "</tr>\n";
