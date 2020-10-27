@@ -118,7 +118,7 @@ class PostController {
   // zustandsmaschine, aufruf der funktionen, datenabfrage beim model, datenweitergabe zum view
   public function display() {
     $view = new View();	// view erstellen
-    $view->setTemplate("backend");	// template "tpl_backend.htm" laden
+    $view->setTemplate();	// template für view laden (DEFAULT_TEMPLATE)
 
     $debug_str = "";
 

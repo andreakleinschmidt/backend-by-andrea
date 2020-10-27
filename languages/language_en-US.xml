@@ -143,6 +143,7 @@
   <PROMPT_IP text="ip:"/>
   <PROMPT_LANGUAGECODES text="language codes:"/>
   <PROMPT_LOCALE text="locale:"/>
+  <PROMPT_MAIL_OPTIONAL text="mail (optional):"/>
   <PROMPT_MAIL text="mail:"/>
   <PROMPT_NAME text="name:"/>
   <PROMPT_NAVIGATION text="nav menue:"/>

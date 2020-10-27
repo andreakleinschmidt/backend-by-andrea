@@ -37,12 +37,12 @@
 
 class View {
 
-  private $template;	// name des templates (hier "default" oder "atom")
+  private $template;	// name des templates (hier "tpl_atom.xml")
   private $content_arr = array();	// array mit variablen (feed, error) für das template
 
   // template auswählen
-  public function setTemplate($template = "default") {
-    $this->template = "tpl_".$template.".xml";
+  public function setTemplate() {
+    $this->template = DEFAULT_XML_TEMPLATE;
   }
 
   // daten in array speichern

@@ -97,6 +97,7 @@ define("ELEMENT_TABLE_H","table+h");
 define("ELEMENT_TABLE","table");
 define("MB_ENCODING","UTF-8");
 define("DEFAULT_LOCALE","de-DE");	// "de-DE" oder "en-US"
+define("DEFAULT_TEMPLATE","tpl_backend.htm");	// template für view laden
 define("DEBUG",false);
 
 ?>

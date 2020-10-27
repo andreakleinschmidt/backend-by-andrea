@@ -71,7 +71,7 @@ class GetController {
   // zustandsmaschine, aufruf der funktionen, datenabfrage beim model, datenweitergabe zum view
   public function display() {
     $view = new View();	// view erstellen
-    $view->setTemplate("default");	// template "tpl_default.htm" laden
+    $view->setTemplate();	// template für view laden (DEFAULT_TEMPLATE)
 
     // html language code
     $language_code = $this->model->getLang();	// "de" oder "en"

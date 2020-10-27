@@ -37,6 +37,7 @@ header("Content-Type: text/xml; charset=utf-8");
 
 // (require wie include, aber abbruch/fatal error  bei nicht-einbinden)
 require_once("classes/define.php");
+require_once("classes/define_atom.php");
 require_once("classes/class.database.php");
 require_once("classes/class.atom_controller.php");
 require_once("classes/class.atom_model.php");

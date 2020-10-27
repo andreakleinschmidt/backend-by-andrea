@@ -44,7 +44,7 @@ class Controller {
   // datenabfrage beim model, datenweitergabe zum view
   public function display() {
     $view = new View();	// view erstellen
-    $view->setTemplate("atom");	// template "tpl_atom.xml" laden
+    $view->setTemplate();	// template für atom view laden (DEFAULT_XML_TEMPLATE)
 
     $ret = $this->model->getFeed();
 

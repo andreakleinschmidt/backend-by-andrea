@@ -39,12 +39,12 @@
 
 class View {
 
-  private $template;	// name des templates (hier "default" oder "backend")
+  private $template;	// name des templates (hier "tpl_default.htm" oder "tpl_backend.htm")
   private $content_arr = array();	// array mit variablen (hd_title, menue, login, content, error, footer) für das template
 
   // template auswählen
-  public function setTemplate($template = "default") {
-    $this->template = "tpl_".$template.".htm";
+  public function setTemplate() {
+    $this->template = DEFAULT_TEMPLATE;
   }
 
   // daten in array speichern

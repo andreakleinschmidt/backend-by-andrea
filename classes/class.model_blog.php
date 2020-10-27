@@ -1537,7 +1537,7 @@ class Blog extends Model {
                 "<div id=\"input_name\">".$this->language["PROMPT_NAME"]."\n".
                 "<br><input type=\"text\" name=\"comment[name]\" class=\"size_20\" maxlength=\"".MAXLEN_COMMENTNAME."\" />\n".
                 "</div>\n".
-                "<div id=\"input_mail\">".$this->language["PROMPT_MAIL"]."\n".
+                "<div id=\"input_mail\">".$this->language["PROMPT_MAIL_OPTIONAL"]."\n".
                 "<br><input type=\"text\" name=\"comment[mail]\" class=\"size_20\" maxlength=\"".MAXLEN_COMMENTMAIL."\" />\n".
                 "</div>\n".
                 "<div id=\"input_website\">".$this->language["PROMPT_WEBSITE"]."\n".
@@ -1596,7 +1596,7 @@ class Blog extends Model {
         if ($comment_website == "" and $comment_blogid > 0) {
 
           // auf leer überprüfen
-          if ($comment_name != "" or $comment_mail != "" or $comment_text != "") {
+          if ($comment_name != "" and $comment_text != "") {
 
             // spamfilter
             $spam = false;
