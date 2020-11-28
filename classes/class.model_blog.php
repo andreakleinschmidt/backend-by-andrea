@@ -904,7 +904,7 @@ class Blog extends Model {
 
       $replace .= "<div id=\"blogstrip\">\n".$taglist.$year_month_list."</div>\n";
 
-      $replace .= "<div id=\"blogcommentform\">\n";
+      $replace .= "<div id=\"blogcommentform\" data-nosnippet>\n";
 
       // kommentar
       if (sizeof($option_array) > 0) {
