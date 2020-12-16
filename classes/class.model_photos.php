@@ -183,6 +183,7 @@ class Photos extends Model {
       }
 
       $replace = "<!-- photos -->\n".
+                 "<div id=\"grid-container-photos\">\n".
                  "<div id=\"photos\">\n";
 
       // GET id auslesen
@@ -252,6 +253,7 @@ class Photos extends Model {
                   "<div id=\"photostripscroll\">\n".
                   "<a href=\"#\" onMouseOver=\"scrolldown()\" onMouseOut=\"scrollstop()\"><img class=\"photos_arrow\" src=\"down.gif\" height=\"10\" width=\"50\"></a>\n".
                   "<noscript>no javascript</noscript>\n".
+                  "</div>\n".
                   "</div>";
 
       $ret->close();	// db-ojekt schließen

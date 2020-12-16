@@ -98,6 +98,7 @@ define("ELEMENT_TABLE","table");
 define("MB_ENCODING","UTF-8");
 define("DEFAULT_LOCALE","de-DE");	// "de-DE" oder "en-US"
 define("DEFAULT_TEMPLATE","tpl_backend.htm");	// template für view laden
+define("TEXT_LOGO","backend\n    by andrea");	// pre text
 define("DEBUG",false);
 
 ?>

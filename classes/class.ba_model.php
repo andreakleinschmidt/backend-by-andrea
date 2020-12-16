@@ -49,6 +49,7 @@
 //define("ROLE_MASTER",2);
 //define("ROLE_ADMIN",3);
 //define("DEFAULT_LOCALE","de-DE");	// "de-DE" oder "en-US"
+//define("TEXT_LOGO","backend\n    by andrea");	// pre text
 
 // *****************************************************************************
 // *** error list ***
@@ -188,7 +189,11 @@ class Model {
 // *****************************************************************************
 
   public function html_form() {
-    $html_form = "<form name=\"pwd_form\" action=\"backend.php\" method=\"post\">\n".
+    $html_form = "<aside>\n".
+                 "<pre>".TEXT_LOGO."</pre>\n".
+                 "</aside>\n".
+                 "<section>\n".
+                 "<form name=\"pwd_form\" action=\"backend.php\" method=\"post\">\n".
                  "<table class=\"backend\">\n".
                  "<tr>\n<td class=\"td_backend\">".
                  $this->language["PROMPT_USER"].
@@ -203,12 +208,17 @@ class Model {
                  "<input type=\"submit\" value=\"".$this->language["BUTTON_SEND"]."\" />".
                  "</td>\n</tr>\n".
                  "</table>\n".
-                 "</form>\n\n";
+                 "</form>\n".
+                 "</section>\n\n";
     return $html_form;
   }
 
   public function html_form_2fa() {
-    $html_form = "<form name=\"pwd_form\" action=\"backend.php\" method=\"post\">\n".
+    $html_form = "<aside>\n".
+                 "<pre>".TEXT_LOGO."</pre>\n".
+                 "</aside>\n".
+                 "<section>\n".
+                 "<form name=\"pwd_form\" action=\"backend.php\" method=\"post\">\n".
                  "<table class=\"backend\">\n".
                  "<tr>\n<td class=\"td_backend\">".
                  $this->language["PROMPT_CODE"].
@@ -219,7 +229,8 @@ class Model {
                  "<input type=\"submit\" value=\"".$this->language["BUTTON_SEND"]."\" />".
                  "</td>\n</tr>\n".
                  "</table>\n".
-                 "</form>\n\n";
+                 "</form>\n".
+                 "</section>\n\n";
     return $html_form;
   }
 
@@ -332,7 +343,7 @@ class Model {
            "</nav>\n\n";
 
     $ret .= "<aside class=\"sticky\">\n".
-            "<pre>backend\n    by andrea</pre>\n".
+            "<pre>".TEXT_LOGO."</pre>\n".
             "<details class=\"details_backend\">\n".
             "<summary><a href=\"backend.php\">".$this->language["HEADER_BACKEND"]."</a></summary>\n".
             "</details>\n";

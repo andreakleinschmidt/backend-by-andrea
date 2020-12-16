@@ -781,7 +781,8 @@ class Blog extends Model {
     if (!$this->database->connect_errno) {
       // wenn kein fehler
 
-      $replace = "<!-- blog -->\n";
+      $replace = "<!-- blog -->\n".
+                 "<div id=\"grid-container-blog\">\n";
 
       $parameter_array = array();	// für links
       $option_array = array();	// für kommentar
@@ -916,7 +917,8 @@ class Blog extends Model {
 
       } // kommentar
 
-      $replace .= "</div>";
+      $replace .= "</div>\n".
+                  "</div>";
 
     } // datenbank
     else {
