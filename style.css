@@ -301,6 +301,7 @@ nav {
   position:sticky;
   top:0px;
   z-index:102;
+  align-self:auto; /* backend aside */
 }
 
 nav ul {
