@@ -382,6 +382,11 @@ class Blog extends Model {
 
     return $text_str;
   }
+
+  private function get_server_protocol() {
+    $server_protocol = !empty($_SERVER["HTTPS"]) ? "https://" : "http://";	// https wenn server parameter nicht leer, sonst http
+    return $server_protocol;
+  }
   // (ende: doppelt in frontend und backend model blog)
 
   // umlaute ersetzen und nicht-wort-zeichen (außer leerzeichen und "-") entfernen
@@ -817,7 +822,7 @@ class Blog extends Model {
                            "<tr>\n<td class=\"td_backend\">".
                            $this->language["PROMPT_NEW_FEED"].
                            "</td>\n<td>".
-                           "<input type=\"text\" name=\"ba_blogroll_new[feed]\" class=\"size_32\" maxlength=\"".MAXLEN_FEED."\" value=\"http://\"/>".
+                           "<input type=\"text\" name=\"ba_blogroll_new[feed]\" class=\"size_32\" maxlength=\"".MAXLEN_FEED."\" value=\"".$this->get_server_protocol()."\"/>".
                            "</td>\n</tr>\n<tr>\n<td class=\"td_backend\"></td>\n<td>".
                            "<input type=\"submit\" value=\"".$this->language["BUTTON_NEW"]."\" />".
                            "</td>\n</tr>\n".

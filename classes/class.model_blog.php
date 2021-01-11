@@ -347,6 +347,11 @@ class Blog extends Model {
 
     return $text_str;
   }
+
+  private function get_server_protocol() {
+    $server_protocol = !empty($_SERVER["HTTPS"]) ? "https://" : "http://";	// https wenn server parameter nicht leer, sonst http
+    return $server_protocol;
+  }
   // (ende: doppelt in frontend und backend model blog)
 
   // ausgabe komplette blogzeile
@@ -1543,7 +1548,7 @@ class Blog extends Model {
                 "<br><input type=\"text\" name=\"comment[mail]\" class=\"size_20\" maxlength=\"".MAXLEN_COMMENTMAIL."\" />\n".
                 "</div>\n".
                 "<div id=\"input_website\">".$this->language["PROMPT_WEBSITE"]."\n".
-                "<br><input type=\"text\" name=\"comment[website]\" class=\"size_20\" maxlength=\"".MAXLEN_COMMENTURL."\" value=\"http://\" />\n".
+                "<br><input type=\"text\" name=\"comment[website]\" class=\"size_20\" maxlength=\"".MAXLEN_COMMENTURL."\" value=\"".$this->get_server_protocol()."\" />\n".
                 "</div>\n".
                 "<p>".$this->language["FRONTEND_PROMPT_BLOGENTRY"]."\n".
                 "<br><select name=\"comment[blogid]\" size=\"1\">\n".
@@ -1590,7 +1595,9 @@ class Blog extends Model {
       if ($comment_ip != $dataset["ba_ip"] or $dataset["zeitdifferenz"] > 1) {
         // wenn kein zeit-limit
 
-        if ($comment_website == "http://") {
+        // feld mit url enthält nur leeren vorgabewert
+        $server_protocols = array("https://", "http://");
+        if (in_array($comment_website, $server_protocols)) {
           $comment_website = "";
         }
 

@@ -96,7 +96,8 @@ class View {
 
         // <link href="" rel="self"/>
         $node = $this->addTag($xml_tree, $root_node, "link");
-        $node->setAttribute("href", "http://".$_SERVER["SERVER_NAME"].$_SERVER["PHP_SELF"]);	// atom.php
+        $server_protocol = !empty($_SERVER["HTTPS"]) ? "https://" : "http://";	// https wenn server parameter nicht leer, sonst http
+        $node->setAttribute("href", $server_protocol.$_SERVER["SERVER_NAME"].$_SERVER["PHP_SELF"]);	// atom.php
         $node->setAttribute("rel", "self");
 
         // <id></id>
