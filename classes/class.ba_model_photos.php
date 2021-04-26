@@ -134,7 +134,13 @@ class Photos extends Model {
                                "</td>\n<td>---</td>\n<td>---</td>\n<td>---</td>\n</tr>\n";
 
           while ($dataset = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
-            $html_backend_ext .= "<tr>\n<td class=\"td_backend\">".
+            if (intval($galleryid) == intval($dataset["ba_id"])) {
+              $html_backend_ext .= "<tr class=\"tr_colored\">\n";
+            }
+            else {
+              $html_backend_ext .= "<tr>\n";
+            }
+            $html_backend_ext .= "<td class=\"td_backend\">".
                                  "<a href=\"backend.php?".$this->html_build_query(array("action" => "photos", "gallery" => $dataset["ba_id"]))."\">".$dataset["ba_id"]."</a>".
                                  "</td>\n<td>".
                                  "<input type=\"text\" name=\"ba_gallery[".$dataset["ba_id"]."][ba_alias]\" class=\"size_12\" maxlength=\"".MAXLEN_GALLERYALIAS."\" value=\"".stripslashes($this->html5specialchars($dataset["ba_alias"]))."\"/>".
