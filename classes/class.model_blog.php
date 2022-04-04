@@ -278,21 +278,39 @@ class Blog extends Model {
             case "image":
 
               if (mb_strlen($content_str, $encoding) > 0 and $tag_flag) {
-                $imagename = "jpeg/".$content_str.".jpg";
+                $image_bundle = explode("|", $content_str);
+                $imagename = "jpeg/".$image_bundle[0].".jpg";
                 if (is_readable($imagename)) {
+                  if (count($image_bundle) == 2) {
+                    $imagealt = "alt=\"".$image_bundle[1]."\" ";	// alternativer image text
+                  }
+                  else {
+                    $imagealt = "";	// leer
+                  }
                   $imagesize = getimagesize($imagename);
-                  $caption = (new Photos())->getText($content_str);	// imagename als photoid, return caption text
+                  $caption = (new Photos())->getText($image_bundle[0]);	// imagename als photoid, return caption text
                   $tag_str = "<figure class=\"floating\">".
-                             "<img class=\"border\" src=\"".$imagename."\" ".$imagesize[3].">".
+                             "<img class=\"border\" src=\"".$imagename."\" ".$imagealt.$imagesize[3].">".
                              "<figcaption class=\"floating_caption\">".$caption."</figcaption>".
                              "</figure>";
                 }
                 else {
-                  $tag_str = "[".$content_str."]";
+                  if (count($image_bundle) == 2) {
+                    $tag_str = "[".$image_bundle[1]."]";
+                  }
+                  else {
+                    $tag_str = "[".$image_bundle[0]."]";
+                  }
                 }
               }
               elseif (mb_strlen($content_str, $encoding) > 0 and !$tag_flag) {
-                $tag_str = "[".$content_str."]";
+                $image_bundle = explode("|", $content_str);
+                if (count($image_bundle) == 2) {
+                  $tag_str = "[".$image_bundle[1]."]";
+                }
+                else {
+                  $tag_str = "[".$image_bundle[0]."]";
+                }
               }
               else {
                 $tag_str = "";
