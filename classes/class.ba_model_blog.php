@@ -136,7 +136,7 @@ class Blog extends Model {
   }
 
   // division durch null verhindern
-  public function check_zero($num) {
+  public static function check_zero($num) {
     $ret = intval($num);
     if ($ret < 1) {
       $ret = 1;
@@ -145,7 +145,7 @@ class Blog extends Model {
   }
 
   // falls year = -0001 (mysql "0000-00-00 00:00:00"), neue datetime mit unix ts 0 "1970-01-01 00:00:00"
-  public function check_datetime($datetime) {
+  public static function check_datetime($datetime) {
     if (intval(date_format($datetime, "Y")) < 0) {
       $datetime = date_create_from_format("U", 0);	// im fehlerfall
     }
@@ -153,14 +153,14 @@ class Blog extends Model {
   }
 
   // ersetze new lines im text durch <br> (bzw. <br />) und interpretiere doppelte new lines als absatz <p>
-  public function nl2br_extended($text_str, $xhtml_flag=true) {
+  public static function nl2br_extended($text_str, $xhtml_flag=true) {
     $paragraphs_old = preg_split('/(*BSR_ANYCRLF)\R{2}/', $text_str, 0, PREG_SPLIT_NO_EMPTY);	// doppelte new lines, PCRE (*BSR_ANYCRLF)\R für \r\n oder \r oder \n
     $paragraphs_new = array_map("nl2br", $paragraphs_old, array_fill(1, count($paragraphs_old), $xhtml_flag));	// einfache new lines, array_map mit dritten parameter für nl2br($text_str, $xhtml_flag)
     return implode("</p>\n<p>", $paragraphs_new);	// zusammenfassen zu string, ohne erstes <p> und letztes </p>, nur </p><p> dazwischen
   }
 
   // ersetze tag kommandos im blogtext ~cmd{content_str} mit html tags <a>, <b>, <i>, <img>
-  public function html_tags($text_str, $tag_flag, $encoding="UTF-8") {
+  public static function html_tags($text_str, $tag_flag, $encoding="UTF-8") {
     $offset = 0;
     do {
       // suche tilde, abbruch der schleife wenn keine tilde mehr in text_str vorhanden (strrpos return bool(false))
@@ -422,13 +422,13 @@ class Blog extends Model {
   // alias für permalink, return NULL wenn fehler
   private function get_alias_from_text($datetime, $str) {
     $alias = "";
-    $datetime = $this->check_datetime(date_create_from_format("Y-m-d H:i:s", $datetime));	// "YYYY-MM-DD HH:MM:SS"
+    $datetime = self::check_datetime(date_create_from_format("Y-m-d H:i:s", $datetime));	// "YYYY-MM-DD HH:MM:SS"
 
     // satzendzeichen als trennzeichen, nur erster satz (bzw. kommagetrennter nebensatz)
     $split_str = preg_split("/(?<=\!\s|,\s|\.\s|\:\s|\?\s)/", $str, 2, PREG_SPLIT_NO_EMPTY)[0];
 
     // keine html_tags, lowercase, umlaute ersetzen und nicht-wort-zeichen (außer leerzeichen und "-") entfernen
-    $clean_str = $this->replace_chars(mb_strtolower($this->html_tags($split_str, false)));
+    $clean_str = $this->replace_chars(mb_strtolower(self::html_tags($split_str, false)));
 
     // text zerlegen, trennzeichen: leerzeichen oder "-"
     $split_arr = preg_split("/[\s-]+/", $clean_str, 0, PREG_SPLIT_NO_EMPTY);
@@ -555,7 +555,7 @@ class Blog extends Model {
       //                ba_state TINYINT UNSIGNED NOT NULL);
 
       // options
-      $anzahl_eps = $this->check_zero($this->getOption_by_name("blog_entries_per_page"));	// anzahl einträge pro seite = 20
+      $anzahl_eps = self::check_zero($this->getOption_by_name("blog_entries_per_page"));	// anzahl einträge pro seite = 20
       $diary_mode = boolval($this->getOption_by_name("blog_diary_mode"));	// tagebuch modus an = 1
 
       // liste mit älteren blog-einträgen
@@ -660,11 +660,11 @@ class Blog extends Model {
           // ausgabeschleife
           while ($dataset = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
 
-            $datetime = $this->check_datetime(date_create_from_format("Y-m-d H:i:s", $dataset["ba_datetime"]));	// "YYYY-MM-DD HH:MM:SS"
+            $datetime = self::check_datetime(date_create_from_format("Y-m-d H:i:s", $dataset["ba_datetime"]));	// "YYYY-MM-DD HH:MM:SS"
             $blogdate = date_format($datetime, $this->language["FORMAT_DATE"]." / ".$this->language["FORMAT_TIME"]);	// "DD.MM.YY / HH:MM"
             $ba_header = stripslashes($this->html5specialchars(mb_substr($dataset["ba_header"], 0, 40, MB_ENCODING)));	// 80 wie blogbox in class.model.php, substr problem bei trennung umlaute
-            $ba_intro = stripslashes($this->html_tags($this->html5specialchars(mb_substr($dataset["ba_intro"], 0, 40, MB_ENCODING)), false));	// 80 wie blogbox in class.model.php, substr problem bei trennung umlaute
-            $ba_text = stripslashes($this->html_tags($this->html5specialchars(mb_substr($dataset["ba_text"], 0, 80, MB_ENCODING)), false));	// 80 wie blogbox in class.model.php, substr problem bei trennung umlaute
+            $ba_intro = stripslashes(self::html_tags($this->html5specialchars(mb_substr($dataset["ba_intro"], 0, 40, MB_ENCODING)), false));	// 80 wie blogbox in class.model.php, substr problem bei trennung umlaute
+            $ba_text = stripslashes(self::html_tags($this->html5specialchars(mb_substr($dataset["ba_text"], 0, 80, MB_ENCODING)), false));	// 80 wie blogbox in class.model.php, substr problem bei trennung umlaute
             $ba_videoid = stripslashes($this->html5specialchars($dataset["ba_videoid"]));
             $ba_photoid = stripslashes($this->html5specialchars($dataset["ba_photoid"]));
             $ba_catid = intval($dataset["ba_catid"]);

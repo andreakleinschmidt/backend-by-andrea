@@ -109,8 +109,8 @@ class PostController {
     $hotp = substr($hash, $offset, 4);			// 4 bytes ab offset...
     $first = chr(ord(substr($hotp, 0, 1)) & 0x7F);	// MSB verwerfen...
     $hotp = substr_replace($hotp, $first, 0, 1);	// ...unsigned 32 bit
-    $hotp = reset(unpack("N", $hotp));			// unsigned long (32 bit), big endian
-    $code = $hotp % pow(10, $digits);			// code mit x ziffern
+    $hotp = unpack("N", $hotp);				// unsigned long (32 bit), big endian
+    $code = reset($hotp) % pow(10, $digits);		// code mit x ziffern
     $code = str_pad($code, $digits, "0", STR_PAD_LEFT);	// von links auffüllen mit 0, falls weniger als x ziffern
     return $code;
   }

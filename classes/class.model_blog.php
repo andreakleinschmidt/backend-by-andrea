@@ -101,7 +101,7 @@ class Blog extends Model {
   }
 
   // division durch null verhindern
-  public function check_zero($num) {
+  public static function check_zero($num) {
     $ret = intval($num);
     if ($ret < 1) {
       $ret = 1;
@@ -110,7 +110,7 @@ class Blog extends Model {
   }
 
   // falls year = -0001 (mysql "0000-00-00 00:00:00"), neue datetime mit unix ts 0 "1970-01-01 00:00:00"
-  public function check_datetime($datetime) {
+  public static function check_datetime($datetime) {
     if (intval(date_format($datetime, "Y")) < 0) {
       $datetime = date_create_from_format("U", 0);	// im fehlerfall
     }
@@ -118,14 +118,14 @@ class Blog extends Model {
   }
 
   // ersetze new lines im text durch <br> (bzw. <br />) und interpretiere doppelte new lines als absatz <p>
-  public function nl2br_extended($text_str, $xhtml_flag=true) {
+  public static function nl2br_extended($text_str, $xhtml_flag=true) {
     $paragraphs_old = preg_split('/(*BSR_ANYCRLF)\R{2}/', $text_str, 0, PREG_SPLIT_NO_EMPTY);	// doppelte new lines, PCRE (*BSR_ANYCRLF)\R für \r\n oder \r oder \n
     $paragraphs_new = array_map("nl2br", $paragraphs_old, array_fill(1, count($paragraphs_old), $xhtml_flag));	// einfache new lines, array_map mit dritten parameter für nl2br($text_str, $xhtml_flag)
     return implode("</p>\n<p>", $paragraphs_new);	// zusammenfassen zu string, ohne erstes <p> und letztes </p>, nur </p><p> dazwischen
   }
 
   // ersetze tag kommandos im blogtext ~cmd{content_str} mit html tags <a>, <b>, <i>, <img>
-  public function html_tags($text_str, $tag_flag, $encoding="UTF-8") {
+  public static function html_tags($text_str, $tag_flag, $encoding="UTF-8") {
     $offset = 0;
     do {
       // suche tilde, abbruch der schleife wenn keine tilde mehr in text_str vorhanden (strrpos return bool(false))
@@ -378,25 +378,25 @@ class Blog extends Model {
 
     $blog_author_query = $this->html_build_query(array("action" => "blog", "author" => $dataset["ba_userid"]));
     $full_name = stripslashes($this->html5specialchars($dataset["full_name"]));
-    $datetime = $this->check_datetime(date_create_from_format("Y-m-d H:i:s", $dataset["ba_datetime"]));	// "YYYY-MM-DD HH:MM:SS"
+    $datetime = self::check_datetime(date_create_from_format("Y-m-d H:i:s", $dataset["ba_datetime"]));	// "YYYY-MM-DD HH:MM:SS"
     $blogdate = date_format($datetime, $this->language["FORMAT_DATE"]." / ".$this->language["FORMAT_TIME"]);	// "DD.MM.YY / HH:MM"
     $blogalias = trim(rawurlencode($dataset["ba_alias"]));
     $blogheader = stripslashes($this->html5specialchars($dataset["ba_header"]));
-    $blogintro = stripslashes($this->html_tags($this->nl2br_extended($this->html5specialchars($dataset["ba_intro"])), false));
-    $blogtext = stripslashes($this->html_tags($this->nl2br_extended($this->html5specialchars($dataset["ba_text"])), true));
+    $blogintro = stripslashes(self::html_tags(self::nl2br_extended($this->html5specialchars($dataset["ba_intro"])), false));
+    $blogtext = stripslashes(self::html_tags(self::nl2br_extended($this->html5specialchars($dataset["ba_text"])), true));
 
     if (!$diary_mode or ($diary_mode and $first_entry)) {
       if (empty($blogintro)) {
         $split_array = array_slice(preg_split("/(?<=\!\s|\.\s|\:\s|\?\s)/", $dataset["ba_text"], $num_sentences+1, PREG_SPLIT_NO_EMPTY), 0, $num_sentences);
-        $blogintro = stripslashes($this->html_tags($this->nl2br_extended($this->html5specialchars(implode($split_array))), false));	// satzendzeichen als trennzeichen, anzahl sätze optional
+        $blogintro = stripslashes(self::html_tags(self::nl2br_extended($this->html5specialchars(implode($split_array))), false));	// satzendzeichen als trennzeichen, anzahl sätze optional
       }
     }
 
     if ($diary_mode or empty($blogheader)) {
-      $blogtext40 = stripslashes($this->html_tags($this->html5specialchars(mb_substr($dataset["ba_text"], 0, 40, MB_ENCODING)), false));	// substr problem bei trennung umlaute
+      $blogtext40 = stripslashes(self::html_tags($this->html5specialchars(mb_substr($dataset["ba_text"], 0, 40, MB_ENCODING)), false));	// substr problem bei trennung umlaute
     }
     else {
-      $blogtext40 = stripslashes($this->html_tags($this->html5specialchars(mb_substr($dataset["ba_header"], 0, 40, MB_ENCODING)), false));	// substr problem bei trennung umlaute
+      $blogtext40 = stripslashes(self::html_tags($this->html5specialchars(mb_substr($dataset["ba_header"], 0, 40, MB_ENCODING)), false));	// substr problem bei trennung umlaute
     }
 
     $replace .= "<article id=\"".date_format($datetime, "YmdHis")."\">\n";	// blog id für article
@@ -916,14 +916,14 @@ class Blog extends Model {
         $taglist = $ret_array["taglist"];
       }
       else {
-        $taglist .= $this->taglist("", $tags_from_db);	// default
+        $taglist = $this->taglist("", $tags_from_db);	// default
       }
 
       if (isset($ret_array["year_month_list"])) {
         $year_month_list = $ret_array["year_month_list"];
       }
       else {
-        $year_month_list .= $this->year_month_list(0, 0);	// default
+        $year_month_list = $this->year_month_list(0, 0);	// default
       }
 
       $replace .= "<div id=\"blogstrip\">\n".$taglist.$year_month_list."</div>\n";
@@ -963,8 +963,8 @@ class Blog extends Model {
     }
 
     // options
-    $anzahl_eps = $this->check_zero($this->getOption_by_name("blog_entries_per_page"));	// anzahl einträge pro seite = 20
-    $num_sentences = $this->check_zero($this->getOption_by_name("blog_num_sentences_intro"));	// anzahl sätze einleitung = 1
+    $anzahl_eps = self::check_zero($this->getOption_by_name("blog_entries_per_page"));	// anzahl einträge pro seite = 20
+    $num_sentences = self::check_zero($this->getOption_by_name("blog_num_sentences_intro"));	// anzahl sätze einleitung = 1
     $diary_mode = boolval($this->getOption_by_name("blog_diary_mode"));	// tagebuch modus an = 1
 
     // auf leer überprüfen
@@ -1125,12 +1125,12 @@ class Blog extends Model {
   private function getEntry($page, $year, $month, $alias, &$parameter_array, &$option_array, &$blog_comment_id_array) {
     $hd_title_str = "";
     $replace = "";
-    $taglist = "";
+    $year_month_list = "";
     $errorstring = "";
 
     // options
-    $anzahl_eps = $this->check_zero($this->getOption_by_name("blog_entries_per_page"));	// anzahl einträge pro seite = 20
-    $num_sentences = $this->check_zero($this->getOption_by_name("blog_num_sentences_intro"));	// anzahl sätze einleitung = 1
+    $anzahl_eps = self::check_zero($this->getOption_by_name("blog_entries_per_page"));	// anzahl einträge pro seite = 20
+    $num_sentences = self::check_zero($this->getOption_by_name("blog_num_sentences_intro"));	// anzahl sätze einleitung = 1
     $diary_mode = boolval($this->getOption_by_name("blog_diary_mode"));	// tagebuch modus an = 1
 
     // zugriff auf mysql datenbank (5)
@@ -1310,7 +1310,7 @@ class Blog extends Model {
       $replace .= $this->page_index($anzahl_s, $page, $show_page, $show_page);
 
       // links jahr, monat mit anzahl einträge als aufklappbare liste
-      $year_month_list .= $this->year_month_list($year, $month, $show_year, $show_month);
+      $year_month_list = $this->year_month_list($year, $month, $show_year, $show_month);
 
     }
     else {
@@ -1328,8 +1328,8 @@ class Blog extends Model {
     $errorstring = "";
 
     // options
-    $anzahl_eps = $this->check_zero($this->getOption_by_name("blog_entries_per_page"));	// anzahl einträge pro seite = 20
-    $num_sentences = $this->check_zero($this->getOption_by_name("blog_num_sentences_intro"));	// anzahl sätze einleitung = 1
+    $anzahl_eps = self::check_zero($this->getOption_by_name("blog_entries_per_page"));	// anzahl einträge pro seite = 20
+    $num_sentences = self::check_zero($this->getOption_by_name("blog_num_sentences_intro"));	// anzahl sätze einleitung = 1
     $diary_mode = boolval($this->getOption_by_name("blog_diary_mode"));	// tagebuch modus an = 1
 
     // zugriff auf mysql datenbank (5)
@@ -1429,7 +1429,7 @@ class Blog extends Model {
     $errorstring = "";
 
     // options
-    $anzahl_cps = $this->check_zero($this->getOption_by_name("blog_comments_per_page"));	// anzahl kommentare pro seite = 20
+    $anzahl_cps = self::check_zero($this->getOption_by_name("blog_comments_per_page"));	// anzahl kommentare pro seite = 20
 
     $replace .= "<p><a name=\"comment\"></a><b>".$this->language["FRONTEND_COMMENT"]."</b></p>\n";
 
@@ -1492,12 +1492,12 @@ class Blog extends Model {
         while ($dataset = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
 
           $comment_id = intval($dataset["ba_id"]);
-          $datetime = $this->check_datetime(date_create_from_format("Y-m-d H:i:s", $dataset["ba_datetime"]));	// "YYYY-MM-DD HH:MM:SS"
+          $datetime = self::check_datetime(date_create_from_format("Y-m-d H:i:s", $dataset["ba_datetime"]));	// "YYYY-MM-DD HH:MM:SS"
           $comment_date = date_format($datetime, $this->language["FORMAT_DATE"]." / ".$this->language["FORMAT_TIME"]);	// "DD.MM.YY / HH:MM"
           $comment_name = stripslashes($this->html5specialchars($dataset["ba_name"]));
           $comment_mail = stripslashes($this->html5specialchars($dataset["ba_mail"]));
-          $comment_text = stripslashes($this->nl2br_extended($this->html5specialchars($dataset["ba_text"])));
-          $comment_comment = stripslashes($this->nl2br_extended($this->html5specialchars($dataset["ba_comment"])));
+          $comment_text = stripslashes(self::nl2br_extended($this->html5specialchars($dataset["ba_text"])));
+          $comment_comment = stripslashes(self::nl2br_extended($this->html5specialchars($dataset["ba_comment"])));
           //$comment_blogid = intval($dataset["ba_blogid"]);
           $comment_full_name = stripslashes($this->html5specialchars($dataset["full_name"]));	// comment commenters full name
 

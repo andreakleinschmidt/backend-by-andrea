@@ -80,8 +80,8 @@ class Model {
       $this->language = $this->readLanguage();
       $_SESSION["language"] = $this->language;	// in SESSION speichern
     } // neue session variable
-    elseif ($_SESSION["language"]["locale"] != $_SESSION["user_locale"]) {
-      // session variable abweichend zur locale vom benutzer
+    elseif ($_SESSION["language"]["locale"] != ($_SESSION["user_locale"] ?? DEFAULT_LOCALE)) {
+      // session variable abweichend zur locale vom benutzer (oder falls nicht existent, abweichend zur default locale)
       $this->language = $this->readLanguage();
       $_SESSION["language"] = $this->language;	// SESSION überschreiben
     }
