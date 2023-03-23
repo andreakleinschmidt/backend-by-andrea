@@ -42,7 +42,7 @@
 //define("MAXLEN_BLOGINTRO",1024);
 //define("MAXLEN_BLOGTEXT",11264);
 //define("MAXLEN_BLOGVIDEOID",32);
-//define("MAXLEN_BLOGPHOTOID",128);
+//define("MAXLEN_BLOGPHOTOID",160);
 //define("MAXLEN_BLOGTAGS",128);
 //define("MAXLEN_BLOGCATEGORY",32);
 //define("MAXLEN_FEED",128);	// blogroll
@@ -549,7 +549,7 @@ class Blog extends Model {
       //                ba_intro VARCHAR(1024) NOT NULL,
       //                ba_text VARCHAR(11264) NOT NULL,
       //                ba_videoid VARCHAR(32) NOT NULL,
-      //                ba_photoid VARCHAR(128) NOT NULL,
+      //                ba_photoid VARCHAR(160) NOT NULL,
       //                ba_catid INT UNSIGNED NOT NULL,
       //                ba_tags VARCHAR(128) NOT NULL,
       //                ba_state TINYINT UNSIGNED NOT NULL);
@@ -1060,7 +1060,7 @@ class Blog extends Model {
       //                ba_intro VARCHAR(1024) NOT NULL,
       //                ba_text VARCHAR(11264) NOT NULL,
       //                ba_videoid VARCHAR(32) NOT NULL,
-      //                ba_photoid VARCHAR(128) NOT NULL,
+      //                ba_photoid VARCHAR(160) NOT NULL,
       //                ba_catid INT UNSIGNED NOT NULL,
       //                ba_tags VARCHAR(128) NOT NULL,
       //                ba_state TINYINT UNSIGNED NOT NULL);
