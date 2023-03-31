@@ -245,7 +245,7 @@ class Photos extends Model {
           $replace .= "<p><a href=\"index.php?".$this->html_build_query($query_data)."\"><img class=\"thumbnail\" src=\"thumbnail.php?image=".$imagename."\" width=\"".$width."\" height=\"".$height."\" title=\"".stripslashes($this->html5specialchars($phototext))."\"></a></p>\n";
         }
         else {
-          $replace .= "<p><a href=\"index.php?".$this->html_build_query($query_data)."\">Foto</a></p>\n";
+          $replace .= "<p><a href=\"index.php?".$this->html_build_query($query_data)."\">".$this->language["FRONTEND_PHOTO"]."</a></p>\n";
         }
       }
 

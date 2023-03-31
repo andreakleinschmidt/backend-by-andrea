@@ -47,6 +47,7 @@
   <FRONTEND_PHOTOS text="Fotos"/>
   <FRONTEND_PHOTOS_TOTAL text="Fotos insgesamt"/>
   <FRONTEND_PHOTO text="Foto"/>
+  <FRONTEND_PHOTO_MISSING text="(Hier hätte ein Bild sein sollen)"/>
   <FRONTEND_PROMPT_BLOGENTRY text="Der Blogeintrag auf dem sich dein Kommentar bezieht:"/>
   <FRONTEND_PROMPT_COMMENT_MAXLEN text="Kommentar (max. 2048 Zeichen):"/>
   <FRONTEND_RECENT_BLOGENTRIES text="letzte Blogeinträge:"/>

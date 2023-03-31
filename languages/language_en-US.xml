@@ -47,6 +47,7 @@
   <FRONTEND_PHOTOS text="photos"/>
   <FRONTEND_PHOTOS_TOTAL text="photos total"/>
   <FRONTEND_PHOTO text="photo"/>
+  <FRONTEND_PHOTO_MISSING text="(here should have been a picture)"/>
   <FRONTEND_PROMPT_BLOGENTRY text="blog entry according to your comment:"/>
   <FRONTEND_PROMPT_COMMENT_MAXLEN text="comment (max. 2048 chars):"/>
   <FRONTEND_RECENT_BLOGENTRIES text="recent blog entries:"/>

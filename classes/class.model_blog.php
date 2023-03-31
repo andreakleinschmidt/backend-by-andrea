@@ -447,10 +447,15 @@ class Blog extends Model {
       foreach ($photoid_array as $photoid) {
         $imagename = "jpeg/".$photoid.".jpg";
         if (is_readable($imagename) and $image_str = exif_thumbnail($imagename, $width, $height, $type)) {
-          $replace .= "<div id=\"blogphoto\">\n";
-          $replace .= "<a href=\"".$imagename."\" onMouseOver=\"ajax('blogphoto','".$photoid."');\"><img class=\"thumbnail\" src=\"thumbnail.php?".$this->html_build_query(array("image" => $imagename))."\" width=\"".$width."\" height=\"".$height."\"></a>\n";
-          $replace .= "<div id=\"photo_".$photoid."\"><noscript>no javascript</noscript></div>\n";
-          $replace .= "</div>\n";
+          $replace .= "<div id=\"blogphoto\">\n".
+                      "<a href=\"".$imagename."\" onMouseOver=\"ajax('blogphoto','".$photoid."');\"><img class=\"thumbnail\" src=\"thumbnail.php?".$this->html_build_query(array("image" => $imagename))."\" width=\"".$width."\" height=\"".$height."\"></a>\n".
+                      "<div id=\"photo_".$photoid."\"><noscript>no javascript</noscript></div>\n".
+                      "</div>\n";
+        }
+        else {
+          $replace .= "<div id=\"blogphoto\">\n".
+                      "<p><span id=\"monospace\">".$this->language["FRONTEND_PHOTO_MISSING"]."</span></p>\n".
+                      "</div>\n";
         }
       }
     }
