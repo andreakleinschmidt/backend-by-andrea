@@ -843,6 +843,13 @@ class Blog extends Model {
                   "<label class=\"more\" for=\"mobile_menue\">&equiv;</label>\n".
                   "<ul>\n";
 
+      if (is_null($tag)) {
+        $tag_lower = "";	// falls tag noch NULL, leerer string
+      }
+      else {
+        $tag_lower = mb_strtolower($tag, MB_ENCODING);	// tag als string und nicht NULL
+      }
+
       foreach ($categories as $category => $tag_str) {
         $tag_arr = preg_split("/\s*,+\s*|^\s+|\s+$/", $tag_str, 0, PREG_SPLIT_NO_EMPTY);	// tags einzeln, ohne leerzeichen
         $tag_arr_unique = array_unique($tag_arr);
@@ -851,7 +858,7 @@ class Blog extends Model {
           $tag_arr_unique_lower[] = mb_strtolower($tag_str, MB_ENCODING);
         }
         $html_a_ext = "";
-        if (mb_strtolower($tag, MB_ENCODING) == mb_strtolower($category, MB_ENCODING) or in_array(mb_strtolower($tag, MB_ENCODING), $tag_arr_unique_lower)) {
+        if ($tag_lower == mb_strtolower($category, MB_ENCODING) or in_array($tag_lower, $tag_arr_unique_lower)) {
           // tag GET
           $html_a_ext = "id=\"activated\" ";
         }
@@ -859,7 +866,7 @@ class Blog extends Model {
         $replace .= "<li><a ".$html_a_ext."href=\"blog/".rawurlencode(mb_strtolower($category, MB_ENCODING))."/\">".stripslashes($this->html5specialchars($category))."</a>\n".
                     "<ul>\n";
         foreach ($tag_arr_unique as $tag_out) {
-          if (mb_strtolower($tag, MB_ENCODING) == mb_strtolower($tag_out, MB_ENCODING)) {
+          if ($tag_lower == mb_strtolower($tag_out, MB_ENCODING)) {
             // tag GET
             $replace .= "<li><span>".stripslashes($this->html5specialchars($tag_out))."</span>\n";
           }
