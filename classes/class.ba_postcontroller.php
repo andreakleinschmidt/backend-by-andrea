@@ -8,7 +8,7 @@
  * CMS & blog software with frontend / backend
  *
  * This program is distributed under GNU GPL 3
- * Copyright (C) 2010-2018 Andrea Kleinschmidt <ak81 at oscilloworld dot de>
+ * Copyright (C) 2010-2024 Andrea Kleinschmidt <ak81 at oscilloworld dot de>
  *
  * This program includes a MERGED version of PHP QR Code library
  * PHP QR Code is distributed under LGPL 3
@@ -101,16 +101,16 @@ class PostController {
   }
 
   // berechne code (zwei-faktor-authentifizierung)
-  private function get_code($secret, $ts, $n=0, $digits=6) {
-    $tc = floor($ts/30)+$n;				// n: z.B n-1 -> tc-1
+  private function get_code($secret, $ts, $sec=30, $n=0, $digits=6) {
+    $tc = floor($ts/$sec)+$n;				// n: z.B n-1 -> tc-1
     $tc = chr(0).chr(0).chr(0).chr(0).pack("N*", $tc);	// unsigned long (32 bit), big endian
     $hash = hash_hmac("sha1", $tc, $secret, true);	// raw binary output
     $offset = ord(substr($hash, -1, 1)) & 0x0F;		// least 4 significant bits
     $hotp = substr($hash, $offset, 4);			// 4 bytes ab offset...
     $first = chr(ord(substr($hotp, 0, 1)) & 0x7F);	// MSB verwerfen...
-    $hotp = substr_replace($hotp, $first, 0, 1);	// ...unsigned 32 bit
-    $hotp = unpack("N", $hotp);				// unsigned long (32 bit), big endian
-    $code = reset($hotp) % pow(10, $digits);		// code mit x ziffern
+    $hotp = substr_replace($hotp, $first, 0, 1);		// ...unsigned 32 bit
+    $hotp_arr = unpack("N", $hotp);			// unsigned long (32 bit), big endian
+    $code = reset($hotp_arr) % pow(10, $digits);		// code mit x ziffern
     $code = str_pad($code, $digits, "0", STR_PAD_LEFT);	// von links auffüllen mit 0, falls weniger als x ziffern
     return $code;
   }
@@ -244,7 +244,7 @@ class PostController {
               $unix_ts = time();	// totp - time based one time password
               $shared_secret = base64_decode($base64_secret);
               $own_code = $this->get_code($shared_secret, $unix_ts);
-              $own_code_n1 = $this->get_code($shared_secret, $unix_ts, -1);
+              $own_code_n1 = $this->get_code($shared_secret, $unix_ts, 30, -1);
               if (DEBUG) { $debug_str .= "010 own_code = ".$own_code."\n"; }
               if (DEBUG) { $debug_str .= "010 own_code_n1 = ".$own_code_n1."\n"; }
               if (DEBUG) { $debug_str .= "010 last_code = ".$last_code."\n"; }
