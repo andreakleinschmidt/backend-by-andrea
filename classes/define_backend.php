@@ -8,7 +8,7 @@
  * CMS & blog software with frontend / backend
  *
  * This program is distributed under GNU GPL 3
- * Copyright (C) 2010-2018 Andrea Kleinschmidt <ak81 at oscilloworld dot de>
+ * Copyright (C) 2010-2025 Andrea Kleinschmidt <ak81 at oscilloworld dot de>
  *
  * This program includes a MERGED version of PHP QR Code library
  * PHP QR Code is distributed under LGPL 3
@@ -55,8 +55,8 @@ define("MAXLEN_PHOTOID",8);
 define("MAXLEN_PHOTOTEXT",64);
 define("MAXLEN_DATETIME",20);
 define("MAXLEN_BLOGHEADER",128);
-define("MAXLEN_BLOGINTRO",1024);
-define("MAXLEN_BLOGTEXT",11264);
+define("MAXLEN_BLOGINTRO",2048);
+define("MAXLEN_BLOGTEXT",20480);
 define("MAXLEN_BLOGVIDEOID",32);
 define("MAXLEN_BLOGPHOTOID",160);
 define("MAXLEN_BLOGTAGS",128);
