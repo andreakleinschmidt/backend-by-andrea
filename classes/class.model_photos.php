@@ -8,7 +8,7 @@
  * CMS & blog software with frontend / backend
  *
  * This program is distributed under GNU GPL 3
- * Copyright (C) 2010-2018 Andrea Kleinschmidt <ak81 at oscilloworld dot de>
+ * Copyright (C) 2010-2025 Andrea Kleinschmidt <ak81 at oscilloworld dot de>
  *
  * This program includes a MERGED version of PHP QR Code library
  * PHP QR Code is distributed under LGPL 3
@@ -76,7 +76,7 @@ class Photos extends Model {
     return $ret;
   }
 
-  public function getPhotos($alias, $id) {
+  public function getPhotos($alias, $id, $bannerstrip_array=array()) {
     $hd_title_str = "";
     $replace = "";
     $errorstring = "";
@@ -116,7 +116,7 @@ class Photos extends Model {
         else {
           // alle galerien anzeigen
 
-          $ret_array = $this->getGallery($galleries);
+          $ret_array = $this->getGallery($galleries, $bannerstrip_array);
 
         } // galerien anzeigen
 
@@ -269,12 +269,15 @@ class Photos extends Model {
   }
 
   // alle galerien anzeigen
-  private function getGallery($galleries) {
+  private function getGallery($galleries, $bannerstrip_array) {
     $replace = "";
     $errorstring = "";
 
-    $columns = 5;	// anzahl spalten in tabelle
+    $columns = 3;	// anzahl spalten in tabelle
     $rows = ceil(sizeof($galleries)/$columns);	// anzahl reihen in tabelle, aufgerundet
+
+    $replace .= "<!-- photos -->\n".
+                "<div id=\"grid-container-gallery\">\n";
 
     // zugriff auf mysql datenbank (4c), liste aller galerien mit anzahl darin enthaltener fotos
     $sql = "";
@@ -303,10 +306,9 @@ class Photos extends Model {
         }
       }
 
-      $replace = "<!-- photos -->\n".
-                 "<div id=\"gallery\">\n".
-                 "<p><b>".$this->language["FRONTEND_GALLERIES"]." (".sizeof($galleries)."):</b></p>\n".
-                 "<table class=\"tb_gallery\">\n";
+      $replace .= "<div id=\"gallery\">\n".
+                  "<p><b>".$this->language["FRONTEND_GALLERIES"]." (".sizeof($galleries)."):</b></p>\n".
+                  "<table class=\"tb_gallery\">\n";
 
       for ($row = 0; $row < $rows; $row++) {
         $replace .= "<tr>\n";
@@ -331,7 +333,7 @@ class Photos extends Model {
 
       $replace .= "</table>\n".
                   "<p>(".$galleries_count["total"]["count"]." ".$this->language["FRONTEND_PHOTOS_TOTAL"].")</p>\n".
-                  "</div>";
+                  "</div>\n";	// gallery
 
       $ret->close();	// db-ojekt schließen
       unset($ret);	// referenz löschen
@@ -340,6 +342,14 @@ class Photos extends Model {
     else {
       $errorstring .= "db error 4c\n";
     }
+
+    // {content} erweitern mit bannerstrip
+    if(!empty($bannerstrip_array)) {
+      $replace .= $bannerstrip_array["bannerstrip"];
+      $errorstring .= $bannerstrip_array["error"];
+    }
+
+    $replace .= "</div>";	// grid-container
 
     if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $replace, "error" => $errorstring);

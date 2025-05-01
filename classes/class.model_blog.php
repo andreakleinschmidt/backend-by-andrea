@@ -8,7 +8,7 @@
  * CMS & blog software with frontend / backend
  *
  * This program is distributed under GNU GPL 3
- * Copyright (C) 2010-2018 Andrea Kleinschmidt <ak81 at oscilloworld dot de>
+ * Copyright (C) 2010-2025 Andrea Kleinschmidt <ak81 at oscilloworld dot de>
  *
  * This program includes a MERGED version of PHP QR Code library
  * PHP QR Code is distributed under LGPL 3
@@ -118,14 +118,38 @@ class Blog extends Model {
   }
 
   // ersetze new lines im text durch <br> (bzw. <br />) und interpretiere doppelte new lines als absatz <p>
-  public static function nl2br_extended($text_str, $xhtml_flag=true) {
+  public static function nl2br_extended_old($text_str, $xhtml_flag=true) {
     $paragraphs_old = preg_split('/(*BSR_ANYCRLF)\R{2}/', $text_str, 0, PREG_SPLIT_NO_EMPTY);	// doppelte new lines, PCRE (*BSR_ANYCRLF)\R für \r\n oder \r oder \n
     $paragraphs_new = array_map("nl2br", $paragraphs_old, array_fill(1, count($paragraphs_old), $xhtml_flag));	// einfache new lines, array_map mit dritten parameter für nl2br($text_str, $xhtml_flag)
     return implode("</p>\n<p>", $paragraphs_new);	// zusammenfassen zu string, ohne erstes <p> und letztes </p>, nur </p><p> dazwischen
   }
 
+  // ersetze new lines im text durch <br> (bzw. <br />) und interpretiere new lines außerhalb von geschweiften Klammern als absatz <p>
+  public static function nl2br_extended($text_str, $xhtml_flag=true) {
+    $open_brackets = 0;
+    $paragraphs = preg_split('/(*BSR_ANYCRLF)\R/', $text_str, 0);	// alle new lines, PCRE (*BSR_ANYCRLF)\R für \r\n oder \r oder \n
+    $last = array_pop($paragraphs);	// nicht den letzten absatz
+    foreach ($paragraphs as &$paragraph) {
+      if (str_contains($paragraph, "{")) {
+        $open_brackets++;
+      }
+      if (str_contains($paragraph, "}")) {
+        $open_brackets--;
+      }
+      if ($open_brackets == 0) {
+        $paragraph = $paragraph."</p>\n<p>";	// echter absatz, außerhalb klammern, ohne erstes <p> und letztes </p>, nur </p><p> dazwischen
+      }
+      else {
+        $paragraph = nl2br($paragraph."\n", $xhtml_flag);	// einfache new lines, innerhalb klammer, nur html zeilenumbruch
+      }
+    }
+    array_push($paragraphs, $last);	// letzter absatz wieder hinzu (sonst würde hier auch ein zeilenumbruch eingefügt)
+    return implode($paragraphs);	// zusammenfassen zu string
+  }
+
   // ersetze tag kommandos im blogtext ~cmd{content_str} mit html tags <a>, <b>, <i>, <img>
   public static function html_tags($text_str, $tag_flag, $encoding="UTF-8") {
+    $request_final_filter = false;
     $offset = 0;
     do {
       // suche tilde, abbruch der schleife wenn keine tilde mehr in text_str vorhanden (strrpos return bool(false))
@@ -344,6 +368,12 @@ class Blog extends Model {
             }
           }
 
+          // falls image oder table, block level element trennt zwangsweise absatz
+          if ($cmd == "image" or $cmd == "table") {
+            $tag_str = "</p>\n".$tag_str."\n<p>";
+            $request_final_filter = true;
+          }
+
           $text_str = mb_substr($text_str, 0, $start, $encoding).$tag_str.mb_substr($text_str, $stop+1, NULL, $encoding);
           // mb_substr_replace($text_str, $tag_str, $start, $stop-$start+1);
 
@@ -362,6 +392,17 @@ class Blog extends Model {
       } // if start
 
     } while ($start !== false);
+
+    if ($request_final_filter) {
+      // doppelt leere absätze entfernen
+      $block_tags = array("table", "image");
+      $paragraph_pattern = '<p>\s*<\/p>';
+      $any_CRLF_pattern = '(\r\n|\r|\n)';
+      foreach ($block_tags as $block_tag) {
+        $text_str = preg_replace('/'.$paragraph_pattern.$any_CRLF_pattern.$paragraph_pattern.$any_CRLF_pattern.'<'.$block_tag.'>/', "<p></p>\n<".$block_tag.">", $text_str);
+        $text_str = preg_replace('/<\/'.$block_tag.'>'.$any_CRLF_pattern.$paragraph_pattern.$any_CRLF_pattern.$paragraph_pattern.'/', "</".$block_tag.">\n<p></p>", $text_str);
+      }
+    }
 
     return $text_str;
   }
@@ -382,13 +423,13 @@ class Blog extends Model {
     $blogdate = date_format($datetime, $this->language["FORMAT_DATE"]." / ".$this->language["FORMAT_TIME"]);	// "DD.MM.YY / HH:MM"
     $blogalias = trim(rawurlencode($dataset["ba_alias"]));
     $blogheader = stripslashes($this->html5specialchars($dataset["ba_header"]));
-    $blogintro = stripslashes(self::html_tags(self::nl2br_extended($this->html5specialchars($dataset["ba_intro"])), false));
+    $blogintro = stripslashes(self::html_tags(nl2br($this->html5specialchars($dataset["ba_intro"])), false));
     $blogtext = stripslashes(self::html_tags(self::nl2br_extended($this->html5specialchars($dataset["ba_text"])), true));
 
     if (!$diary_mode or ($diary_mode and $first_entry)) {
       if (empty($blogintro)) {
         $split_array = array_slice(preg_split("/(?<=\!\s|\.\s|\:\s|\?\s)/", $dataset["ba_text"], $num_sentences+1, PREG_SPLIT_NO_EMPTY), 0, $num_sentences);
-        $blogintro = stripslashes(self::html_tags(self::nl2br_extended($this->html5specialchars(implode($split_array))), false));	// satzendzeichen als trennzeichen, anzahl sätze optional
+        $blogintro = stripslashes(self::html_tags(nl2br($this->html5specialchars(implode($split_array))), false));	// satzendzeichen als trennzeichen, anzahl sätze optional
       }
     }
 
@@ -418,6 +459,13 @@ class Blog extends Model {
                   "<p>".$blogtext."</p>\n";
     }
 
+    // optional media-container, bricht floating figures
+    $blogmedia = false;
+    if (!empty($dataset["ba_videoid"]) or !empty($dataset["ba_photoid"])) {
+      $replace .= "<div id=\"blogmedia\">\n";
+      $blogmedia = true;
+    }
+
     // optional videos in blog
     if (function_exists("finfo_open")) {
 
@@ -428,12 +476,12 @@ class Blog extends Model {
           $videoname = "video/".$videoid.".mp4";
           $mimetype = finfo_file($finfo, $videoname);
           if (is_readable($videoname) and $mimetype == "video/mp4") {
-            $replace .= "<p>\n".
+            $replace .= "<div id =\"blogvideo\">\n".
                         "<video controls=\"\">\n".
                         "<source src=\"".$videoname."\" type=\"video/mp4\">\n".
                         "Your browser does not support the video tag.\n".
                         "</video>\n".
-                        "</p>\n";
+                        "</div>\n";
           } // if mimetype
         } // foreach
         finfo_close($finfo);
@@ -454,10 +502,14 @@ class Blog extends Model {
         }
         else {
           $replace .= "<div id=\"blogphoto\">\n".
-                      "<p><span id=\"monospace\">".$this->language["FRONTEND_PHOTO_MISSING"]."</span></p>\n".
+                      "<pre id=\"monospace\">".$this->language["FRONTEND_PHOTO_MISSING"]."</pre>\n".
                       "</div>\n";
         }
       }
+    }
+
+    if ($blogmedia) {
+      $replace .= "</div>\n";
     }
 
     $blogid = $dataset["ba_id"];
@@ -819,8 +871,8 @@ class Blog extends Model {
       $replace .= "<div id=\"blogquery\">\n";
       $replace .= "<form action=\"index.php\" method=\"get\">\n";
       $replace .= "<input type=\"hidden\" name=\"action\" value=\"blog\" />\n";
-      $replace .= "<input type=\"text\" name=\"q\" placeholder=\"Suche\" class=\"size_24\" maxlength=\"64\" onkeyup=\"ajax('suggest',this.value);\" />\n";
-      $replace .= "<input type=\"submit\" value=\"".$this->language["BUTTON_SEARCH"]."\" style=\"display:none;\" />\n";
+      $replace .= "<input type=\"text\" name=\"q\" placeholder=\"".$this->language["BUTTON_SEARCH"]."\" class=\"size_80p\" maxlength=\"64\" onkeyup=\"ajax('suggest',this.value);\" />\n";
+      $replace .= "<input type=\"submit\" value=\"&crarr;\" class=\"size_20p\" />\n";
       $replace .= "<div id=\"suggestion\"></div>";
       $replace .= "</form>\n";
       $replace .= "</div>\n";
@@ -1513,6 +1565,8 @@ class Blog extends Model {
           //$comment_blogid = intval($dataset["ba_blogid"]);
           $comment_full_name = stripslashes($this->html5specialchars($dataset["full_name"]));	// comment commenters full name
 
+          $replace .= "<article>\n";
+
           $replace .= "<p><a name=\"comment".$comment_id."\"></a><b>[".$comment_date."]</b> <span id=\"white\">";
           if ($comment_mail != "") {
             $replace .= "<a href=\"mailto:".$comment_mail."\">".$comment_name."</a>";
@@ -1523,8 +1577,10 @@ class Blog extends Model {
           $replace .= ":</span> ".$comment_text."</p>\n";
 
           if ($comment_comment != "") {
-            $replace .= "<p><i>".$comment_full_name.": ".$comment_comment."</i></p>\n";
+            $replace .= "<blockquote><p>".$comment_full_name.": ".$comment_comment."</p></blockquote>\n";
           }
+
+          $replace .= "</article>\n";
 
         } // while
 

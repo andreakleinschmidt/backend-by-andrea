@@ -8,7 +8,7 @@
  * CMS & blog software with frontend / backend
  *
  * This program is distributed under GNU GPL 3
- * Copyright (C) 2010-2018 Andrea Kleinschmidt <ak81 at oscilloworld dot de>
+ * Copyright (C) 2010-2025 Andrea Kleinschmidt <ak81 at oscilloworld dot de>
  *
  * This program includes a MERGED version of PHP QR Code library
  * PHP QR Code is distributed under LGPL 3
@@ -44,12 +44,15 @@ class Home extends Model {
       // $this->language
   }
 
-  public function getHome() {
+  public function getHome($bannerstrip_array=array()) {
     $replace = "";
     $errorstring = "";
 
     if (!$this->database->connect_errno) {
       // wenn kein fehler
+
+      $replace .= "<!-- home -->\n".
+                  "<div id=\"grid-container-home\">\n";
 
       // zugriff auf mysql datenbank (2)
       $sql = "SELECT ba_element, ba_css, ba_value FROM ba_home";
@@ -57,8 +60,7 @@ class Home extends Model {
       if ($ret) {
         // wenn kein fehler 2
 
-        $replace .= "<!-- home -->\n".
-                    "<div id=\"home\">\n";
+        $replace .= "<div id=\"home\">\n";
 
         while ($dataset = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
           $ba_element = trim($dataset["ba_element"]);
@@ -97,7 +99,7 @@ class Home extends Model {
 
         } // while
 
-        $replace .= "</div>";
+        $replace .= "</div>\n";	// home
 
         $ret->close();	// db-ojekt schließen
         unset($ret);	// referenz löschen
@@ -106,6 +108,14 @@ class Home extends Model {
       else {
         $errorstring .= "db error 2\n";
       }
+
+      // {content} erweitern mit bannerstrip
+      if(!empty($bannerstrip_array)) {
+        $replace .= $bannerstrip_array["bannerstrip"];
+        $errorstring .= $bannerstrip_array["error"];
+      }
+
+      $replace .= "</div>";	// grid-container
 
     } // datenbank
     else {

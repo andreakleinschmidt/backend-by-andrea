@@ -170,7 +170,7 @@ class Profile extends Model {
                            "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">".
                            $this->language["PROMPT_LANGUAGECODES"].
                            "</td>\n<td>\n".
-                           "<select multiple name=\"ba_profile_tables_new[language_codes][] size=\"5\">\n";
+                           "<select multiple name=\"ba_profile_tables_new[language_codes][]\" size=\"5\">\n";
       foreach (self::$language_codes as $language_code) {
         $html_backend_ext .= "<option value=\"".$language_code."\">".$language_code."</option>\n";
       }

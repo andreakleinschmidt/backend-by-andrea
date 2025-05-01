@@ -8,7 +8,7 @@
  * CMS & blog software with frontend / backend
  *
  * This program is distributed under GNU GPL 3
- * Copyright (C) 2010-2018 Andrea Kleinschmidt <ak81 at oscilloworld dot de>
+ * Copyright (C) 2010-2025 Andrea Kleinschmidt <ak81 at oscilloworld dot de>
  *
  * This program includes a MERGED version of PHP QR Code library
  * PHP QR Code is distributed under LGPL 3
@@ -169,12 +169,15 @@ class Profile extends Model {
     return array("content" => $replace, "error" => $errorstring);
   }
 
-  public function getProfile($language) {
+  public function getProfile($language, $bannerstrip_array=array()) {
     $replace = "";
     $errorstring = "";
 
     if (!$this->database->connect_errno) {
       // wenn kein fehler
+
+      $replace .= "<!-- profile -->\n".
+                  "<div id=\"grid-container-profile\">\n";
 
       $last_text_id = $this->get_last_text_id();
       $languages_list = $this->get_languages_list();
@@ -190,8 +193,7 @@ class Profile extends Model {
       if ($ret) {
         // wenn kein fehler 3
 
-        $replace .= "<!-- profile -->\n".
-                    "<div id=\"profile\">\n";
+        $replace .= "<div id=\"profile\">\n";
 
         while ($dataset = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
           $ba_id = intval($dataset["ba_id"]);
@@ -264,7 +266,7 @@ class Profile extends Model {
 
         } // while
 
-        $replace .= "</div>";
+        $replace .= "</div>\n";	// profile
 
         $ret->close();	// db-ojekt schließen
         unset($ret);	// referenz löschen
@@ -273,6 +275,14 @@ class Profile extends Model {
       else {
         $errorstring .= "db error 3\n";
       }
+
+      // {content} erweitern mit bannerstrip
+      if(!empty($bannerstrip_array)) {
+        $replace .= $bannerstrip_array["bannerstrip"];
+        $errorstring .= $bannerstrip_array["error"];
+      }
+
+      $replace .= "</div>";	// grid-container
 
     } // datenbank
     else {

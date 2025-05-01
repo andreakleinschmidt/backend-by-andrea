@@ -52,6 +52,8 @@
   <FRONTEND_PROMPT_COMMENT_MAXLEN text="Kommentar (max. 2048 Zeichen):"/>
   <FRONTEND_RECENT_BLOGENTRIES text="letzte Blogeinträge:"/>
   <FRONTEND_RECENT_COMMENTS text="Neueste Kommentare"/>
+  <FRONTEND_RECENT_GALLERY text="Neueste Galerie:"/>
+  <FRONTEND_RECENT_IMAGE text="Neuestes Bild:"/>
   <FRONTEND_RECENT_POSTS text="Neueste Blogeinträge"/>
   <FRONTEND_RESULTS text="Ergebnisse"/>
   <FRONTEND_RESULT text="Ergebnis"/>

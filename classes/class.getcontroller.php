@@ -8,7 +8,7 @@
  * CMS & blog software with frontend / backend
  *
  * This program is distributed under GNU GPL 3
- * Copyright (C) 2010-2018 Andrea Kleinschmidt <ak81 at oscilloworld dot de>
+ * Copyright (C) 2010-2025 Andrea Kleinschmidt <ak81 at oscilloworld dot de>
  *
  * This program includes a MERGED version of PHP QR Code library
  * PHP QR Code is distributed under LGPL 3
@@ -149,6 +149,21 @@ class GetController {
     $login = $this->model->getLogin($ret_array);	// daten für login aus dem model, mit login erweiterung als parameter
     $view->setContent("login", $login["login"]);
 
+    if ((in_array(ACTION_HOME, $actions)) or (in_array(ACTION_PROFILE, $actions)) or (in_array(ACTION_PHOTOS, $actions))) {
+      if (!isset($_SESSION["bannerstrip"])) {
+        // falls session variable noch nicht existiert
+        $ret_array = $this->model->bannerstrip();	// content erweitern mit bannerstrip
+        $_SESSION["bannerstrip"] = $ret_array;	// in SESSION speichern
+      } // neue session variable
+      else {
+        // alte session variable
+        $ret_array = $_SESSION["bannerstrip"];	// aus SESSION lesen
+      }
+    }
+    else {
+      $ret_array = array();	// empty
+    }
+
     $ret = null;	// ["content","error"]
 
     // switch anweisung, {hd_title} und {content} ersetzen je nach GET-action
@@ -157,21 +172,21 @@ class GetController {
 
       case ACTION_HOME: {
         $model_home = new Home();	// model erstellen
-        $ret = $model_home->getHome();	// daten für home aus dem model
+        $ret = $model_home->getHome($ret_array);	// daten für home aus dem model
         $view->setContent("hd_title", $head["hd_title"]);	// ." home"
         break;
       }
 
       case ACTION_PROFILE: {
         $model_profile = new Profile();	// model erstellen
-        $ret = $model_profile->getProfile($this->language);	// daten für profile aus dem model
+        $ret = $model_profile->getProfile($this->language, $ret_array);	// daten für profile aus dem model
         $view->setContent("hd_title", $head["hd_title"]." profile");
         break;
       }
 
       case ACTION_PHOTOS: {
         $model_photos = new Photos();	// model erstellen
-        $ret = $model_photos->getPhotos($this->gallery, $this->id);	// daten für photos aus dem model
+        $ret = $model_photos->getPhotos($this->gallery, $this->id, $ret_array);	// daten für photos aus dem model
         $view->setContent("hd_title", $head["hd_title"]." photos".$ret["hd_title_ext"]);
         break;
       }

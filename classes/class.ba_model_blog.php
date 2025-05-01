@@ -153,7 +153,7 @@ class Blog extends Model {
   }
 
   // ersetze new lines im text durch <br> (bzw. <br />) und interpretiere doppelte new lines als absatz <p>
-  public static function nl2br_extended($text_str, $xhtml_flag=true) {
+  public static function nl2br_extended_old($text_str, $xhtml_flag=true) {
     $paragraphs_old = preg_split('/(*BSR_ANYCRLF)\R{2}/', $text_str, 0, PREG_SPLIT_NO_EMPTY);	// doppelte new lines, PCRE (*BSR_ANYCRLF)\R für \r\n oder \r oder \n
     $paragraphs_new = array_map("nl2br", $paragraphs_old, array_fill(1, count($paragraphs_old), $xhtml_flag));	// einfache new lines, array_map mit dritten parameter für nl2br($text_str, $xhtml_flag)
     return implode("</p>\n<p>", $paragraphs_new);	// zusammenfassen zu string, ohne erstes <p> und letztes </p>, nur </p><p> dazwischen
@@ -703,11 +703,11 @@ class Blog extends Model {
               $html_backend_ext .= $ba_header."... / ".$ba_intro."... / ";
             }
             $html_backend_ext .= $ba_text."...</a>".
-                                 "</td>\n<td>";
+                                 "</td>\n<td class=\"td_wrap\">";
             if (strlen($ba_videoid) > 0) {
               $html_backend_ext .= "(".$ba_videoid.")";	// nur wenn verwendet
             }
-            $html_backend_ext .= "</td>\n<td>";
+            $html_backend_ext .= "</td>\n<td class=\"td_wrap\">";
             if (strlen($ba_photoid) > 0) {
               $html_backend_ext .= "(".$ba_photoid.")";	// nur wenn verwendet
             }

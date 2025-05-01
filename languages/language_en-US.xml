@@ -52,6 +52,8 @@
   <FRONTEND_PROMPT_COMMENT_MAXLEN text="comment (max. 2048 chars):"/>
   <FRONTEND_RECENT_BLOGENTRIES text="recent blog entries:"/>
   <FRONTEND_RECENT_COMMENTS text="recent comments"/>
+  <FRONTEND_RECENT_GALLERY text="recent gallery:"/>
+  <FRONTEND_RECENT_IMAGE text="recent image:"/>
   <FRONTEND_RECENT_POSTS text="recent posts"/>
   <FRONTEND_RESULTS text="results"/>
   <FRONTEND_RESULT text="result"/>

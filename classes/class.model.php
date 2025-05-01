@@ -8,7 +8,7 @@
  * CMS & blog software with frontend / backend
  *
  * This program is distributed under GNU GPL 3
- * Copyright (C) 2010-2018 Andrea Kleinschmidt <ak81 at oscilloworld dot de>
+ * Copyright (C) 2010-2025 Andrea Kleinschmidt <ak81 at oscilloworld dot de>
  *
  * This program includes a MERGED version of PHP QR Code library
  * PHP QR Code is distributed under LGPL 3
@@ -553,6 +553,154 @@ atom:
 
     if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("login" => $login, "error" => $errorstring);
+  }
+
+  // {content} erweitern mit bannerstrip
+  private function getRecentImageForBannerstrip() {
+    $errorstring = "";
+
+    // zugriff auf mysql datenbank (1i)
+    $sql = "SELECT ba_photos.ba_photoid AS photoid, ba_photos.ba_text AS phototext, ba_gallery.ba_alias AS galleryalias, ba_gallery.ba_text AS gallerytext FROM ba_photos LEFT JOIN ba_gallery ON ba_photos.ba_galleryid = ba_gallery.ba_id WHERE ba_photos.ba_hide = 0 ORDER BY ba_photos.ba_id DESC LIMIT 1";
+    $ret = $this->database->query($sql);	// liefert in return db-objekt
+    if ($ret) {
+      // wenn kein fehler 1i
+
+      $dataset = $ret->fetch_assoc();	// fetch_assoc() liefert array
+      $photoid = stripslashes($this->html5specialchars($dataset["photoid"]));
+      $phototext = stripslashes($this->html5specialchars($dataset["phototext"]));
+      $galleryalias = rawurlencode($dataset["galleryalias"]);
+      $gallerytext = stripslashes($this->html5specialchars($dataset["gallerytext"]));
+
+      $ret->close();	// db-ojekt schließen
+      unset($ret);	// referenz löschen
+
+    }
+    else {
+      $errorstring .= "db error 1i\n";
+    }
+
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
+    return array("photoid" => $photoid, "phototext" => $phototext, "galleryalias" => $galleryalias, "gallerytext" => $gallerytext, "error" => $errorstring);
+  }
+
+  private function getRecentGalleryForBannerstrip() {
+    $errorstring = "";
+
+    // zugriff auf mysql datenbank (1g)
+    $sql = "SELECT ba_photos.ba_photoid AS photoid, ba_photos.ba_text AS phototext, ba_gallery.ba_alias AS galleryalias, ba_gallery.ba_text AS gallerytext FROM ba_photos LEFT JOIN ba_gallery ON ba_photos.ba_galleryid = ba_gallery.ba_id WHERE ba_photos.ba_hide = 0 ORDER by ba_photos.ba_galleryid DESC, ba_photos.ba_id ASC LIMIT 1";
+    $ret = $this->database->query($sql);	// liefert in return db-objekt
+    if ($ret) {
+      // wenn kein fehler 1g
+
+      $dataset = $ret->fetch_assoc();	// fetch_assoc() liefert array
+      $photoid = stripslashes($this->html5specialchars($dataset["photoid"]));
+      $phototext = stripslashes($this->html5specialchars($dataset["phototext"]));
+      $galleryalias = rawurlencode($dataset["galleryalias"]);
+      $gallerytext = stripslashes($this->html5specialchars($dataset["gallerytext"]));
+
+      $ret->close();	// db-ojekt schließen
+      unset($ret);	// referenz löschen
+
+    }
+    else {
+      $errorstring .= "db error 1g\n";
+    }
+
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
+    return array("photoid" => $photoid, "phototext" => $phototext, "galleryalias" => $galleryalias, "gallerytext" => $gallerytext, "error" => $errorstring);
+  }
+
+  private function getRecentGalleryTotalImagesForBannerstrip() {
+    $errorstring = "";
+
+    // zugriff auf mysql datenbank (1t)
+    $sql = "SELECT COUNT(ba_id) AS count FROM ba_photos WHERE ba_hide = 0 GROUP BY ba_galleryid ORDER by ba_galleryid DESC LIMIT 1";
+    $ret = $this->database->query($sql);	// liefert in return db-objekt
+    if ($ret) {
+      // wenn kein fehler 1t
+
+      $dataset = $ret->fetch_assoc();	// fetch_assoc() liefert array
+      $count = $dataset["count"];
+
+      $ret->close();	// db-ojekt schließen
+      unset($ret);	// referenz löschen
+
+    }
+    else {
+      $errorstring .= "db error 1t\n";
+    }
+
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
+    return array("count" => $count, "error" => $errorstring);
+  }
+
+  public function bannerstrip() {
+    $bannerstrip = "";
+    $errorstring = "";
+
+    $bannerstrip .= "<div id=\"bannerstrip\">\n";
+
+    // neustes bild
+    $ret = $this->getRecentImageForBannerstrip();
+    if (empty($ret["error"])) {
+      $imagename = "jpeg/".$ret["photoid"].".jpg";
+      if (is_readable($imagename)) {
+        $imagesize = getimagesize($imagename);
+        $replace_image = "<img class=\"border\" src=\"".$imagename."\" alt=\"".$ret["phototext"]."\" ".$imagesize[3].">";
+      }
+      else {
+        $replace_image = "<p>".$this->language["FRONTEND_PHOTO"]."</p>\n";
+      }
+
+      $query_data = array("action" => "photos", "gallery" => $ret["galleryalias"], "id" => $ret["photoid"]);
+
+      $bannerstrip .= "<h3>".$this->language["FRONTEND_RECENT_IMAGE"]."</h3>\n".
+                      "<figure class=\"bannerstrip\">\n".
+                      $replace_image."\n".
+                      "<figcaption class=\"bannerstrip_caption\"><a href=\"index.php?".$this->html_build_query($query_data)."\">".$ret["phototext"]."</a> | <a href=\"photos/".$ret["galleryalias"]."/\">".$ret["gallerytext"]."</a></figcaption>\n".
+                      "</figure>\n";
+    }
+    else {
+      $errorstring .= $ret["error"];
+    }
+
+    // neuste gallerie
+    $ret = $this->getRecentGalleryForBannerstrip();
+    if (empty($ret["error"])) {
+      $imagename = "jpeg/".$ret["photoid"].".jpg";
+      if (is_readable($imagename)) {
+        $imagesize = getimagesize($imagename);
+        $replace_image = "<img class=\"border\" src=\"".$imagename."\" alt=\"".$ret["phototext"]."\" ".$imagesize[3].">";
+      }
+      else {
+        $replace_image = "<p>".$this->language["FRONTEND_PHOTO"]."</p>\n";
+      }
+
+      $bannerstrip .= "<h3>".$this->language["FRONTEND_RECENT_GALLERY"]."</h3>\n".
+                      "<figure class=\"bannerstrip\">\n".
+                      $replace_image."\n".
+                      "<figcaption class=\"bannerstrip_caption\"><a href=\"photos/".$ret["galleryalias"]."/\">".$ret["gallerytext"]."</a>";
+
+      // anzahl bilder neuste gallerie
+      $ret_count = $this->getRecentGalleryTotalImagesForBannerstrip();
+      if (empty($ret_count["error"])) {
+        $bannerstrip .= " (".$ret_count["count"]." ".$this->language["FRONTEND_PHOTOS"].")";
+      }
+      else {
+        $errorstring .= $ret_count["error"];
+      }
+
+      $bannerstrip .= "</figcaption>\n".
+                      "</figure>\n";
+    }
+    else {
+      $errorstring .= $ret["error"];
+    }
+
+    $bannerstrip .= "</div>\n";
+
+    if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
+    return array("bannerstrip" => $bannerstrip, "error" => $errorstring);
   }
 
   // locale für frontend
