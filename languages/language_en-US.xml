@@ -139,6 +139,7 @@
   <PROMPT_DESCRIPTION text="description:"/>
   <PROMPT_ELEMENTS text="elements:"/>
   <PROMPT_INTRO text="intro:"/>
+  <PROMPT_FEATUREDIMAGE text="featured image:"/>
   <PROMPT_FEED text="feed:"/>
   <PROMPT_FULLNAME text="full name:"/>
   <PROMPT_HEADER text="header:"/>
@@ -195,6 +196,7 @@
   <TABLE_HD_DATE text="date"/>
   <TABLE_HD_DELETE text="delete"/>
   <TABLE_HD_INTRO text="intro"/>
+  <TABLE_HD_FEATURED text="featured"/>
   <TABLE_HD_FULLNAME text="full name"/>
   <TABLE_HD_GID text="g.id"/>
   <TABLE_HD_HEADER text="header"/>

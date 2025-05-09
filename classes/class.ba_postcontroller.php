@@ -8,7 +8,7 @@
  * CMS & blog software with frontend / backend
  *
  * This program is distributed under GNU GPL 3
- * Copyright (C) 2010-2024 Andrea Kleinschmidt <ak81 at oscilloworld dot de>
+ * Copyright (C) 2010-2025 Andrea Kleinschmidt <ak81 at oscilloworld dot de>
  *
  * This program includes a MERGED version of PHP QR Code library
  * PHP QR Code is distributed under LGPL 3
@@ -946,7 +946,7 @@ class PostController {
 // *****************************************************************************
 
         elseif (isset($_POST["ba_blog"]) and ($_SESSION["user_role"] >= ROLE_EDITOR)) {
-          // ba_blog[ba_id, ba_userid, ba_datetime, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_catid, ba_tags, ba_state, "delete"]
+          // ba_blog[ba_id, ba_userid, ba_datetime, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_featuredimage, ba_catid, ba_tags, ba_state, "delete"]
           // ba_id == 0 -> neuer blog eintrag
           // ba_id == 0xffff -> error
 
@@ -963,6 +963,7 @@ class PostController {
           $ba_text = trim($ba_blog_array["ba_text"]);
           $ba_videoid = trim($ba_blog_array["ba_videoid"]);
           $ba_photoid = trim($ba_blog_array["ba_photoid"]);
+          $ba_featuredimage = trim($ba_blog_array["ba_featuredimage"]);
           $ba_tags = trim($ba_blog_array["ba_tags"]);
 
           // str zu int
@@ -988,6 +989,9 @@ class PostController {
           if (strlen($ba_photoid) > MAXLEN_BLOGPHOTOID) {
             $ba_photoid = substr($ba_photoid, 0, MAXLEN_BLOGPHOTOID);
           }
+          if (strlen($ba_featuredimage) > MAXLEN_PHOTOID) {
+            $ba_featuredimage = substr($ba_featuredimage, 0, MAXLEN_PHOTOID);
+          }
           if (mb_strlen($ba_tags, MB_ENCODING) > MAXLEN_BLOGTAGS) {
             $ba_tags = mb_substr($ba_tags, 0, MAXLEN_BLOGTAGS, MB_ENCODING);
           }
@@ -1000,7 +1004,7 @@ class PostController {
 
           $ba_delete = in_array("delete", $ba_blog_array);	// in array nach string suchen
 
-          $ret = $model_blog->postBlog($ba_id, $ba_userid, $ba_datetime, $ba_header, $ba_intro, $ba_text, $ba_videoid, $ba_photoid, $ba_catid, $ba_tags, $ba_state, $ba_delete);	// daten für blog in das model
+          $ret = $model_blog->postBlog($ba_id, $ba_userid, $ba_datetime, $ba_header, $ba_intro, $ba_text, $ba_videoid, $ba_photoid, $ba_featuredimage, $ba_catid, $ba_tags, $ba_state, $ba_delete);	// daten für blog in das model
           $html_backend_ext .= $ret["content"];
           $errorstring = $ret["error"];
 

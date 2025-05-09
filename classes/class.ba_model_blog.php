@@ -48,6 +48,7 @@
 //define("MAXLEN_FEED",128);	// blogroll
 //define("MAXLEN_OPTIONSTR",64);
 //define("MAXLEN_PERMALINK",50);
+//define("MAXLEN_PHOTOID",8);	// featured image
 //define("STATE_CREATED",0);
 //define("STATE_EDITED",1);
 //define("STATE_APPROVAL",2);
@@ -550,6 +551,7 @@ class Blog extends Model {
       //                ba_text TEXT(20480) NOT NULL,
       //                ba_videoid VARCHAR(32) NOT NULL,
       //                ba_photoid VARCHAR(160) NOT NULL,
+      //                ba_featuredimage VARCHAR(8) NOT NULL,
       //                ba_catid INT UNSIGNED NOT NULL,
       //                ba_tags VARCHAR(128) NOT NULL,
       //                ba_state TINYINT UNSIGNED NOT NULL);
@@ -629,10 +631,10 @@ class Blog extends Model {
 
         // zugriff auf mysql datenbank (3)
         if ($show_page == true) {
-          $sql = "SELECT ba_id, ba_datetime, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_catid, ba_tags, ba_state FROM ba_blog ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;
+          $sql = "SELECT ba_id, ba_datetime, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_featuredimage, ba_catid, ba_tags, ba_state FROM ba_blog ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;
         }
         elseif ($show_date == true) {
-          $sql = "SELECT ba_id, ba_datetime, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_catid, ba_tags, ba_state FROM ba_blog WHERE ba_datetime >= '".$date."' AND ba_datetime < '".$date."' + INTERVAL 1 DAY ORDER BY ba_id DESC LIMIT 0,".$anzahl_e;	// funktioniert nur mit limit
+          $sql = "SELECT ba_id, ba_datetime, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_featuredimage, ba_catid, ba_tags, ba_state FROM ba_blog WHERE ba_datetime >= '".$date."' AND ba_datetime < '".$date."' + INTERVAL 1 DAY ORDER BY ba_id DESC LIMIT 0,".$anzahl_e;	// funktioniert nur mit limit
         }
         $ret = $this->database->query($sql);	// liefert in return db-objekt
         if ($ret) {
@@ -649,6 +651,8 @@ class Blog extends Model {
                                $this->language["TABLE_HD_VIDEOID"].
                                "</th>\n<th>".
                                $this->language["TABLE_HD_PHOTOID"].
+                               "</th>\n<th>".
+                               $this->language["TABLE_HD_FEATURED"].
                                "</th>\n<th>".
                                $this->language["TABLE_HD_CATID"].
                                "</th>\n<th>".
@@ -667,6 +671,7 @@ class Blog extends Model {
             $ba_text = stripslashes(self::html_tags($this->html5specialchars(mb_substr($dataset["ba_text"], 0, 80, MB_ENCODING)), false));	// 80 wie blogbox in class.model.php, substr problem bei trennung umlaute
             $ba_videoid = stripslashes($this->html5specialchars($dataset["ba_videoid"]));
             $ba_photoid = stripslashes($this->html5specialchars($dataset["ba_photoid"]));
+            $ba_featuredimage = stripslashes($this->html5specialchars($dataset["ba_featuredimage"]));
             $ba_catid = intval($dataset["ba_catid"]);
             $ba_tags_flag = "";
             if (!empty($dataset["ba_tags"])) {
@@ -710,6 +715,10 @@ class Blog extends Model {
             $html_backend_ext .= "</td>\n<td class=\"td_wrap\">";
             if (strlen($ba_photoid) > 0) {
               $html_backend_ext .= "(".$ba_photoid.")";	// nur wenn verwendet
+            }
+            $html_backend_ext .= "</td>\n<td>";
+            if (strlen($ba_featuredimage) > 0) {
+              $html_backend_ext .= "(".$ba_featuredimage.")";	// nur wenn verwendet
             }
             $html_backend_ext .= "</td>\n<td>";
             if ($ba_catid > 0) {
@@ -766,7 +775,7 @@ class Blog extends Model {
             $html_backend_ext .= "<a href=\"backend.php?".$this->html_build_query($query_data)."\">".$this->language["PAGE_NEXT"]."</a>\n";		// vor
           }
 
-          $html_backend_ext .= "</td>\n<td></td>\n<td></td>\n<td></td>\n</tr>\n".
+          $html_backend_ext .= "</td>\n<td></td>\n<td></td>\n<td></td>\n<td></td>\n<td></td>\n<td></td>\n</tr>\n".
                                "</table>\n\n";
 
           $ret->close();	// db-ojekt schließen
@@ -1061,6 +1070,7 @@ class Blog extends Model {
       //                ba_text TEXT(20480) NOT NULL,
       //                ba_videoid VARCHAR(32) NOT NULL,
       //                ba_photoid VARCHAR(160) NOT NULL,
+      //                ba_featuredimage VARCHAR(8) NOT NULL,
       //                ba_catid INT UNSIGNED NOT NULL,
       //                ba_tags VARCHAR(128) NOT NULL,
       //                ba_state TINYINT UNSIGNED NOT NULL);
@@ -1077,6 +1087,7 @@ class Blog extends Model {
       $ba_text = "";
       $ba_videoid = "";
       $ba_photoid = "";
+      $ba_featuredimage = "";
       $ba_catid = 0;
       $ba_tags = "";
       $ba_state = STATE_CREATED;
@@ -1088,7 +1099,7 @@ class Blog extends Model {
         $html_backend_ext .= "<p id=\"blog\"><b>".$this->language["HEADER_BLOG"]."</b></p>\n\n";
 
         // zugriff auf mysql datenbank (1) , select mit prepare() , ($id aus GET)
-        $sql = "SELECT ba_id, ba_datetime, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_catid, ba_tags, ba_state FROM ba_blog WHERE ba_id = ?";
+        $sql = "SELECT ba_id, ba_datetime, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_featuredimage, ba_catid, ba_tags, ba_state FROM ba_blog WHERE ba_id = ?";
         $stmt = $this->database->prepare($sql);	// liefert mysqli-statement-objekt
         if ($stmt) {
           // wenn kein fehler 3d
@@ -1097,7 +1108,7 @@ class Blog extends Model {
           $stmt->bind_param("i", $id);
           $stmt->execute();	// ausführen geänderte zeile
 
-          $stmt->bind_result($dataset["ba_id"],$dataset["ba_datetime"],$dataset["ba_header"],$dataset["ba_intro"],$dataset["ba_text"],$dataset["ba_videoid"],$dataset["ba_photoid"],$dataset["ba_catid"],$dataset["ba_tags"],$dataset["ba_state"]);
+          $stmt->bind_result($dataset["ba_id"],$dataset["ba_datetime"],$dataset["ba_header"],$dataset["ba_intro"],$dataset["ba_text"],$dataset["ba_videoid"],$dataset["ba_photoid"],$dataset["ba_featuredimage"],$dataset["ba_catid"],$dataset["ba_tags"],$dataset["ba_state"]);
           // mysqli-statement-objekt kennt kein fetch_assoc(), nur fetch(), kein assoc-array als rückgabe
 
           if ($stmt->fetch()) {
@@ -1111,6 +1122,7 @@ class Blog extends Model {
             $ba_text = stripslashes($this->html5specialchars($dataset["ba_text"]));
             $ba_videoid = stripslashes($this->html5specialchars($dataset["ba_videoid"]));
             $ba_photoid = stripslashes($this->html5specialchars($dataset["ba_photoid"]));
+            $ba_featuredimage = stripslashes($this->html5specialchars($dataset["ba_featuredimage"]));
             $ba_catid = intval($dataset["ba_catid"]);
             $ba_tags = stripslashes($this->html5specialchars($dataset["ba_tags"]));
             $ba_state = intval($dataset["ba_state"]);
@@ -1194,6 +1206,10 @@ class Blog extends Model {
                            $this->language["PROMPT_PHOTOID"].
                            "</td>\n<td>".
                            "<input type=\"text\" name=\"ba_blog[ba_photoid]\" class=\"size_32\" maxlength=\"".MAXLEN_BLOGPHOTOID."\" value=\"".$ba_photoid."\"/>".
+                           "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">".
+                           $this->language["PROMPT_FEATUREDIMAGE"].
+                           "</td>\n<td>".
+                           "<input type=\"text\" name=\"ba_blog[ba_featuredimage]\" class=\"size_4\" maxlength=\"".MAXLEN_PHOTOID."\" value=\"".$ba_featuredimage."\"/>".
                            "</td>\n</tr>\n<tr>\n<td class=\"td_backend\">".
                            $this->language["PROMPT_CATEGORY"].
                            "</td>\n<td>\n".
@@ -1281,7 +1297,7 @@ class Blog extends Model {
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
 
-  public function postBlog($ba_id, $ba_userid, $ba_datetime, $ba_header, $ba_intro, $ba_text, $ba_videoid, $ba_photoid, $ba_catid, $ba_tags, $ba_state, $ba_delete) {
+  public function postBlog($ba_id, $ba_userid, $ba_datetime, $ba_header, $ba_intro, $ba_text, $ba_videoid, $ba_photoid, $ba_featuredimage, $ba_catid, $ba_tags, $ba_state, $ba_delete) {
     $html_backend_ext = "";
     $errorstring = "";
 
@@ -1311,7 +1327,7 @@ class Blog extends Model {
 
         // einfügen in datenbank:
         if ($ba_id == 0) {
-          $sql = "INSERT INTO ba_blog (ba_userid, ba_datetime, ba_alias, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_catid, ba_tags, ba_state) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+          $sql = "INSERT INTO ba_blog (ba_userid, ba_datetime, ba_alias, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_featuredimage, ba_catid, ba_tags, ba_state) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         }
 
         // löschen in datenbank:
@@ -1321,7 +1337,7 @@ class Blog extends Model {
 
         // update in datenbank:
         else {
-          $sql = "UPDATE ba_blog SET ba_userid = ?, ba_datetime = ?, ba_alias = ?, ba_header = ?, ba_intro = ?, ba_text = ?, ba_videoid = ?, ba_photoid = ?, ba_catid = ?, ba_tags = ?, ba_state = ? WHERE ba_id = ?";
+          $sql = "UPDATE ba_blog SET ba_userid = ?, ba_datetime = ?, ba_alias = ?, ba_header = ?, ba_intro = ?, ba_text = ?, ba_videoid = ?, ba_photoid = ?, ba_featuredimage = ?, ba_catid = ?, ba_tags = ?, ba_state = ? WHERE ba_id = ?";
         }
 
         // mit prepare() - sql injections verhindern
@@ -1331,7 +1347,7 @@ class Blog extends Model {
 
           // austauschen ???????????, ? oder ???????????? durch string und int
           if ($ba_id == 0) {
-            $stmt->bind_param("isssssssisi", $ba_userid, $ba_datetime, $ba_alias, $ba_header, $ba_intro, $ba_text, $ba_videoid, $ba_photoid, $ba_catid, $ba_tags, $ba_state);	// einfügen in datenbank
+            $stmt->bind_param("issssssssisi", $ba_userid, $ba_datetime, $ba_alias, $ba_header, $ba_intro, $ba_text, $ba_videoid, $ba_photoid, $ba_featuredimage, $ba_catid, $ba_tags, $ba_state);	// einfügen in datenbank
             $html_backend_ext .= "<p>".$this->language["MSG_BLOG_NEW"]."</p>\n\n";
           }
           elseif ($ba_delete) {
@@ -1339,7 +1355,7 @@ class Blog extends Model {
             $html_backend_ext .= "<p>".$this->language["MSG_BLOG_DELETE"]."</p>\n\n";
           }
           else {
-            $stmt->bind_param("isssssssisii", $ba_userid, $ba_datetime, $ba_alias, $ba_header, $ba_intro, $ba_text, $ba_videoid, $ba_photoid, $ba_catid, $ba_tags, $ba_state, $ba_id);	// update in datenbank
+            $stmt->bind_param("issssssssisii", $ba_userid, $ba_datetime, $ba_alias, $ba_header, $ba_intro, $ba_text, $ba_videoid, $ba_photoid, $ba_featuredimage, $ba_catid, $ba_tags, $ba_state, $ba_id);	// update in datenbank
             $html_backend_ext .= "<p>".$this->language["MSG_BLOG_UPDATE"]."</p>\n\n";
           }
           $stmt->execute();	// ausführen geänderte zeile

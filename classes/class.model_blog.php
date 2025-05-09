@@ -442,6 +442,19 @@ class Blog extends Model {
 
     $replace .= "<article id=\"".date_format($datetime, "YmdHis")."\">\n";	// blog id für article
 
+    if (!$diary_mode or ($diary_mode and $first_entry)) {
+      // optional featured image
+      if (!empty($dataset["ba_featuredimage"])) {
+        $imagename = "jpeg/".$dataset["ba_featuredimage"].".jpg";
+        if (is_readable($imagename)) {
+          $imagesize = getimagesize($imagename);
+          $replace .= "<figure class=\"featuredimage\">\n".
+                      "<img class=\"border\" src=\"".$imagename."\" alt=\"featured image\" ".$imagesize[3].">\n".
+                      "</figure>\n";
+        }
+      }
+    }
+
     $permalink = date_format($datetime, "Y/m/").$blogalias;
 
     if ($diary_mode) {
@@ -797,7 +810,7 @@ class Blog extends Model {
     if (!$this->database->connect_errno) {
       // wenn kein fehler
 
-      $sql = "SELECT ba_id, ba_blogid FROM ba_comment WHERE ba_state >= ".STATE_PUBLISHED." AND ba_blogid > 1";
+      $sql = "SELECT ba_id, ba_blogid FROM ba_comment WHERE ba_state >= ".STATE_PUBLISHED." AND ba_blogid > 0";
       $ret = $this->database->query($sql);	// liefert in return db-objekt
       if ($ret) {
         // ausgabeschleife
@@ -1093,11 +1106,11 @@ class Blog extends Model {
           // zugriff auf mysql datenbank (6), in mysql select mit prepare() - sql injections verhindern
           if (!$tagflag) {
             // query
-            $sql = "SELECT ba_id, ba_userid, ba_datetime, ba_alias, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND (CONCAT(ba_header, ba_intro, ba_text) RLIKE ?) ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;	// (2) mit LIMIT
+            $sql = "SELECT ba_id, ba_userid, ba_datetime, ba_alias, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_featuredimage, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND (CONCAT(ba_header, ba_intro, ba_text) RLIKE ?) ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;	// (2) mit LIMIT
           }
           else {
             // tag
-            $sql = "SELECT ba_blog.ba_id, ba_userid, ba_datetime, ba_alias, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid LEFT JOIN ba_blogcategory ON ba_blog.ba_catid = ba_blogcategory.ba_id WHERE ba_state >= ".STATE_PUBLISHED." AND (CONCAT_WS(', ', ba_category, ba_tags) RLIKE ?) ORDER BY ba_blog.ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;	// (2) mit LIMIT
+            $sql = "SELECT ba_blog.ba_id, ba_userid, ba_datetime, ba_alias, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_featuredimage, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid LEFT JOIN ba_blogcategory ON ba_blog.ba_catid = ba_blogcategory.ba_id WHERE ba_state >= ".STATE_PUBLISHED." AND (CONCAT_WS(', ', ba_category, ba_tags) RLIKE ?) ORDER BY ba_blog.ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;	// (2) mit LIMIT
           }
           $stmt = $this->database->prepare($sql);	// liefert mysqli-statement-objekt
           if ($stmt) {
@@ -1109,8 +1122,8 @@ class Blog extends Model {
 
             $stmt->store_result();
 
-            $stmt->bind_result($dataset["ba_id"],$dataset["ba_userid"],$dataset["ba_datetime"],$dataset["ba_alias"],$dataset["ba_header"],$dataset["ba_intro"],$dataset["ba_text"],$dataset["ba_videoid"],$dataset["ba_photoid"],$dataset["full_name"]);
-            // oder ohne array dataset: $stmt->bind_result($ba_id, $ba_userid, $ba_datetime, $ba_alias, $ba_header, $ba_intro, $ba_text, $ba_videoid, $ba_photoid, $full_name);
+            $stmt->bind_result($dataset["ba_id"],$dataset["ba_userid"],$dataset["ba_datetime"],$dataset["ba_alias"],$dataset["ba_header"],$dataset["ba_intro"],$dataset["ba_text"],$dataset["ba_videoid"],$dataset["ba_photoid"],$dataset["ba_featuredimage"],$dataset["full_name"]);
+            // oder ohne array dataset: $stmt->bind_result($ba_id, $ba_userid, $ba_datetime, $ba_alias, $ba_header, $ba_intro, $ba_text, $ba_videoid, $ba_photoid, $ba_featuredimage, $full_name);
             // mysqli-statement-objekt kennt kein fetch_assoc(), nur fetch(), kein array als rückgabe
 
             // suche ausgeben (2), bei mehreren ergebnissen auf mehreren seiten
@@ -1198,7 +1211,7 @@ class Blog extends Model {
     $diary_mode = boolval($this->getOption_by_name("blog_diary_mode"));	// tagebuch modus an = 1
 
     // zugriff auf mysql datenbank (5)
-    $sql = "SELECT ba_id FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id != 1";
+    $sql = "SELECT ba_id FROM ba_blog WHERE ba_state >= ".STATE_PUBLISHED;
     $ret = $this->database->query($sql);	// liefert in return db-objekt
     if ($ret) {
       // wenn kein fehler 5b
@@ -1311,25 +1324,21 @@ class Blog extends Model {
       $lmt_start = ($page-1) * $anzahl_eps;
 
       // zugriff auf mysql datenbank (6)
-      $sql = "";	// blog eintrag nr.1 nur auf erster seite, danach alle absteigend 100..99...2 (ohne 1)
-      if ($page == 1 or $show_year == true) {
-        $sql .= "SELECT ba_id, ba_userid, ba_datetime, ba_alias, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id = 1".
-                "\nUNION\n";
-      }
+      $sql = "";	// blog einträge alle absteigend 100..99...1
       if ($show_page == true) {
-        $sql .= "(SELECT ba_id, ba_userid, ba_datetime, ba_alias, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id != 1 ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps.")";
+        $sql .= "(SELECT ba_id, ba_userid, ba_datetime, ba_alias, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_featuredimage, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps.")";
       }
       elseif ($show_year == true and $show_month == false) {
-        $sql .= "(SELECT ba_id, ba_userid, ba_datetime, ba_alias, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$year." ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
+        $sql .= "(SELECT ba_id, ba_userid, ba_datetime, ba_alias, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_featuredimage, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND YEAR(ba_datetime) = ".$year." ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
       }
       elseif ($show_year == true and $show_month == true and $show_alias == false) {
-        $sql .= "(SELECT ba_id, ba_userid, ba_datetime, ba_alias, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_datetime >= '".$date."' AND ba_datetime < '".$date."' + INTERVAL 1 MONTH ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
+        $sql .= "(SELECT ba_id, ba_userid, ba_datetime, ba_alias, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_featuredimage, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_datetime >= '".$date."' AND ba_datetime < '".$date."' + INTERVAL 1 MONTH ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
       }
       elseif ($show_year == true and $show_month == true and $show_alias == true) {
-        $sql .= "(SELECT ba_id, ba_userid, ba_datetime, ba_alias, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_datetime >= '".$date."' AND ba_datetime < '".$date."' + INTERVAL 1 MONTH AND ba_alias = '".$alias."' ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
+        $sql .= "(SELECT ba_id, ba_userid, ba_datetime, ba_alias, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_featuredimage, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_datetime >= '".$date."' AND ba_datetime < '".$date."' + INTERVAL 1 MONTH AND ba_alias = '".$alias."' ORDER BY ba_id DESC LIMIT 0,".$anzahl_e.")";	// funktioniert nur mit limit
       }
       else {
-        $sql .= "(SELECT ba_id, ba_userid, ba_datetime, ba_alias, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id = 1)";
+        $sql .= "(SELECT ba_id, ba_userid, ba_datetime, ba_alias, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_featuredimage, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_id = 1)";
       }
       $ret = $this->database->query($sql);	// liefert in return db-objekt
       if ($ret) {
@@ -1438,7 +1447,7 @@ class Blog extends Model {
         $lmt_start = ($page-1) * $anzahl_eps;
 
         // zugriff auf mysql datenbank (6)
-        $sql = "SELECT ba_id, ba_userid, ba_datetime, ba_alias, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_userid = ".$userid." ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;	// (2) mit LIMIT
+        $sql = "SELECT ba_id, ba_userid, ba_datetime, ba_alias, ba_header, ba_intro, ba_text, ba_videoid, ba_photoid, ba_featuredimage, full_name FROM ba_blog INNER JOIN backend ON backend.id = ba_blog.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND ba_userid = ".$userid." ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_eps;	// (2) mit LIMIT
         $ret = $this->database->query($sql);	// liefert in return db-objekt
         if ($ret) {
           // wenn kein fehler 6c
@@ -1527,7 +1536,7 @@ class Blog extends Model {
     }
 
     // zugriff auf mysql datenbank (7)
-    $sql = "SELECT ba_id FROM ba_comment WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_blogid = 1 OR ".$sql_part.")";
+    $sql = "SELECT ba_id FROM ba_comment WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_blogid = 0 OR ".$sql_part.")";
     $ret = $this->database->query($sql);	// liefert in return db-objekt
     if ($ret) {
       // wenn kein fehler 7
@@ -1547,7 +1556,7 @@ class Blog extends Model {
       $lmt_start = ($compage-1) * $anzahl_cps;
 
       // zugriff auf mysql datenbank (8)
-      $sql = "SELECT ba_id, ba_datetime, ba_name, ba_mail, ba_text, ba_comment, ba_blogid, IFNULL(full_name,'nobody') AS full_name FROM ba_comment LEFT JOIN backend ON backend.id = ba_comment.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_blogid = 1 OR ".$sql_part.") ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_cps;
+      $sql = "SELECT ba_id, ba_datetime, ba_name, ba_mail, ba_text, ba_comment, ba_blogid, IFNULL(full_name,'nobody') AS full_name FROM ba_comment LEFT JOIN backend ON backend.id = ba_comment.ba_userid WHERE ba_state >= ".STATE_PUBLISHED." AND (ba_blogid = 0 OR ".$sql_part.") ORDER BY ba_id DESC LIMIT ".$lmt_start.",".$anzahl_cps;
       $ret = $this->database->query($sql);	// liefert in return db-objekt
       if ($ret) {
         // wenn kein fehler 8
@@ -1638,11 +1647,9 @@ class Blog extends Model {
                 "</div>\n".
                 "<p>".$this->language["FRONTEND_PROMPT_BLOGENTRY"]."\n".
                 "<br><select name=\"comment[blogid]\" size=\"1\">\n".
-                "<option value=\"0\" selected>".$this->language["FRONTEND_IGNORE_MY_COMMENT"]."</option>\n";
+                "<option value=\"-1\" selected>".$this->language["FRONTEND_IGNORE_MY_COMMENT"]."</option>\n".
+                "<option value=\"0\">".$this->language["FRONTEND_NONE"]."</option>\n";
     foreach ($option_array as $blogid => $blogtext) {
-      if ($blogid == 1) {
-        $blogtext = $this->language["FRONTEND_NONE"];
-      }
       $replace .= "<option value=\"".$blogid."\">".$blogtext."</option>\n";
     }
     $replace .= "</select></p>\n".
@@ -1688,7 +1695,7 @@ class Blog extends Model {
         }
 
         // kein honeypot
-        if ($comment_website == "" and $comment_blogid > 0) {
+        if ($comment_website == "" and $comment_blogid == -1) {
 
           // auf leer überprüfen
           if ($comment_name != "" and $comment_text != "") {
