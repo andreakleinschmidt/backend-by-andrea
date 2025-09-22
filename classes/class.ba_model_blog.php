@@ -1059,7 +1059,7 @@ class Blog extends Model {
     if (!$this->database->connect_errno) {
       // wenn kein fehler
 
-      $html_backend_ext .= "<section>\n\n";
+      $html_backend_ext .= "<main>\n\n";
 
       // TABLE ba_blog (ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
       //                ba_userid INT UNSIGNED NOT NULL,
@@ -1286,7 +1286,7 @@ class Blog extends Model {
       $html_backend_ext .= $options["content"];
       $errorstring .= $options["error"];
 
-      $html_backend_ext .= "</section>\n\n";
+      $html_backend_ext .= "</main>\n\n";
 
     } // datenbank
     else {
@@ -1304,7 +1304,7 @@ class Blog extends Model {
     if (!$this->database->connect_errno) {
       // wenn kein fehler
 
-      $html_backend_ext .= "<section>\n\n";
+      $html_backend_ext .= "<main>\n\n";
 
       // options
       $diary_mode = boolval($this->getOption_by_name("blog_diary_mode"));	// tagebuch modus an = 1
@@ -1375,7 +1375,7 @@ class Blog extends Model {
         $errorstring .= "no id!\n";
       }
 
-      $html_backend_ext .= "</section>\n\n";
+      $html_backend_ext .= "</main>\n\n";
 
     } // datenbank
     else {
@@ -1393,7 +1393,7 @@ class Blog extends Model {
     if (!$this->database->connect_errno) {
       // wenn kein fehler
 
-      $html_backend_ext .= "<section>\n\n";
+      $html_backend_ext .= "<main>\n\n";
 
       // einfügen in datenbank , mit prepare() - sql injections verhindern
       $sql = "INSERT INTO ba_blogroll (ba_feed) VALUES (?)";
@@ -1420,7 +1420,7 @@ class Blog extends Model {
         $errorstring .= "db error 4k\n";
       }
 
-      $html_backend_ext .= "</section>\n\n";
+      $html_backend_ext .= "</main>\n\n";
 
     } // datenbank
     else {
@@ -1438,7 +1438,7 @@ class Blog extends Model {
     if (!$this->database->connect_errno) {
       // wenn kein fehler
 
-      $html_backend_ext .= "<section>\n\n";
+      $html_backend_ext .= "<main>\n\n";
 
       $count = 0;
 
@@ -1465,7 +1465,7 @@ class Blog extends Model {
 
       $html_backend_ext .= "<p>".$count." ".$this->language["MSG_ROWS_DELETED"]."</p>\n\n";
 
-      $html_backend_ext .= "</section>\n\n";
+      $html_backend_ext .= "</main>\n\n";
 
     } // datenbank
     else {
@@ -1483,7 +1483,7 @@ class Blog extends Model {
     if (!$this->database->connect_errno) {
       // wenn kein fehler
 
-      $html_backend_ext .= "<section>\n\n";
+      $html_backend_ext .= "<main>\n\n";
 
       // einfügen in datenbank , mit prepare() - sql injections verhindern
       $sql = "INSERT INTO ba_blogcategory (ba_category) VALUES (?)";
@@ -1510,7 +1510,7 @@ class Blog extends Model {
         $errorstring .= "db error 4m\n";
       }
 
-      $html_backend_ext .= "</section>\n\n";
+      $html_backend_ext .= "</main>\n\n";
 
     } // datenbank
     else {
@@ -1528,7 +1528,7 @@ class Blog extends Model {
     if (!$this->database->connect_errno) {
       // wenn kein fehler
 
-      $html_backend_ext .= "<section>\n\n";
+      $html_backend_ext .= "<main>\n\n";
 
       $count = array("delete" => 0, "update" => 0);
 
@@ -1563,7 +1563,7 @@ class Blog extends Model {
       $html_backend_ext .= "<p>".$count["delete"]." ".$this->language["MSG_ROWS_DELETED"]."</p>\n\n";
       $html_backend_ext .= "<p>".$count["update"]." ".$this->language["MSG_ROWS_CHANGED"]."</p>\n\n";
 
-      $html_backend_ext .= "</section>\n\n";
+      $html_backend_ext .= "</main>\n\n";
 
     } // datenbank
     else {
@@ -1581,7 +1581,7 @@ class Blog extends Model {
     if (!$this->database->connect_errno) {
       // wenn kein fehler
 
-      $html_backend_ext .= "<section>\n\n";
+      $html_backend_ext .= "<main>\n\n";
 
       $count = 0;
 
@@ -1621,7 +1621,7 @@ class Blog extends Model {
 
       $html_backend_ext .= "<p>".$count." ".$this->language["MSG_ROWS_CHANGED"]."</p>\n\n";
 
-      $html_backend_ext .= "</section>\n\n";
+      $html_backend_ext .= "</main>\n\n";
 
     } // datenbank
     else {

@@ -8,7 +8,7 @@
  * CMS & blog software with frontend / backend
  *
  * This program is distributed under GNU GPL 3
- * Copyright (C) 2010-2018 Andrea Kleinschmidt <ak81 at oscilloworld dot de>
+ * Copyright (C) 2010-2025 Andrea Kleinschmidt <ak81 at oscilloworld dot de>
  *
  * This program includes a MERGED version of PHP QR Code library
  * PHP QR Code is distributed under LGPL 3
@@ -149,7 +149,7 @@ class Admin extends Model {
     if (!$this->database->connect_errno) {
       // wenn kein fehler
 
-      $html_backend_ext .= "<section>\n\n";
+      $html_backend_ext .= "<main>\n\n";
 
       // TABLE backend (id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
       //                role TINYINT UNSIGNED NOT NULL,
@@ -262,7 +262,7 @@ class Admin extends Model {
       // user anlegen (user, email, full_name, locale, rolle)
       $html_backend_ext .= $this->new_user_form($locales);
 
-      $html_backend_ext .= "</section>\n\n";
+      $html_backend_ext .= "</main>\n\n";
 
     } // datenbank
     else {
@@ -284,7 +284,7 @@ class Admin extends Model {
       $model_blog = new Blog();
       $contact_mail = stripslashes($model_blog->getOption_by_name("contact_mail", true));	// als string
 
-      $html_backend_ext .= "<section>\n\n";
+      $html_backend_ext .= "<main>\n\n";
 
       // einfügen in datenbank , mit prepare() - sql injections verhindern
       $sql = "INSERT INTO backend (role, user, password, email, full_name, locale) VALUES (?, ?, ?, ?, ?, ?)";
@@ -315,7 +315,7 @@ class Admin extends Model {
         $errorstring .= "db error 4g\n";
       }
 
-      $html_backend_ext .= "</section>\n\n";
+      $html_backend_ext .= "</main>\n\n";
 
     } // datenbank
     else {
@@ -333,7 +333,7 @@ class Admin extends Model {
     if (!$this->database->connect_errno) {
       // wenn kein fehler
 
-      $html_backend_ext .= "<section>\n\n";
+      $html_backend_ext .= "<main>\n\n";
 
       $count = 0;
 
@@ -373,7 +373,7 @@ class Admin extends Model {
 
       $html_backend_ext .= "<p>".$count." ".$this->language["MSG_ROWS_CHANGED"]."</p>\n\n";
 
-      $html_backend_ext .= "</section>\n\n";
+      $html_backend_ext .= "</main>\n\n";
 
     } // datenbank
     else {

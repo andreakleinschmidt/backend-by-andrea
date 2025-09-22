@@ -8,7 +8,7 @@
  * CMS & blog software with frontend / backend
  *
  * This program is distributed under GNU GPL 3
- * Copyright (C) 2010-2024 Andrea Kleinschmidt <ak81 at oscilloworld dot de>
+ * Copyright (C) 2010-2025 Andrea Kleinschmidt <ak81 at oscilloworld dot de>
  *
  * This program includes a MERGED version of PHP QR Code library
  * PHP QR Code is distributed under LGPL 3
@@ -194,7 +194,7 @@ class Model {
     $html_form = "<aside>\n".
                  "<pre>".TEXT_LOGO."</pre>\n".
                  "</aside>\n".
-                 "<section>\n".
+                 "<main>\n".
                  "<form name=\"pwd_form\" action=\"backend.php\" method=\"post\">\n".
                  "<table class=\"backend\">\n".
                  "<tr>\n<td class=\"td_backend\">".
@@ -211,7 +211,7 @@ class Model {
                  "</td>\n</tr>\n".
                  "</table>\n".
                  "</form>\n".
-                 "</section>\n\n";
+                 "</main>\n\n";
     return $html_form;
   }
 
@@ -219,7 +219,7 @@ class Model {
     $html_form = "<aside>\n".
                  "<pre>".TEXT_LOGO."</pre>\n".
                  "</aside>\n".
-                 "<section>\n".
+                 "<main>\n".
                  "<form name=\"pwd_form\" action=\"backend.php\" method=\"post\">\n".
                  "<table class=\"backend\">\n".
                  "<tr>\n<td class=\"td_backend\">".
@@ -232,7 +232,7 @@ class Model {
                  "</td>\n</tr>\n".
                  "</table>\n".
                  "</form>\n".
-                 "</section>\n\n";
+                 "</main>\n\n";
     return $html_form;
   }
 
@@ -240,10 +240,10 @@ class Model {
   // - alt (zur überprüfung)
   // - neu
   // - neu2
-  public function password_form($section_start=false, $section_end=false) {
-    $section_start_str = $section_start ? "<section>\n\n" : "";
-    $section_end_str = $section_end ? "</section>\n\n" : "";
-    $password_form = $section_start_str.
+  public function password_form($main_start=false, $main_end=false) {
+    $main_start_str = $main_start ? "<main>\n\n" : "";
+    $main_end_str = $main_end ? "</main>\n\n" : "";
+    $password_form = $main_start_str.
                      "<p><b>".$this->language["HEADER_PASSWORD"]."</b></p>\n".
                      "<form name=\"pwd_form\" action=\"backend.php\" method=\"post\">\n".
                      "<table class=\"backend\">\n".
@@ -265,16 +265,16 @@ class Model {
                      "</td>\n</tr>\n".
                      "</table>\n".
                      "</form>\n\n".
-                     $section_end_str;
+                     $main_end_str;
     return $password_form;
   }
 
   // zwei-faktor-authentifizierung formular
   // - shared secret
   // - use_2fa (an/aus)
-  public function twofa_form($base64_secret, $use_2fa, $section_start=false, $section_end=false) {
-    $section_start_str = $section_start ? "<section>\n\n" : "";
-    $section_end_str = $section_end ? "</section>\n\n" : "";
+  public function twofa_form($base64_secret, $use_2fa, $main_start=false, $main_end=false) {
+    $main_start_str = $main_start ? "<main>\n\n" : "";
+    $main_end_str = $main_end ? "</main>\n\n" : "";
     $shared_secret = base64_decode($base64_secret);
     if (!empty($shared_secret)) {
       $base32_secret = $this->base32_encode($shared_secret); // für qrcode
@@ -283,7 +283,7 @@ class Model {
       $base64_secret = "init";
       $base32_secret = "";
     }
-    $twofa_form = $section_start_str.
+    $twofa_form = $main_start_str.
                   "<p><b>".$this->language["HEADER_2FA"]."</b></p>\n".
                   "<form name=\"twofa_form\" action=\"backend.php\" method=\"post\">\n".
                   "<table class=\"backend\">\n".
@@ -314,7 +314,7 @@ class Model {
                    "</td>\n</tr>\n".
                    "</table>\n".
                    "</form>\n\n".
-                   $section_end_str;
+                   $main_end_str;
     return $twofa_form;
   }
 
@@ -592,7 +592,7 @@ class Model {
     if (!$this->database->connect_errno) {
       // wenn kein fehler
 
-      $html_backend_ext .= "<section>\n\n";
+      $html_backend_ext .= "<main>\n\n";
 
       // mit prepare() - sql injections verhindern
       $sql_update = "UPDATE backend SET password = ? WHERE id = ?";
@@ -619,7 +619,7 @@ class Model {
         $errorstring .= "db error 2b2\n";
       }
 
-      $html_backend_ext .= "</section>\n\n";
+      $html_backend_ext .= "</main>\n\n";
 
     } // datenbank
     else {
@@ -690,7 +690,7 @@ class Model {
     if (!$this->database->connect_errno) {
       // wenn kein fehler
 
-      $html_backend_ext .= "<section>\n\n";
+      $html_backend_ext .= "<main>\n\n";
 
       // mit prepare() - sql injections verhindern
       $sql_update = "UPDATE backend SET use_2fa = ?, base64_secret = AES_ENCRYPT(?, UNHEX('".Database::$AES_KEY."')) WHERE id = ?";
@@ -717,7 +717,7 @@ class Model {
         $errorstring .= "db error 2b4\n";
       }
 
-      $html_backend_ext .= "</section>\n\n";
+      $html_backend_ext .= "</main>\n\n";
 
     } // datenbank
     else {
@@ -734,10 +734,10 @@ class Model {
     $errorstring = "";
 
     if (!empty(VERSION)) {
-      $html_backend_ext .= "<section>\n\n".
+      $html_backend_ext .= "<main>\n\n".
                            "<p><b>".$this->language["HEADER_BACKEND"]."</b></p>\n\n".
                            "<p>".stripslashes($this->html5specialchars(VERSION))."</p>\n\n".
-                           "</section>\n\n";
+                           "</main>\n\n";
     }
     else {
       $errorstring .= "no version defined\n";

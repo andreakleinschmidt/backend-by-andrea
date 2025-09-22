@@ -8,7 +8,7 @@
  * CMS & blog software with frontend / backend
  *
  * This program is distributed under GNU GPL 3
- * Copyright (C) 2010-2018 Andrea Kleinschmidt <ak81 at oscilloworld dot de>
+ * Copyright (C) 2010-2025 Andrea Kleinschmidt <ak81 at oscilloworld dot de>
  *
  * This program includes a MERGED version of PHP QR Code library
  * PHP QR Code is distributed under LGPL 3
@@ -73,7 +73,7 @@ class Photos extends Model {
     if (!$this->database->connect_errno) {
       // wenn kein fehler
 
-      $html_backend_ext .= "<section>\n\n";
+      $html_backend_ext .= "<main>\n\n";
 
       // TABLE ba_gallery (ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
       //                   ba_alias VARCHAR(16) NOT NULL,
@@ -291,7 +291,7 @@ class Photos extends Model {
         $html_backend_ext .= "<p>".$this->language["MSG_NO_GALLERY_CHOSEN"]."</p>\n\n";
       }
 
-      $html_backend_ext .= "</section>\n\n";
+      $html_backend_ext .= "</main>\n\n";
 
     } // datenbank
     else {
@@ -309,7 +309,7 @@ class Photos extends Model {
     if (!$this->database->connect_errno) {
       // wenn kein fehler
 
-      $html_backend_ext .= "<section>\n\n";
+      $html_backend_ext .= "<main>\n\n";
 
       // einfügen in datenbank , mit prepare() - sql injections verhindern
       $sql = "INSERT INTO ba_gallery (ba_alias, ba_text, ba_order) VALUES (?, ?, ?)";
@@ -336,7 +336,7 @@ class Photos extends Model {
         $errorstring .= "db error 4i\n";
       }
 
-      $html_backend_ext .= "</section>\n\n";
+      $html_backend_ext .= "</main>\n\n";
 
     } // datenbank
     else {
@@ -354,7 +354,7 @@ class Photos extends Model {
     if (!$this->database->connect_errno) {
       // wenn kein fehler
 
-      $html_backend_ext .= "<section>\n\n";
+      $html_backend_ext .= "<main>\n\n";
 
       $count = 0;
 
@@ -396,7 +396,7 @@ class Photos extends Model {
 
       $html_backend_ext .= "<p>".$count." ".$this->language["MSG_ROWS_CHANGED"]."</p>\n\n";
 
-      $html_backend_ext .= "</section>\n\n";
+      $html_backend_ext .= "</main>\n\n";
 
     } // datenbank
     else {
@@ -414,7 +414,7 @@ class Photos extends Model {
     if (!$this->database->connect_errno) {
       // wenn kein fehler
 
-      $html_backend_ext .= "<section>\n\n";
+      $html_backend_ext .= "<main>\n\n";
 
       // einfügen in datenbank , mit prepare() - sql injections verhindern
       $sql = "INSERT INTO ba_photos (ba_galleryid, ba_photoid, ba_text, ba_hide) VALUES (?, ?, ?, ?)";
@@ -441,7 +441,7 @@ class Photos extends Model {
         $errorstring .= "db error 4c\n";
       }
 
-      $html_backend_ext .= "</section>\n\n";
+      $html_backend_ext .= "</main>\n\n";
 
     } // datenbank
     else {
@@ -459,7 +459,7 @@ class Photos extends Model {
     if (!$this->database->connect_errno) {
       // wenn kein fehler
 
-      $html_backend_ext .= "<section>\n\n";
+      $html_backend_ext .= "<main>\n\n";
 
       $count = 0;
 
@@ -502,7 +502,7 @@ class Photos extends Model {
 
       $html_backend_ext .= "<p>".$count." ".$this->language["MSG_ROWS_CHANGED"]."</p>\n\n";
 
-      $html_backend_ext .= "</section>\n\n";
+      $html_backend_ext .= "</main>\n\n";
 
     } // datenbank
     else {

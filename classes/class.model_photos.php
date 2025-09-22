@@ -183,8 +183,8 @@ class Photos extends Model {
       }
 
       $replace = "<!-- photos -->\n".
-                 "<div id=\"grid-container-photos\">\n".
-                 "<div id=\"photos\">\n";
+                 "<main class=\"grid-container-photos\">\n".
+                 "<section class=\"photos\">\n";
 
       // GET id auslesen
       if (isset($id) and isset($photos[$id])) {
@@ -229,14 +229,14 @@ class Photos extends Model {
 
         $replace_figure = "";
       }
-
+      // /photos
       $replace .= $replace_figure.
-                  "</div>\n".
-                  "<div id=\"photostripscroll\">\n".
+                  "</section>\n".
+                  "<section class=\"photostripscroll\">\n".
                   "<a href=\"#\" onMouseOver=\"scrollup()\" onMouseOut=\"scrollstop()\"><img class=\"photos_arrow\" src=\"up.gif\" height=\"10\" width=\"50\"></a>\n".
                   "<noscript>no javascript</noscript>\n".
-                  "</div>\n".
-                  "<div id=\"photostrip\">\n";
+                  "</section>\n".
+                  "<section class=\"photostrip\">\n";
 
       foreach ($photos as $photoid => $phototext) {
         $imagename = "jpeg/".$photoid.".jpg";
@@ -248,13 +248,13 @@ class Photos extends Model {
           $replace .= "<p><a href=\"index.php?".$this->html_build_query($query_data)."\">".$this->language["FRONTEND_PHOTO"]."</a></p>\n";
         }
       }
-
-      $replace .= "</div>\n".
-                  "<div id=\"photostripscroll\">\n".
+      // /photostrip
+      $replace .= "</section>\n".
+                  "<section class=\"photostripscroll\">\n".
                   "<a href=\"#\" onMouseOver=\"scrolldown()\" onMouseOut=\"scrollstop()\"><img class=\"photos_arrow\" src=\"down.gif\" height=\"10\" width=\"50\"></a>\n".
                   "<noscript>no javascript</noscript>\n".
-                  "</div>\n".
-                  "</div>";
+                  "</section>\n".
+                  "</main>";	// grid-container
 
       $ret->close();	// db-ojekt schließen
       unset($ret);	// referenz löschen
@@ -277,7 +277,7 @@ class Photos extends Model {
     $rows = ceil(sizeof($galleries)/$columns);	// anzahl reihen in tabelle, aufgerundet
 
     $replace .= "<!-- photos -->\n".
-                "<div id=\"grid-container-gallery\">\n";
+                "<main class=\"grid-container-gallery\">\n";
 
     // zugriff auf mysql datenbank (4c), liste aller galerien mit anzahl darin enthaltener fotos
     $sql = "";
@@ -306,7 +306,7 @@ class Photos extends Model {
         }
       }
 
-      $replace .= "<div id=\"gallery\">\n".
+      $replace .= "<section class=\"gallery\">\n".
                   "<p><b>".$this->language["FRONTEND_GALLERIES"]." (".sizeof($galleries)."):</b></p>\n".
                   "<table class=\"tb_gallery\">\n";
 
@@ -333,7 +333,7 @@ class Photos extends Model {
 
       $replace .= "</table>\n".
                   "<p>(".$galleries_count["total"]["count"]." ".$this->language["FRONTEND_PHOTOS_TOTAL"].")</p>\n".
-                  "</div>\n";	// gallery
+                  "</section>\n";	// gallery
 
       $ret->close();	// db-ojekt schließen
       unset($ret);	// referenz löschen
@@ -349,7 +349,7 @@ class Photos extends Model {
       $errorstring .= $bannerstrip_array["error"];
     }
 
-    $replace .= "</div>";	// grid-container
+    $replace .= "</main>";	// grid-container
 
     if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("content" => $replace, "error" => $errorstring);

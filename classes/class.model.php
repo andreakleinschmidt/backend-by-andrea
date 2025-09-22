@@ -638,7 +638,7 @@ atom:
     $bannerstrip = "";
     $errorstring = "";
 
-    $bannerstrip .= "<div id=\"bannerstrip\">\n";
+    $bannerstrip .= "<section class=\"bannerstrip\">\n";
 
     // neustes bild
     $ret = $this->getRecentImageForBannerstrip();
@@ -655,7 +655,7 @@ atom:
       $query_data = array("action" => "photos", "gallery" => $ret["galleryalias"], "id" => $ret["photoid"]);
 
       $bannerstrip .= "<h3>".$this->language["FRONTEND_RECENT_IMAGE"]."</h3>\n".
-                      "<figure class=\"bannerstrip\">\n".
+                      "<figure class=\"bannerstrip_fig\">\n".
                       $replace_image."\n".
                       "<figcaption class=\"bannerstrip_caption\"><a href=\"index.php?".$this->html_build_query($query_data)."\">".$ret["phototext"]."</a> | <a href=\"photos/".$ret["galleryalias"]."/\">".$ret["gallerytext"]."</a></figcaption>\n".
                       "</figure>\n";
@@ -677,7 +677,7 @@ atom:
       }
 
       $bannerstrip .= "<h3>".$this->language["FRONTEND_RECENT_GALLERY"]."</h3>\n".
-                      "<figure class=\"bannerstrip\">\n".
+                      "<figure class=\"bannerstrip_fig\">\n".
                       $replace_image."\n".
                       "<figcaption class=\"bannerstrip_caption\"><a href=\"photos/".$ret["galleryalias"]."/\">".$ret["gallerytext"]."</a>";
 
@@ -697,7 +697,7 @@ atom:
       $errorstring .= $ret["error"];
     }
 
-    $bannerstrip .= "</div>\n";
+    $bannerstrip .= "</section>\n";	// bannerstrip
 
     if (DEBUG and !empty($errorstring)) { $errorstring .= "# ".__METHOD__." [".__FILE__."]\n"; }
     return array("bannerstrip" => $bannerstrip, "error" => $errorstring);

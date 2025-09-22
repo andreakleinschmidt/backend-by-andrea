@@ -52,7 +52,7 @@ class Home extends Model {
       // wenn kein fehler
 
       $replace .= "<!-- home -->\n".
-                  "<div id=\"grid-container-home\">\n";
+                  "<main class=\"grid-container-home\">\n";
 
       // zugriff auf mysql datenbank (2)
       $sql = "SELECT ba_element, ba_css, ba_value FROM ba_home";
@@ -60,7 +60,7 @@ class Home extends Model {
       if ($ret) {
         // wenn kein fehler 2
 
-        $replace .= "<div id=\"home\">\n";
+        $replace .= "<section class=\"home\">\n";
 
         while ($dataset = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
           $ba_element = trim($dataset["ba_element"]);
@@ -99,7 +99,7 @@ class Home extends Model {
 
         } // while
 
-        $replace .= "</div>\n";	// home
+        $replace .= "</section>\n";	// home
 
         $ret->close();	// db-ojekt schließen
         unset($ret);	// referenz löschen
@@ -115,7 +115,7 @@ class Home extends Model {
         $errorstring .= $bannerstrip_array["error"];
       }
 
-      $replace .= "</div>";	// grid-container
+      $replace .= "</main>";	// grid-container
 
     } // datenbank
     else {

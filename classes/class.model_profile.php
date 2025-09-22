@@ -177,7 +177,7 @@ class Profile extends Model {
       // wenn kein fehler
 
       $replace .= "<!-- profile -->\n".
-                  "<div id=\"grid-container-profile\">\n";
+                  "<main class=\"grid-container-profile\">\n";
 
       $last_text_id = $this->get_last_text_id();
       $languages_list = $this->get_languages_list();
@@ -193,7 +193,7 @@ class Profile extends Model {
       if ($ret) {
         // wenn kein fehler 3
 
-        $replace .= "<div id=\"profile\">\n";
+        $replace .= "<section class=\"profile\">\n";
 
         while ($dataset = $ret->fetch_assoc()) {	// fetch_assoc() liefert array, solange nicht NULL (letzter datensatz)
           $ba_id = intval($dataset["ba_id"]);
@@ -266,7 +266,7 @@ class Profile extends Model {
 
         } // while
 
-        $replace .= "</div>\n";	// profile
+        $replace .= "</section>\n";	// profile
 
         $ret->close();	// db-ojekt schließen
         unset($ret);	// referenz löschen
@@ -282,7 +282,7 @@ class Profile extends Model {
         $errorstring .= $bannerstrip_array["error"];
       }
 
-      $replace .= "</div>";	// grid-container
+      $replace .= "</main>";	// grid-container
 
     } // datenbank
     else {

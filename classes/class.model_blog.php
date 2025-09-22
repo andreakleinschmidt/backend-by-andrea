@@ -460,22 +460,24 @@ class Blog extends Model {
     if ($diary_mode) {
       // kein header, intro-text nur für ersten eintrag, full_name verdeckt
       if ($first_entry) {
-        $replace .= "<h2>".$blogintro."</h2>\n";
+        $replace .= "<header><h2>".$blogintro."</h2></header>\n";
       }
       $replace .= "<p><span id=\"white_bold\"><a href=\"blog/".$permalink."/\">[".$blogdate."]</a></span> <span id=\"white\"><a href=\"index.php?".$blog_author_query."\" title=\"".$full_name."\">&#9998;</a></span> ".$blogtext."</p>\n";
     }
     else {
       // mit header, full_name sichtbar, intro-text für jeden eintrag
-      $replace .= "<h1>".$blogheader."</h1>\n".
+      $replace .= "<header>\n".
+                  "<h1>".$blogheader."</h1>\n".
                   "<p><span id=\"white_small\"><a href=\"blog/".$permalink."/\">[".$blogdate."]</a> <a href=\"index.php?".$blog_author_query."\">".$full_name."</a></span></p>\n".
                   "<h2>".$blogintro."</h2>\n".
+                  "</header>\n".
                   "<p>".$blogtext."</p>\n";
     }
 
     // optional media-container, bricht floating figures
     $blogmedia = false;
     if (!empty($dataset["ba_videoid"]) or !empty($dataset["ba_photoid"])) {
-      $replace .= "<div id=\"blogmedia\">\n";
+      $replace .= "<footer>\n";
       $blogmedia = true;
     }
 
@@ -522,7 +524,7 @@ class Blog extends Model {
     }
 
     if ($blogmedia) {
-      $replace .= "</div>\n";
+      $replace .= "</footer>\n";
     }
 
     $blogid = $dataset["ba_id"];
@@ -875,20 +877,20 @@ class Blog extends Model {
       // wenn kein fehler
 
       $replace = "<!-- blog -->\n".
-                 "<div id=\"grid-container-blog\">\n";
+                 "<main class=\"grid-container-blog\">\n";
 
       $parameter_array = array();	// für links
       $option_array = array();	// für kommentar
 
       // formular für suche
-      $replace .= "<div id=\"blogquery\">\n";
+      $replace .= "<section class=\"blogquery\">\n";
       $replace .= "<form action=\"index.php\" method=\"get\">\n";
       $replace .= "<input type=\"hidden\" name=\"action\" value=\"blog\" />\n";
       $replace .= "<input type=\"text\" name=\"q\" placeholder=\"".$this->language["BUTTON_SEARCH"]."\" class=\"size_80p\" maxlength=\"64\" onkeyup=\"ajax('suggest',this.value);\" />\n";
       $replace .= "<input type=\"submit\" value=\"&crarr;\" class=\"size_20p\" />\n";
       $replace .= "<div id=\"suggestion\"></div>";
       $replace .= "</form>\n";
-      $replace .= "</div>\n";
+      $replace .= "</section>\n";	// blogquery
 
       // tags
       $tags_from_db = $this->get_tags_from_db();	// array mit category als key und zweites array mit allen tag_data zeilen, weiterverwendung weiter unten
@@ -903,7 +905,7 @@ class Blog extends Model {
       }
 
       // tags und rubriken als drop down menue (checkbox + label für mobile version)
-      $replace .= "<div id=\"blogtag\">\n".
+      $replace .= "<section class=\"blogtag\">\n".
                   "<input type=\"checkbox\" class=\"checkbox_hack more\" id=\"mobile_menue\" checked=\"checked\">\n".
                   "<label class=\"more\" for=\"mobile_menue\">&equiv;</label>\n".
                   "<ul>\n";
@@ -945,7 +947,7 @@ class Blog extends Model {
       }
 
       $replace .= "</ul>\n".
-                  "</div>\n";
+                  "</section>\n";	// blogtag
 
       // array mit comment-id und blog-id
       $blog_comment_id_array = $this->get_blog_comment_id_array();
@@ -980,12 +982,12 @@ class Blog extends Model {
 
       } // suche oder anzeigen
 
-      $replace .= "<div id=\"blog\">\n";
+      $replace .= "<section class=\"blog\">\n";
 
       $replace .= $ret_array["content"];
       $errorstring .= $ret_array["error"];
 
-      $replace .= "</div>\n";
+      $replace .= "</section>\n";	// blog
 
       // blogleiste
 
@@ -1003,9 +1005,9 @@ class Blog extends Model {
         $year_month_list = $this->year_month_list(0, 0);	// default
       }
 
-      $replace .= "<div id=\"blogstrip\">\n".$taglist.$year_month_list."</div>\n";
+      $replace .= "<section class=\"blogstrip\">\n".$taglist.$year_month_list."</section>\n";	// blogstrip
 
-      $replace .= "<div id=\"blogcommentform\" data-nosnippet>\n";
+      $replace .= "<section class=\"blogcommentform\" data-nosnippet>\n";
 
       // kommentar
       if (sizeof($option_array) > 0) {
@@ -1016,9 +1018,9 @@ class Blog extends Model {
         $errorstring .= $ret_array["error"];
 
       } // kommentar
-
-      $replace .= "</div>\n".
-                  "</div>";
+      // /blogcommentform
+      $replace .= "</section>\n".
+                  "</main>";	// grid-container
 
     } // datenbank
     else {
@@ -1674,7 +1676,7 @@ class Blog extends Model {
       $contact_mail = stripslashes($this->getOption_by_name("contact_mail", true));	// als string
 
       $replace = "<!-- blog (POST comment) -->\n".
-                 "<div id=\"blog\">\n";
+                 "<section class=\"blog\">\n";
 
       // IP zeitlimit überprüfen
       $comment_ip = $_SERVER["REMOTE_ADDR"];
@@ -1751,7 +1753,7 @@ class Blog extends Model {
         $replace .= "<p>".$this->language["FRONTEND_MSG_TIMELIMIT_MINUTES"]."</p>\n";
       }
 
-      $replace .= "</div>";
+      $replace .= "</section>";	// blog
 
     } // datenbank
     else {

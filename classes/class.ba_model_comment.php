@@ -8,7 +8,7 @@
  * CMS & blog software with frontend / backend
  *
  * This program is distributed under GNU GPL 3
- * Copyright (C) 2010-2018 Andrea Kleinschmidt <ak81 at oscilloworld dot de>
+ * Copyright (C) 2010-2025 Andrea Kleinschmidt <ak81 at oscilloworld dot de>
  *
  * This program includes a MERGED version of PHP QR Code library
  * PHP QR Code is distributed under LGPL 3
@@ -307,7 +307,7 @@ class Comment extends Model {
     if (!$this->database->connect_errno) {
       // wenn kein fehler
 
-      $html_backend_ext .= "<section>\n\n";
+      $html_backend_ext .= "<main>\n\n";
 
       // TABLE ba_comment (ba_id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
       //                   ba_userid INT UNSIGNED NOT NULL,
@@ -462,7 +462,7 @@ class Comment extends Model {
       $html_backend_ext .= $commentlist["content"];
       $errorstring .= $commentlist["error"];
 
-      $html_backend_ext .= "</section>\n\n";
+      $html_backend_ext .= "</main>\n\n";
 
     } // datenbank
     else {
@@ -480,7 +480,7 @@ class Comment extends Model {
     if (!$this->database->connect_errno) {
       // wenn kein fehler
 
-      $html_backend_ext .= "<section>\n\n";
+      $html_backend_ext .= "<main>\n\n";
 
       if ($ba_id != 0xffff) {
 
@@ -536,7 +536,7 @@ class Comment extends Model {
         $errorstring .= "no id!\n";
       }
 
-      $html_backend_ext .= "</section>\n\n";
+      $html_backend_ext .= "</main>\n\n";
 
     } // datenbank
     else {

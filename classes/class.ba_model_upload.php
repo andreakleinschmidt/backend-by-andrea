@@ -8,7 +8,7 @@
  * CMS & blog software with frontend / backend
  *
  * This program is distributed under GNU GPL 3
- * Copyright (C) 2010-2018 Andrea Kleinschmidt <ak81 at oscilloworld dot de>
+ * Copyright (C) 2010-2025 Andrea Kleinschmidt <ak81 at oscilloworld dot de>
  *
  * This program includes a MERGED version of PHP QR Code library
  * PHP QR Code is distributed under LGPL 3
@@ -96,7 +96,7 @@ class Upload extends Model {
   }
 
   public function getUpload() {
-    $html_backend_ext = "<section>\n\n";
+    $html_backend_ext = "<main>\n\n";
 
     // fileupload formular
     $html_backend_ext .= "<p id=\"upload\"><b>".$this->language["HEADER_UPLOAD"]."</b></p>\n\n".
@@ -126,13 +126,13 @@ class Upload extends Model {
                          "</td>\n</tr>\n".
                          "</table>\n\n";
 
-    $html_backend_ext .= "</section>\n\n";
+    $html_backend_ext .= "</main>\n\n";
 
     return array("content" => $html_backend_ext);
   }
 
   public function postUpload($tmp_name, $name) {
-    $html_backend_ext = "<section>\n\n";
+    $html_backend_ext = "<main>\n\n";
     $errorstring = "";
 
     if (function_exists("finfo_open")) {
@@ -175,7 +175,7 @@ class Upload extends Model {
       $errorstring .= "error fileupload - module fileinfo doesn't exist\n";
     }
 
-    $html_backend_ext .= "</section>\n\n";
+    $html_backend_ext .= "</main>\n\n";
 
     return array("content" => $html_backend_ext, "error" => $errorstring);
   }
